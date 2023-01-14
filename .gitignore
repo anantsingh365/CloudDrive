@@ -31,3 +31,5 @@ build/
 
 ### VS Code ###
 .vscode/
+/src/main/java/com/anant/CloudDrive/temp.java
+/src/main/resources/S3Credentials.properties
