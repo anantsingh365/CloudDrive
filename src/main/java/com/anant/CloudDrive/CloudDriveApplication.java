@@ -4,6 +4,7 @@ import com.amazonaws.auth.PropertiesFileCredentialsProvider;
 import com.amazonaws.regions.Regions;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3ClientBuilder;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
@@ -23,4 +24,5 @@ public class CloudDriveApplication {
 				.withRegion(Regions.AP_SOUTH_1)
 				.build();
 	}
+
 }
