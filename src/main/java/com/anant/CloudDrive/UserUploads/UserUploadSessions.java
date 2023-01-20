@@ -1,7 +1,7 @@
 package com.anant.CloudDrive.UserUploads;
 
-import com.anant.CloudDrive.GetApplicationContext;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Component;
 
 import java.util.concurrent.ConcurrentHashMap;
@@ -10,27 +10,37 @@ import java.util.concurrent.ConcurrentHashMap;
 public class UserUploadSessions {
 
     @Autowired
-    private  GetApplicationContext context;
+    private ApplicationContext context;
 
+    //stores current upload sessions for users
     private final ConcurrentHashMap<String, UserUploadSession> sessions = new ConcurrentHashMap<>();
 
     public UserUploadSessions(){}
 
     public  String getUploadId(String userName, String keyName){
-        var userUploadSession = getUserUploadSession(userName);
-        if(userUploadSession == null){
-             insertUserUploadSession(userName, context.getApplicationContext().getBean(UserUploadSession.class));
-             UserUploadSession newUserUploadSession = getUserUploadSession(userName);
-             return newUserUploadSession.getUserSpecificUploadId(userName, keyName);
+        var userSession = getExistingSession(userName);
+
+        //there is no active user session present, create new
+        //this will be created only once per user
+        if(userSession == null){
+             var newSession = createNewSession(userName, context.getBean(UserUploadSession.class));
+             return newSession.getUploadId(userName, keyName);
         }
-        return userUploadSession.getUserSpecificUploadId(userName, keyName);
+        //each time a new upload id has to be generated
+        return userSession.getUploadId(userName, keyName);
     }
 
-    private  UserUploadSession getUserUploadSession(String userName){
+    public UserUploadSession getUserSession(String userName){
         return sessions.get(userName);
     }
 
-    private void insertUserUploadSession(String userName, UserUploadSession userUploadSession){
-        sessions.put(userName, userUploadSession);
+    private  UserUploadSession getExistingSession(String userName){
+        return sessions.get(userName);
+    }
+
+    private UserUploadSession createNewSession(String userName, UserUploadSession userUploadSession){
+        var newSession = context.getBean(UserUploadSession.class);
+        sessions.put(userName, newSession);
+        return newSession;
     }
 }

@@ -78,34 +78,45 @@ public class Home {
 
     @PostMapping("/uploadFile")
     @ResponseBody
-    public synchronized ResponseEntity<String> bytePrint(InputStream is, HttpServletRequest req, @RequestHeader Map<String, String> headers) throws IOException, InterruptedException {
-
-        System.out.println("receiving data for userID "+ SecurityContextHolder.getContext().getAuthentication().getName());
-
-        headers.forEach( (key,value) -> System.out.println(key + ": "+value));
+    public  ResponseEntity<String> bytePrint(InputStream is, HttpServletRequest req, @RequestHeader Map<String, String> headers) throws IOException, InterruptedException {
 
         String userId = headers.get("user-id");
-
         if(userId == null){
-            System.out.println("Sending Bad Request");
             return  ResponseEntity.badRequest().body("User Id Missing");
         }
+        headers.forEach((key, value) -> System.out.println(key+": " + value));
 
+        System.out.println("receiving data for userID ");
+        String userName = SecurityContextHolder.getContext().getAuthentication().getName();
+        String isLastPart = headers.get("islastpart");
 
-//        UserUpload userUpload = userUploadEntries.getUserUploadEntry(SecurityContextHolder.getContext().getAuthentication().getName());
-//        if(userUpload == null){
-//
-//        }
+        var session = userUploadSessions.getUserSession(userName);
+        var entry =     session.getUploadEntry(userId);
 
-        File file = new File("file");
-        OutputStream os = new FileOutputStream(file, true);
-
-        System.out.println(is.transferTo(os) + " bytes appended to the file");
-
-        is.close();
-        os.close();
-
-        System.out.println("################### A PART HAS BEEN WRITTEN ###############");
+        if(isLastPart.equals("false")){
+            entry.upload(req.getInputStream(), -1);
+            System.out.println("upload Complete for a part");
+        }else if (isLastPart.equals("true")){
+            String lastPartSize = headers.get("content-length");
+            entry.upload(req.getInputStream(), Long.parseLong(lastPartSize));
+            System.out.println("#######################   upload Complete for all parts for upload Id "+ userId+ " ###########################");
+        }else{
+            return ResponseEntity.badRequest().body("isLastPart Header missing");
+        }
         return ResponseEntity.ok().body("dataReceived");
+    }
+
+    @PostMapping("/CompleteUpload")
+    @ResponseBody
+    public String completeUpload(@RequestHeader Map<String, String> headers){
+        //return "Upload complete for user "+ SecurityContextHolder.getContext().getAuthentication().getName();
+        String uploadId = headers.get("user-id");
+        String userName = SecurityContextHolder.getContext().getAuthentication().getName();
+
+        var session = userUploadSessions.getUserSession(userName);
+        var entry =     session.getUploadEntry(uploadId);
+
+        entry.completeUserUpload();
+        return "uploadComplete for uploadId " + uploadId;
     }
 }

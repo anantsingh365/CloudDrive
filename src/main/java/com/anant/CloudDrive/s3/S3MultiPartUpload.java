@@ -1,7 +1,6 @@
 package com.anant.CloudDrive.s3;
 
 import com.amazonaws.SdkClientException;
-import com.amazonaws.regions.Regions;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.*;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,13 +19,15 @@ import java.util.List;
 @PropertySource("classpath:S3Credentials.properties")
 public class S3MultiPartUpload {
 
-    @Value("${s3.bucketName}")
-    private String bucketName;
-
     @Autowired
     private AmazonS3 s3Client;
 
-    private List<PartETag> partETags = new ArrayList<>();
+    @Value("${s3.bucketName}")
+    private String bucketName;
+
+    private final List<PartETag> partETags = new ArrayList<>();
+
+    private static final long PART_SIZE = 14 * 1024 * 1024;
 
     private int partNumber = 1;
     private InitiateMultipartUploadRequest initRequest;
@@ -36,53 +37,71 @@ public class S3MultiPartUpload {
 
     private String userUploadKeyName;
 
-
     public S3MultiPartUpload(){}
 
-    public void initiateUploadForKeyName(String userName, String keyName){
+    public void setUploadKeyName(String userName, String keyName){
+            this.userUploadKeyName = getUserNamePrefixForKeyName(userName, keyName);
+    }
+
+    private void initiateUploadForKeyName(String userSpecificKeyName){
         if(!isUploadInitiated){
             // Initiate the multipart upload.
-            initRequest = new InitiateMultipartUploadRequest(bucketName, getUserNamePrefixForKeyName(userName, keyName));
+            initRequest = new InitiateMultipartUploadRequest(bucketName, userSpecificKeyName);
             initResponse = s3Client.initiateMultipartUpload(initRequest);
+            isUploadInitiated = true;
         }else{
-            throw new IllegalStateException("Upload has already been initiated for keyName "+ keyName);
+            throw new IllegalStateException("Upload has already been initiated for keyName "+ userSpecificKeyName);
         }
     }
     private String getUserNamePrefixForKeyName(String username, String keyName){
         return userUploadKeyName = username +"/" + keyName;
     }
 
-    public void upload(String keyName, InputStream ins){
-        Regions clientRegion = Regions.AP_SOUTH_1;
-        long partSize = 14 * 1024 * 1024; // Set part size to 14 MB.
+    public void upload(InputStream ins, long partSize){
 
-        try {
-                // Create the request to upload a part.
-                UploadPartRequest uploadRequest = new UploadPartRequest()
+        UploadPartRequest uploadPartRequest = new UploadPartRequest();
+
+        if( partSize == -1){
+            partSize = (int) PART_SIZE;
+          }
+//        else
+//           uploadPartRequest = setLastPart(uploadPartRequest);
+//        }
+
+        if(!isUploadInitiated) {
+            initiateUploadForKeyName(userUploadKeyName);
+        }
+            try {
+                //UploadPartRequest uploadRequest = new UploadPartRequest()
+                        uploadPartRequest
                         .withBucketName(bucketName)
                         .withKey(userUploadKeyName)
                         .withUploadId(initResponse.getUploadId())
+                        .withLastPart(true)
                         .withPartNumber(partNumber)
-//                        .withFileOffset(filePosition)
-//                        .withFile(file)
                         .withInputStream(ins)
                         .withPartSize(partSize);
 
                 // Upload the part and add the response's ETag to our list.
-                UploadPartResult uploadResult = s3Client.uploadPart(uploadRequest);
+                UploadPartResult uploadResult = s3Client.uploadPart(uploadPartRequest);
                 partETags.add(uploadResult.getPartETag());
-                System.out.println("Only 1 time");
+                System.out.println("Uploading a part for key " + userUploadKeyName);
                 ++partNumber;
 
-            System.out.println("Upload aborted");
-        } catch (SdkClientException e) {
-            e.printStackTrace();
-        }
+               // System.out.println("Upload aborted");
+            } catch (SdkClientException e) {
+                e.printStackTrace();
+            }
+    }
+    public UploadPartRequest setLastPart(UploadPartRequest req){
+        return req.withLastPart(true);
     }
 
-    public void completeUserUpload(){
+      public void completeUserUpload(){
         // Complete the multipart upload.
         CompleteMultipartUploadRequest compRequest = new CompleteMultipartUploadRequest(bucketName, userUploadKeyName,
                 initResponse.getUploadId(), partETags);
+        var result = s3Client.completeMultipartUpload(compRequest);
+          System.out.println("upload for keyName "+result.getKey()+" complete");
     }
 }

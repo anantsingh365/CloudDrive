@@ -35,6 +35,7 @@ public class Config {
                                 .requestMatchers("/UserHome").hasRole("USER")
                                 .requestMatchers("/uploadFile").hasRole("USER")
                                 .requestMatchers("/uploadId").hasRole("USER")
+                                .requestMatchers("/CompleteUpload").hasRole("USER")
                                 .requestMatchers("/js/**").permitAll()
                                 .requestMatchers("/css/**").permitAll()
                 ).formLogin(
