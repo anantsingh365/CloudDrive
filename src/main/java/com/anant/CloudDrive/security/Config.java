@@ -32,17 +32,14 @@ public class Config {
                 .authorizeHttpRequests((authorize) ->
                         authorize.requestMatchers("/register/**").permitAll()
                                 .requestMatchers("/register").permitAll()
-                                .requestMatchers("/UserHome").hasRole("USER")
-                                .requestMatchers("/uploadFile").hasRole("USER")
-                                .requestMatchers("/uploadId").hasRole("USER")
-                                .requestMatchers("/CompleteUpload").hasRole("USER")
+                                .requestMatchers("/user/**").hasRole("USER")
                                 .requestMatchers("/js/**").permitAll()
                                 .requestMatchers("/css/**").permitAll()
                 ).formLogin(
                         form -> form
                                 .loginPage("/login")
                                 .loginProcessingUrl("/login")
-                                .defaultSuccessUrl("/UserHome",true)
+                                .defaultSuccessUrl("/user/home",true)
                                 .permitAll()
                 ).logout(
                         logout -> logout
