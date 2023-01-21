@@ -1,6 +1,7 @@
 package com.anant.CloudDrive.UserUploads;
 
 import com.anant.CloudDrive.s3.S3MultiPartUpload;
+import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
@@ -15,11 +16,11 @@ import java.util.concurrent.ConcurrentHashMap;
 @Component
 @Qualifier("userUploadSession")
 @Scope(value = ConfigurableBeanFactory.SCOPE_PROTOTYPE)
-public class UserUploadSession {
+public class UploadSession {
 
     @Autowired
     private  ApplicationContext context;
-
+    @Autowired private Logger logger;
     //represents multiple upload entries from a user
     private final ConcurrentHashMap<String, S3MultiPartUpload> uploadEntries= new ConcurrentHashMap<>();
 
@@ -30,9 +31,11 @@ public class UserUploadSession {
         }
         //for every ask same entry will be used.
         createEntry(uploadId).setUploadKeyName(userName, keyName);
+        logger.info("Created Upload Entry for User - {}, Upload Id - {}", userName, uploadId);
         return uploadId;
      }
-     public S3MultiPartUpload getUploadEntry(String uploadId){
+
+     public S3MultiPartUpload getEntry(String uploadId){
          return uploadEntries.get(uploadId);
      }
 

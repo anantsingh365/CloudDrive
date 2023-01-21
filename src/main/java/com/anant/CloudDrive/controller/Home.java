@@ -1,14 +1,17 @@
 package com.anant.CloudDrive.controller;
 
-import com.anant.CloudDrive.UserUploads.UserUploadSession;
-import com.anant.CloudDrive.UserUploads.UserUploadSessions;
+import com.anant.CloudDrive.UserUploads.UploadSession;
+import com.anant.CloudDrive.UserUploads.UploadSessionsHolder;
 import com.anant.CloudDrive.dto.UserDto;
 import com.anant.CloudDrive.entity.User;
 import com.anant.CloudDrive.s3.S3MultiPartUpload;
 import com.anant.CloudDrive.service.UserService;
+
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
+
+import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -25,19 +28,19 @@ import java.util.Map;
 public class Home {
 
     @Autowired
-    private UserUploadSessions userUploadSessions;
+    private UploadSessionsHolder uploadSessionsHolder;
 
     @Autowired
     private UserService userService;
 
     @Autowired
-    private UserUploadSession userUploadEntries;
+    private UploadSession userUploadEntries;
+
+    @Autowired
+    private Logger logger;
 
     @GetMapping("/user/home")
     public String UserHome(HttpSession session){
-
-        //to do list files
-        System.out.println(session.getId());
         return "UserHome";
     }
 
@@ -72,30 +75,37 @@ public class Home {
 
     @GetMapping("/user/uploadId")
     @ResponseBody
-    public String uploadId(@RequestHeader Map<String,String> headers){
-        String keyName = headers.get("filenmae");
-        String userName = SecurityContextHolder.getContext().getAuthentication().getName();
-        return  userUploadSessions.getUploadId(userName, keyName);
+    public ResponseEntity<String> uploadId(@RequestHeader Map<String,String> headers){
+        String keyName = headers.get("filename");
+        String userName = getLoggedInUserName();
+        if(keyName == null){
+            return ResponseEntity.badRequest().body("filename missing");
+        }
+        var session = uploadSessionsHolder.getSession(userName, keyName);
+        var uploadId = session.getUploadId(userName, keyName);
+
+        return  ResponseEntity.ok().body(uploadId);
     }
 
     @PostMapping("/user/uploadFile")
     @ResponseBody
     public  ResponseEntity<String> uploadFile(HttpServletRequest req,
-                                              @RequestHeader Map<String, String> headers)
-                                                throws IOException{
-
+                              @RequestHeader Map<String, String> headers)
+                                                        throws IOException{
         //headers.forEach((key, value) -> System.out.println(key+": " + value));
-        String userName = SecurityContextHolder.getContext().getAuthentication().getName();
+        String userName = getLoggedInUserName();
         String uploadId = headers.get("user-id");
         String contentLength = headers.get("content-length");
+        if( uploadId == null || contentLength == null ){
+            return  ResponseEntity.badRequest().body("Headers missing");
+        }
         var entry = getUserEntry(userName, uploadId);
 
-        if(uploadId == null || entry == null || contentLength == null){
+        if( entry == null ) {
             return  ResponseEntity.badRequest().body("Invalid Request");
         }
-            entry.upload(req.getInputStream(), Long.parseLong(contentLength));
-            System.out.println("upload Complete for a part");
-
+        entry.upload(req.getInputStream(), Long.parseLong(contentLength));
+        logger.info("upload Complete for a part");
         return ResponseEntity.ok().body("dataReceived");
     }
 
@@ -107,18 +117,28 @@ public class Home {
 
     @PostMapping("/user/CompleteUpload")
     @ResponseBody
-    public String completeUpload(@RequestHeader Map<String, String> headers){
-        //return "Upload complete for user "+ SecurityContextHolder.getContext().getAuthentication().getName();
+    public ResponseEntity<String> completeUpload(@RequestHeader Map<String, String> headers){
         String uploadId = headers.get("user-id");
-        String userName = SecurityContextHolder.getContext().getAuthentication().getName();
+        String userName = getLoggedInUserName();
+        if(uploadId == null){
+            return ResponseEntity.badRequest().body("UploadId Missing");
+        }
         var entry = getUserEntry(userName, uploadId);
-
+        if(entry == null){
+            return ResponseEntity.badRequest().body("Invalid Request");
+        }
         entry.completeUserUpload();
-        return "uploadComplete for uploadId " + uploadId;
+        return ResponseEntity.ok().body("uploadComplete for uploadId " + uploadId);
     }
 
     private S3MultiPartUpload getUserEntry(String userName, String uploadId){
-        var session = userUploadSessions.getUserSession(userName);
-        return session.getUploadEntry(uploadId);
+        var session = uploadSessionsHolder.getExistingSession(userName);
+        if(session == null){
+            return null;
+        }
+        return session.getEntry(uploadId);
+    }
+    private String getLoggedInUserName(){
+        return SecurityContextHolder.getContext().getAuthentication().getName();
     }
 }

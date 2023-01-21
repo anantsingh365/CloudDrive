@@ -89,7 +89,7 @@ function getUploadId(url, file){
     let xhr = new XMLHttpRequest();
             xhr.open("GET", url, true);
             xhr.setRequestHeader("Accept", "application/json");
-            xhr.setRequestHeader("FileNmae", file.name);
+            xhr.setRequestHeader("FileName", file.name);
             xhr.setRequestHeader("MimeType", file.type);
             xhr.onload = function () {
                 console.log(xhr.responeText);
