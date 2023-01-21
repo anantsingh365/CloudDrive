@@ -37,7 +37,7 @@ public class UserUploadSession {
      }
 
      private S3MultiPartUpload createEntry(String uploadId){
-        S3MultiPartUpload s3MultiPartUpload = context.getBean(S3MultiPartUpload.class);
+        var s3MultiPartUpload = context.getBean(S3MultiPartUpload.class);
         this.uploadEntries.put(uploadId, s3MultiPartUpload);
         return s3MultiPartUpload;
      }
