@@ -12,6 +12,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public class UploadSessionsHolder {
 
     @Autowired private ApplicationContext context;
+    @Autowired UploadSession uploadSession;
     @Autowired private Logger logger;
 
     //stores current upload sessions for users
@@ -19,13 +20,13 @@ public class UploadSessionsHolder {
 
     public UploadSessionsHolder(){}
 
-    public  UploadSession getSession(String userName, String keyName){
+    public  UploadSession getSession(String userName){
         var userSession = getExistingSession(userName);
 
         //if there is no active user session present, create new
         //this will be created only once per user
         if(userSession == null){
-            return createNewSession(userName, context.getBean(UploadSession.class));
+            return createNewSession(userName, uploadSession);
         }
         //each time a new upload id has to be generated
         return userSession;
@@ -35,8 +36,7 @@ public class UploadSessionsHolder {
         return sessions.get(userName);
     }
     private UploadSession createNewSession(String userName, UploadSession uploadSession){
-        var newSession = context.getBean(UploadSession.class);
-        sessions.put(userName, newSession);
-        return newSession;
+        sessions.put(userName, uploadSession);
+        return uploadSession;
     }
 }

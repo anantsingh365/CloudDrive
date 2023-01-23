@@ -21,23 +21,15 @@ import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.*;
-import java.util.Map;
 
 @Controller
 @SessionAttributes("SessionClass")
 public class Home {
 
-    @Autowired
-    private UploadSessionsHolder uploadSessionsHolder;
-
-    @Autowired
-    private UserService userService;
-
-    @Autowired
-    private UploadSession userUploadEntries;
-
-    @Autowired
-    private Logger logger;
+    @Autowired private UploadSessionsHolder uploadSessionsHolder;
+    @Autowired private UserService userService;
+    @Autowired private UploadSession userUploadEntries;
+    @Autowired private Logger logger;
 
     @GetMapping("/user/home")
     public String UserHome(HttpSession session){
@@ -75,38 +67,31 @@ public class Home {
 
     @GetMapping("/user/uploadId")
     @ResponseBody
-    public ResponseEntity<String> uploadId(@RequestHeader Map<String,String> headers){
-        String keyName = headers.get("filename");
+    public ResponseEntity<String> uploadId(@RequestHeader ("filename") String fileName){
         String userName = getLoggedInUserName();
-        if(keyName == null){
-            return ResponseEntity.badRequest().body("filename missing");
+        if(fileName == null){
+            return makeBadResponse("filename missing");
         }
-        var session = uploadSessionsHolder.getSession(userName, keyName);
-        var uploadId = session.getUploadId(userName, keyName);
-
-        return  ResponseEntity.ok().body(uploadId);
+        var uploadId = getUploadSession().getUploadId(fileName);
+        return  makeOkResponse(uploadId);
     }
 
     @PostMapping("/user/uploadFile")
     @ResponseBody
-    public  ResponseEntity<String> uploadFile(HttpServletRequest req,
-                              @RequestHeader Map<String, String> headers)
-                                                        throws IOException{
-        //headers.forEach((key, value) -> System.out.println(key+": " + value));
-        String userName = getLoggedInUserName();
-        String uploadId = headers.get("user-id");
-        String contentLength = headers.get("content-length");
+    public  ResponseEntity<String> uploadFile(InputStream ins,
+                                              @RequestHeader ("user-id") String uploadId,
+                                              @RequestHeader ("content-length") String contentLength)
+    {
         if( uploadId == null || contentLength == null ){
-            return  ResponseEntity.badRequest().body("Headers missing");
+            return  makeBadResponse("Headers missing");
         }
-        var entry = getUserEntry(userName, uploadId);
-
+        var entry = getUserEntry(uploadId);
         if( entry == null ) {
-            return  ResponseEntity.badRequest().body("Invalid Request");
+            return makeBadResponse("No Entry For Upload Id " + uploadId + " exists");
         }
-        entry.upload(req.getInputStream(), Long.parseLong(contentLength));
+        entry.upload(ins, Long.parseLong(contentLength));
         logger.info("upload Complete for a part");
-        return ResponseEntity.ok().body("dataReceived");
+        return makeOkResponse("dataReceived");
     }
 
     @PostMapping("/user/download")
@@ -117,28 +102,32 @@ public class Home {
 
     @PostMapping("/user/CompleteUpload")
     @ResponseBody
-    public ResponseEntity<String> completeUpload(@RequestHeader Map<String, String> headers){
-        String uploadId = headers.get("user-id");
-        String userName = getLoggedInUserName();
-        if(uploadId == null){
-            return ResponseEntity.badRequest().body("UploadId Missing");
+    public ResponseEntity<String> completeUpload(@RequestHeader ("user-id") String uploadId){
+        if(uploadId == null) {
+            return makeBadResponse("UploadId Missing");
         }
-        var entry = getUserEntry(userName, uploadId);
-        if(entry == null){
-            return ResponseEntity.badRequest().body("Invalid Request");
+        var entry = getUserEntry(uploadId);
+        if(entry == null) {
+            return makeBadResponse("No Entry For Upload Id " + uploadId + " exists");
         }
         entry.completeUserUpload();
-        return ResponseEntity.ok().body("uploadComplete for uploadId " + uploadId);
+        return makeOkResponse("uploadComplete for uploadId " + uploadId);
     }
 
-    private S3MultiPartUpload getUserEntry(String userName, String uploadId){
-        var session = uploadSessionsHolder.getExistingSession(userName);
-        if(session == null){
-            return null;
-        }
-        return session.getEntry(uploadId);
+    private UploadSession getUploadSession(){
+        return uploadSessionsHolder.getSession(getLoggedInUserName());
+    }
+    private S3MultiPartUpload getUserEntry(String uploadId){
+        var session = uploadSessionsHolder.getExistingSession(getLoggedInUserName());
+        return session != null? session.getEntry(uploadId):null;
     }
     private String getLoggedInUserName(){
         return SecurityContextHolder.getContext().getAuthentication().getName();
+    }
+    private ResponseEntity<String> makeBadResponse(String reason){
+        return ResponseEntity.badRequest().body(reason);
+    }
+    private ResponseEntity<String> makeOkResponse(String message){
+        return ResponseEntity.ok().body(message);
     }
 }

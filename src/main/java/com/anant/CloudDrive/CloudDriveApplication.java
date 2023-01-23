@@ -35,5 +35,4 @@ public class CloudDriveApplication {
 		Class<?> classOnWired = injectionPoint.getMember().getDeclaringClass();
 		return LoggerFactory.getLogger(classOnWired);
 	}
-
 }

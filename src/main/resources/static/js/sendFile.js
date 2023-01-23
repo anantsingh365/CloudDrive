@@ -1,4 +1,4 @@
-const defaultPartSize = 14 * 1024 * 1024;
+const defaultPartSize = 3000 * 1024 * 1024;
 var fileObj;
 var uploadId;
 var uploadCompleteDoneMessage;
@@ -43,8 +43,6 @@ async function sendFileInPartsToUrl(fileObj, partSize, url){
     let endIndx;
     var filePart;
     let uploadID;
-
-   // uploadID = getUploadId();
 
     //file smaller than 14 mb, send it directly
     if(fileObj.size < (partSize)){
