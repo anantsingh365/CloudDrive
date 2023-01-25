@@ -31,7 +31,7 @@ public class CloudDriveApplication {
 
 	@Bean
 	@Scope("prototype")
-	public Logger produceLogger(InjectionPoint injectionPoint) {
+	public Logger getLogger(InjectionPoint injectionPoint) {
 		Class<?> classOnWired = injectionPoint.getMember().getDeclaringClass();
 		return LoggerFactory.getLogger(classOnWired);
 	}

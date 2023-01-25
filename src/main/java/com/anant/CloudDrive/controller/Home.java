@@ -7,7 +7,6 @@ import com.anant.CloudDrive.entity.User;
 import com.anant.CloudDrive.s3.S3MultiPartUpload;
 import com.anant.CloudDrive.service.UserService;
 
-import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 
@@ -19,6 +18,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
+import org.w3c.dom.ls.LSOutput;
 
 import java.io.*;
 
@@ -70,10 +70,10 @@ public class Home {
     public ResponseEntity<String> uploadId(@RequestHeader ("filename") String fileName){
         String userName = getLoggedInUserName();
         if(fileName == null){
-            return makeBadResponse("filename missing");
+            return returnBadResponse("filename missing");
         }
-        var uploadId = getUploadSession().getUploadId(fileName);
-        return  makeOkResponse(uploadId);
+        var uploadId = getUploadSession().registerUploadId(fileName);
+        return  returnOkResponse(uploadId);
     }
 
     @PostMapping("/user/uploadFile")
@@ -83,15 +83,19 @@ public class Home {
                                               @RequestHeader ("content-length") String contentLength)
     {
         if( uploadId == null || contentLength == null ){
-            return  makeBadResponse("Headers missing");
+            return  returnBadResponse("Headers missing");
         }
         var entry = getUserEntry(uploadId);
         if( entry == null ) {
-            return makeBadResponse("No Entry For Upload Id " + uploadId + " exists");
+            return returnBadResponse("No Entry For Upload Id " + uploadId + " exists");
         }
-        entry.upload(ins, Long.parseLong(contentLength));
-        logger.info("upload Complete for a part");
-        return makeOkResponse("dataReceived");
+        boolean isUploadSuccess = entry.upload(ins, Long.parseLong(contentLength));
+        if(isUploadSuccess) {
+            logger.info("upload Complete for a part");
+            return returnOkResponse("dataReceived");
+        }
+        logger.info("part upload failed for  user " + getLoggedInUserName());
+        return returnInternalServerError();
     }
 
     @PostMapping("/user/download")
@@ -104,14 +108,14 @@ public class Home {
     @ResponseBody
     public ResponseEntity<String> completeUpload(@RequestHeader ("user-id") String uploadId){
         if(uploadId == null) {
-            return makeBadResponse("UploadId Missing");
+            return returnBadResponse("UploadId Missing");
         }
         var entry = getUserEntry(uploadId);
         if(entry == null) {
-            return makeBadResponse("No Entry For Upload Id " + uploadId + " exists");
+            return returnBadResponse("No Entry For Upload Id " + uploadId + " exists");
         }
-        entry.completeUserUpload();
-        return makeOkResponse("uploadComplete for uploadId " + uploadId);
+        return entry.completeUserUpload() ? returnOkResponse("uploadComplete for uploadId " + uploadId) : returnBadResponse("couldn't " +
+                "complete upload for upload id - " + uploadId);
     }
 
     private UploadSession getUploadSession(){
@@ -119,15 +123,18 @@ public class Home {
     }
     private S3MultiPartUpload getUserEntry(String uploadId){
         var session = uploadSessionsHolder.getExistingSession(getLoggedInUserName());
-        return session != null? session.getEntry(uploadId):null;
+        return session != null ? session.getEntry(uploadId) : null;
     }
     private String getLoggedInUserName(){
         return SecurityContextHolder.getContext().getAuthentication().getName();
     }
-    private ResponseEntity<String> makeBadResponse(String reason){
+    private ResponseEntity<String> returnBadResponse(String reason){
         return ResponseEntity.badRequest().body(reason);
     }
-    private ResponseEntity<String> makeOkResponse(String message){
+    private ResponseEntity<String> returnOkResponse(String message){
         return ResponseEntity.ok().body(message);
+    }
+    private ResponseEntity<String> returnInternalServerError(){
+        return ResponseEntity.internalServerError().body("Something went wrong while processing the request");
     }
 }

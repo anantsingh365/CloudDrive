@@ -25,7 +25,7 @@ public class UploadSession {
     //represents multiple upload entries from a user
     private final ConcurrentHashMap<String, S3MultiPartUpload> uploadEntries= new ConcurrentHashMap<>();
 
-    public String getUploadId(String keyName){
+    public String registerUploadId(String keyName){
         String uploadId = UUID.randomUUID().toString();
         if(uploadEntries.containsKey(uploadId)){
             throw new RuntimeException("Couldn't generate a unique uploadId");
