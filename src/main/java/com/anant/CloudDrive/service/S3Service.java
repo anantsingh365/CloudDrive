@@ -29,11 +29,10 @@ public class S3Service {
         this.uploadSessionsHolder = uploadSessionsHolder;
     }
 
-    public void getUploadId(){
-
+    public String getUploadId(String fileName){
+        return getUploadSession().registerUploadId(fileName);
 
     }
-
     public boolean upload(UploadRequest req){
         var session = uploadSessionsHolder.getSession(getLoggedInUserName());
         var entry = session.getEntry(req.getUploadId());
@@ -43,7 +42,6 @@ public class S3Service {
         entry.upload(req);
         return true;
     }
-
     public boolean completeUpload(String uploadId){
         var entry = getUserEntry(uploadId);
         return entry != null && entry.completeUserUpload();
@@ -79,5 +77,8 @@ public class S3Service {
     private S3MultiPartUpload getUserEntry(String uploadId){
         var session = uploadSessionsHolder.getExistingSession(getLoggedInUserName());
         return session != null ? session.getEntry(uploadId) : null;
+    }
+    private UploadSession getUploadSession(){
+        return uploadSessionsHolder.getSession(getLoggedInUserName());
     }
 }

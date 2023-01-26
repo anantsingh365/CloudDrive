@@ -70,12 +70,7 @@ public class Home {
     @GetMapping("/user/uploadId")
     @ResponseBody
     public ResponseEntity<String> uploadId(@RequestHeader ("filename") String fileName){
-        String userName = getLoggedInUserName();
-        if(fileName == null){
-            return returnBadResponse("filename missing");
-        }
-        var uploadId = getUploadSession().registerUploadId(fileName);
-        return  returnOkResponse(uploadId);
+        return fileName == null ? returnBadResponse("filname missing") : returnOkResponse(s3Service.getUploadId(fileName));
     }
 
     @PostMapping("/user/uploadFile")
@@ -105,13 +100,6 @@ public class Home {
         }
         return s3Service.completeUpload(uploadId) ? returnOkResponse("uploadComplete for uploadId " + uploadId) : returnBadResponse("couldn't " +
                 "complete upload for upload id - " + uploadId);
-    }
-
-    private UploadSession getUploadSession(){
-        return uploadSessionsHolder.getSession(getLoggedInUserName());
-    }
-    private String getLoggedInUserName(){
-        return SecurityContextHolder.getContext().getAuthentication().getName();
     }
     private ResponseEntity<String> returnBadResponse(String reason){
         return ResponseEntity.badRequest().body(reason);
