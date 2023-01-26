@@ -4,9 +4,12 @@ import com.anant.CloudDrive.UserUploads.UploadSession;
 import com.anant.CloudDrive.UserUploads.UploadSessionsHolder;
 import com.anant.CloudDrive.dto.UserDto;
 import com.anant.CloudDrive.entity.User;
+import com.anant.CloudDrive.requests.UploadRequest;
 import com.anant.CloudDrive.s3.S3MultiPartUpload;
+import com.anant.CloudDrive.service.S3Service;
 import com.anant.CloudDrive.service.UserService;
 
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 
@@ -18,8 +21,6 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
-import org.w3c.dom.ls.LSOutput;
-
 import java.io.*;
 
 @Controller
@@ -30,6 +31,7 @@ public class Home {
     @Autowired private UserService userService;
     @Autowired private UploadSession userUploadEntries;
     @Autowired private Logger logger;
+    @Autowired S3Service s3Service;
 
     @GetMapping("/user/home")
     public String UserHome(HttpSession session){
@@ -85,21 +87,12 @@ public class Home {
         if( uploadId == null || contentLength == null ){
             return  returnBadResponse("Headers missing");
         }
-        var entry = getUserEntry(uploadId);
-        if( entry == null ) {
-            return returnBadResponse("No Entry For Upload Id " + uploadId + " exists");
-        }
-        boolean isUploadSuccess = entry.upload(ins, Long.parseLong(contentLength));
-        if(isUploadSuccess) {
-            logger.info("upload Complete for a part");
-            return returnOkResponse("dataReceived");
-        }
-        logger.info("part upload failed for  user " + getLoggedInUserName());
-        return returnInternalServerError();
+        var req = new UploadRequest(ins, uploadId, Long.parseLong(contentLength));
+        return  s3Service.upload(req) ? returnOkResponse("upload Complete for a part") : returnInternalServerError();
     }
 
     @PostMapping("/user/download")
-    public String userDownload(){
+    public String userDownload(HttpServletResponse res){
         //to do
         return null;
     }
@@ -110,20 +103,12 @@ public class Home {
         if(uploadId == null) {
             return returnBadResponse("UploadId Missing");
         }
-        var entry = getUserEntry(uploadId);
-        if(entry == null) {
-            return returnBadResponse("No Entry For Upload Id " + uploadId + " exists");
-        }
-        return entry.completeUserUpload() ? returnOkResponse("uploadComplete for uploadId " + uploadId) : returnBadResponse("couldn't " +
+        return s3Service.completeUpload(uploadId) ? returnOkResponse("uploadComplete for uploadId " + uploadId) : returnBadResponse("couldn't " +
                 "complete upload for upload id - " + uploadId);
     }
 
     private UploadSession getUploadSession(){
         return uploadSessionsHolder.getSession(getLoggedInUserName());
-    }
-    private S3MultiPartUpload getUserEntry(String uploadId){
-        var session = uploadSessionsHolder.getExistingSession(getLoggedInUserName());
-        return session != null ? session.getEntry(uploadId) : null;
     }
     private String getLoggedInUserName(){
         return SecurityContextHolder.getContext().getAuthentication().getName();

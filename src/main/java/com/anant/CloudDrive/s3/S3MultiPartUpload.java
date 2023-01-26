@@ -3,6 +3,7 @@ package com.anant.CloudDrive.s3;
 import com.amazonaws.SdkClientException;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.*;
+import com.anant.CloudDrive.requests.UploadRequest;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -21,33 +22,40 @@ import java.util.List;
 public class S3MultiPartUpload {
 
     private final List<PartETag> partETags = new ArrayList<>();
-    @Autowired private AmazonS3 s3Client;
-    @Value("${s3.bucketName}") private String bucketName;
-    @Autowired private Logger logger;
+    private final AmazonS3 s3Client;
+    private final String bucketName;
+    private final Logger logger;
     private int partNumber = 1;
     private InitiateMultipartUploadResult initResponse;
     private boolean isUploadInitiated = false;
     private boolean isUploadCompleted = false;
     private String userUploadKeyName;
 
-    public S3MultiPartUpload() {
+    public S3MultiPartUpload(@Value("${s3.bucketName}") String bucketName,
+                             @Autowired AmazonS3 s3Client,
+                             @Autowired Logger logger)
+    {
+        this.bucketName = bucketName;
+        this.s3Client = s3Client;
+        this.logger = logger;
     }
 
     public void setUploadKeyName(String userName, String keyName) {
         this.userUploadKeyName = getUserNamePrefixForKeyName(userName, keyName);
     }
-
     private void initiateUploadForKeyName(String userSpecificKeyName) {
         var initRequest = new InitiateMultipartUploadRequest(bucketName, userSpecificKeyName);
         initResponse = s3Client.initiateMultipartUpload(initRequest);
         isUploadInitiated = true;
     }
-
     private String getUserNamePrefixForKeyName(String username, String keyName) {
         return userUploadKeyName = username + "/" + keyName;
     }
 
-    public boolean upload(InputStream ins, long partSize) {
+    public boolean upload(UploadRequest req) {
+
+        InputStream ins = req.getInputStream();
+        Long partSize = req.getContentLength();
 
         if (!isUploadInitiated && !isUploadCompleted) {
             initiateUploadForKeyName(userUploadKeyName);
@@ -89,7 +97,7 @@ public class S3MultiPartUpload {
         try {
             result = s3Client.completeMultipartUpload(compRequest);
         } catch (Exception e) {
-            logger.info("upload for keyName {} failee", userUploadKeyName);
+            logger.info("upload for keyName {} failed", userUploadKeyName);
             e.printStackTrace();
             return false;
         }
