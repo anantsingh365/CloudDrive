@@ -1,6 +1,5 @@
-package com.anant.CloudDrive.UserUploads;
+package com.anant.CloudDrive.s3.UserUploads;
 
-import com.anant.CloudDrive.s3.S3MultiPartUpload;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -11,40 +10,41 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 
 import java.util.UUID;
-
 import java.util.concurrent.ConcurrentHashMap;
 
 @Component
 @Qualifier("userUploadSession")
 @Scope(value = ConfigurableBeanFactory.SCOPE_PROTOTYPE)
-public class UploadSession {
+public class UploadSession{
 
     @Autowired private  ApplicationContext context;
     @Autowired private Logger logger;
 
     //represents multiple upload entries from a user
-    private final ConcurrentHashMap<String, S3MultiPartUpload> uploadEntries= new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<String, UploadEntry> uploadEntries= new ConcurrentHashMap<>();
 
     public String registerUploadId(String keyName){
-        String uploadId = UUID.randomUUID().toString();
-        if(uploadEntries.containsKey(uploadId)){
+        String freshUploadId = UUID.randomUUID().toString();
+        if(uploadIdAlreadyExists(freshUploadId)){
             throw new RuntimeException("Couldn't generate a unique uploadId");
         }
         //for every ask same entry will be used.
-        createEntry(uploadId).setUploadKeyName(getUserName(), keyName);
-        logger.info("Created Upload Entry for User - {}, Upload Id - {}", getUserName(), uploadId);
-        return uploadId;
+        createEntry(freshUploadId).setUploadKeyName(getUserName(), keyName);
+        logger.info("Created Upload Entry for User - {}, Upload Id - {}", getUserName(), freshUploadId);
+        return freshUploadId;
      }
-
-     public S3MultiPartUpload getEntry(String uploadId){
+     public UploadEntry getEntry(String uploadId){
          return uploadEntries.get(uploadId);
      }
      private String getUserName(){
         return SecurityContextHolder.getContext().getAuthentication().getName();
      }
-     private S3MultiPartUpload createEntry(String uploadId){
-        var s3MultiPartUpload = context.getBean(S3MultiPartUpload.class);
+     private UploadEntry createEntry(String uploadId){
+        var s3MultiPartUpload = context.getBean(UploadEntry.class);
         this.uploadEntries.put(uploadId, s3MultiPartUpload);
         return s3MultiPartUpload;
+     }
+     private boolean uploadIdAlreadyExists(String uploadId){
+        return uploadEntries.containsKey(uploadId);
      }
 }

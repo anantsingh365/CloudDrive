@@ -1,4 +1,4 @@
-package com.anant.CloudDrive.s3;
+package com.anant.CloudDrive.s3.UserUploads;
 
 import com.amazonaws.SdkClientException;
 import com.amazonaws.services.s3.AmazonS3;
@@ -19,7 +19,7 @@ import java.util.List;
 @Component
 @Scope(value = ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 @PropertySource("classpath:S3Credentials.properties")
-public class S3MultiPartUpload {
+public class UploadEntry {
 
     private final List<PartETag> partETags = new ArrayList<>();
     private final AmazonS3 s3Client;
@@ -31,9 +31,9 @@ public class S3MultiPartUpload {
     private boolean isUploadCompleted = false;
     private String userUploadKeyName;
 
-    public S3MultiPartUpload(@Value("${s3.bucketName}") String bucketName,
-                             @Autowired AmazonS3 s3Client,
-                             @Autowired Logger logger)
+    public UploadEntry(@Value("${s3.bucketName}") String bucketName,
+                       @Autowired AmazonS3 s3Client,
+                       @Autowired Logger logger)
     {
         this.bucketName = bucketName;
         this.s3Client = s3Client;
@@ -55,7 +55,7 @@ public class S3MultiPartUpload {
     public boolean upload(UploadRequest req) {
 
         InputStream ins = req.getInputStream();
-        Long partSize = req.getContentLength();
+        long partSize = req.getContentLength();
 
         if (!isUploadInitiated && !isUploadCompleted) {
             initiateUploadForKeyName(userUploadKeyName);
@@ -90,6 +90,11 @@ public class S3MultiPartUpload {
 
     public boolean completeUserUpload() {
         // Complete the multipart upload.
+
+        if(isUploadCompleted){
+            logger.info("Upload for keyName {} already completed", userUploadKeyName);
+            return true;
+        }
         var compRequest = new CompleteMultipartUploadRequest(bucketName, userUploadKeyName,
                 initResponse.getUploadId(), partETags);
 

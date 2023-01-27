@@ -2,79 +2,101 @@ package com.anant.CloudDrive.service;
 
 import com.amazonaws.services.s3.AmazonS3;
 import com.anant.CloudDrive.requests.UploadRequest;
-import com.anant.CloudDrive.s3.S3MultiPartUpload;
+import com.anant.CloudDrive.s3.S3Operations;
+import com.anant.CloudDrive.s3.UserUploads.UploadEntry;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import com.anant.CloudDrive.UserUploads.*;
+import com.anant.CloudDrive.s3.UserUploads.*;
+import org.springframework.core.io.InputStreamResource;
+import org.springframework.core.io.Resource;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
+import java.io.InputStream;
+import java.util.List;
+
 @Service
-public class S3Service {
+public class S3Service implements StorageService {
 
     private final AmazonS3 s3Client;
     private final Logger logger;
     private final String bucketName;
     private final UploadSessionsHolder uploadSessionsHolder;
+    private final S3Operations s3Operations;
 
-    public S3Service(@Value("{$s3.bucketName}") String bucketName,
+    public S3Service(@Value("${s3.bucketName}") String bucketName,
                      @Autowired AmazonS3 s3Client,
                      @Autowired Logger logger,
-                     @Autowired UploadSessionsHolder uploadSessionsHolder)
+                     @Autowired UploadSessionsHolder uploadSessionsHolder,
+                     @Autowired S3Operations s3Operations)
     {
         this.bucketName = bucketName;
         this.s3Client = s3Client;
         this.logger = logger;
         this.uploadSessionsHolder = uploadSessionsHolder;
+        this.s3Operations = s3Operations;
     }
 
+    @Override
     public String getUploadId(String fileName){
-        return getUploadSession().registerUploadId(fileName);
+        return this.getUploadSession().registerUploadId(fileName);
 
     }
+
+    @Override
     public boolean upload(UploadRequest req){
-        var session = uploadSessionsHolder.getSession(getLoggedInUserName());
+        var session = this.getUploadSession();
         var entry = session.getEntry(req.getUploadId());
         if(entry == null){
+
             return false;
         }
-        entry.upload(req);
-        return true;
+        return entry.upload(req);
     }
+
+    @Override
     public boolean completeUpload(String uploadId){
-        var entry = getUserEntry(uploadId);
+        var entry = this.getUserEntry(uploadId);
         return entry != null && entry.completeUserUpload();
     }
 
-    public void download(){
+    @Override
+    public Resource download(int id){
+        String temp = "test@gmail.com/Ted Striker - Love Is Gonna Make Us Stronger (Accu Remix).flac";
 
+        InputStream s3ObjectInputStream= s3Operations.getS3ObjectInputStream(temp);
+        return gets3ObjectAsResource(s3ObjectInputStream);
+
+    }
+    private Resource gets3ObjectAsResource(InputStream ins){
+        return new InputStreamResource(ins);
+    }
+
+    @Override
+    public List<String> getFilesListing(){
+        //get objects for user with username as prefix
+        return s3Operations.getUserFileListing();
+    }
+
+    @Override
+    public void getObjectMetaData(int id){
 
     }
 
-    public void getUserListing(){
-
-
+    @Override
+    public boolean deleteUserFile(int id){
+        return false;
     }
 
-    public void getObjectMetadata(){
-
-
-    }
-
-    public void deleteUserfile(){
-
-
-    }
-
-    public void renameFile(){
-
-
+    @Override
+    public boolean renameFile(int id){
+        return false;
     }
     private String getLoggedInUserName(){
         return SecurityContextHolder.getContext().getAuthentication().getName();
     }
-    private S3MultiPartUpload getUserEntry(String uploadId){
+    private UploadEntry getUserEntry(String uploadId){
         var session = uploadSessionsHolder.getExistingSession(getLoggedInUserName());
         return session != null ? session.getEntry(uploadId) : null;
     }

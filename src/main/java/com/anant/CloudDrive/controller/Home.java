@@ -1,12 +1,9 @@
 package com.anant.CloudDrive.controller;
 
-import com.anant.CloudDrive.UserUploads.UploadSession;
-import com.anant.CloudDrive.UserUploads.UploadSessionsHolder;
 import com.anant.CloudDrive.dto.UserDto;
 import com.anant.CloudDrive.entity.User;
 import com.anant.CloudDrive.requests.UploadRequest;
-import com.anant.CloudDrive.s3.S3MultiPartUpload;
-import com.anant.CloudDrive.service.S3Service;
+import com.anant.CloudDrive.service.StorageService;
 import com.anant.CloudDrive.service.UserService;
 
 import jakarta.servlet.http.HttpServletResponse;
@@ -15,6 +12,7 @@ import jakarta.validation.Valid;
 
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.*;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
@@ -22,19 +20,24 @@ import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import java.io.*;
+import java.net.MalformedURLException;
+import java.util.List;
 
 @Controller
 @SessionAttributes("SessionClass")
 public class Home {
 
-    @Autowired private UploadSessionsHolder uploadSessionsHolder;
     @Autowired private UserService userService;
-    @Autowired private UploadSession userUploadEntries;
     @Autowired private Logger logger;
-    @Autowired S3Service s3Service;
+    @Autowired StorageService storageService;
 
     @GetMapping("/user/home")
-    public String UserHome(HttpSession session){
+    public String UserHome(Model model, HttpSession session){
+        storageService.getFilesListing()
+                .forEach(System.out::println);
+        System.out.println(session.getId());
+        //model.addAttribute("fileListing", fileListing);
+
         return "UserHome";
     }
 
@@ -70,7 +73,7 @@ public class Home {
     @GetMapping("/user/uploadId")
     @ResponseBody
     public ResponseEntity<String> uploadId(@RequestHeader ("filename") String fileName){
-        return fileName == null ? returnBadResponse("filname missing") : returnOkResponse(s3Service.getUploadId(fileName));
+        return fileName == null ? returnBadResponse("filname missing") : returnOkResponse(storageService.getUploadId(fileName));
     }
 
     @PostMapping("/user/uploadFile")
@@ -83,13 +86,15 @@ public class Home {
             return  returnBadResponse("Headers missing");
         }
         var req = new UploadRequest(ins, uploadId, Long.parseLong(contentLength));
-        return  s3Service.upload(req) ? returnOkResponse("upload Complete for a part") : returnInternalServerError();
+        return  storageService.upload(req) ? returnOkResponse("upload Complete for a part") : returnInternalServerError();
     }
 
     @PostMapping("/user/download")
-    public String userDownload(HttpServletResponse res){
+    public ResponseEntity<Resource> userDownload() throws FileNotFoundException, MalformedURLException {
         //to do
-        return null;
+        return ResponseEntity
+                .ok()
+                .body(storageService.download(23));
     }
 
     @PostMapping("/user/CompleteUpload")
@@ -98,9 +103,10 @@ public class Home {
         if(uploadId == null) {
             return returnBadResponse("UploadId Missing");
         }
-        return s3Service.completeUpload(uploadId) ? returnOkResponse("uploadComplete for uploadId " + uploadId) : returnBadResponse("couldn't " +
+        return storageService.completeUpload(uploadId) ? returnOkResponse("uploadComplete for uploadId " + uploadId) : returnBadResponse("couldn't " +
                 "complete upload for upload id - " + uploadId);
     }
+
     private ResponseEntity<String> returnBadResponse(String reason){
         return ResponseEntity.badRequest().body(reason);
     }
