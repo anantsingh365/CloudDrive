@@ -4,6 +4,7 @@ import com.amazonaws.AmazonServiceException;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.DeleteObjectRequest;
 import com.amazonaws.services.s3.model.S3Object;
+import com.amazonaws.services.s3.model.S3ObjectSummary;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -32,12 +33,14 @@ public class S3Operations {
     private String getUserNameFolderPrefix(){
         return getLoggedInUserName() + "/";
     }
+
     private String getLoggedInUserName() {
         return SecurityContextHolder
                 .getContext()
                 .getAuthentication()
                 .getName();
     }
+
     public void downloadFile(){
         S3Object o = s3Client.getObject(bucketName, getUserNameFolderPrefix());
     }
@@ -49,12 +52,13 @@ public class S3Operations {
         return s3Client.listObjectsV2(bucketName, getLoggedInUserName()+"/")
                 .getObjectSummaries().stream()
                     .map(
-                        elem -> elem.getKey()
-                                .substring((getLoggedInUserName()+"/")
-                                .length())
+                            S3ObjectSummary::getKey
+//                                .substring((getLoggedInUserName()+"/")
+//                                .length())
                         )
                 .toList();
     }
+
     public InputStream getS3ObjectInputStream(String keyName){
         return s3Client
                 .getObject(bucketName, keyName)
@@ -75,5 +79,4 @@ public class S3Operations {
     public boolean renameFile(){
         return false;
     }
-    
 }

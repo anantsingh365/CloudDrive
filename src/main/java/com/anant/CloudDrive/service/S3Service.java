@@ -31,7 +31,6 @@ public class S3Service implements StorageService {
                      @Autowired S3Operations s3Operations)
     {
         this.bucketName = bucketName;
-       // this.s3Client = s3Client;
         this.logger = logger;
         this.uploadSessionsHolder = uploadSessionsHolder;
         this.s3Operations = s3Operations;
@@ -57,13 +56,14 @@ public class S3Service implements StorageService {
     }
 
     @Override
-    public Resource download(int id){
-        String temp = "test@gmail.com/Ted Striker - Love Is Gonna Make Us Stronger (Accu Remix).flac";
+    public Resource download(String key){
+        //String temp = "test@gmail.com/Ted Striker - Love Is Gonna Make Us Stronger (Accu Remix).flac";
 
-        InputStream s3ObjectInputStream= s3Operations.getS3ObjectInputStream(temp);
+        InputStream s3ObjectInputStream= s3Operations.getS3ObjectInputStream(key);
         return gets3ObjectAsResource(s3ObjectInputStream);
 
     }
+
     private Resource gets3ObjectAsResource(InputStream ins){
         return new InputStreamResource(ins);
     }
@@ -80,10 +80,10 @@ public class S3Service implements StorageService {
     }
 
     @Override
-    public boolean deleteUserFile(int id){
+    public boolean deleteUserFile(String key){
        // final AmazonS3 s3 = AmazonS3ClientBuilder.standard().withRegion(Regions.DEFAULT_REGION).build();
-        String temp = "test@gmail.com/Ted Striker - Love Is Gonna Make Us Stronger (Accu Remix).flac";
-        return s3Operations.deleteObject(temp);
+       // String temp = "test@gmail.com/Ted Striker - Love Is Gonna Make Us Stronger (Accu Remix).flac";
+        return s3Operations.deleteObject(key);
     }
 
     @Override

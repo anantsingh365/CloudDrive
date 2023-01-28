@@ -21,10 +21,12 @@ import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import java.io.*;
 import java.net.MalformedURLException;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Controller
-@SessionAttributes("SessionClass")
+@SessionAttributes("fileList")
 public class Home {
 
     @Autowired private UserService userService;
@@ -33,9 +35,17 @@ public class Home {
 
     @GetMapping("/user/home")
     public String UserHome(Model model, HttpSession session){
-        storageService.getFilesListing()
-                .forEach(System.out::println);
+        var fileList =  storageService.getFilesListing()
+                                                        .stream()
+                                                        .toList();
+        HashMap<Integer, String> fileListIdMapping = new HashMap<>();
+
+        for(int i =0; i < fileList.size() ; i++){
+            fileListIdMapping.put(i, fileList.get(i));
+            System.out.println(fileListIdMapping.get(i));
+        }
         System.out.println(session.getId());
+        model.addAttribute("fileList", fileListIdMapping);
         //model.addAttribute("fileListing", fileListing);
 
         return "UserHome";
@@ -89,18 +99,26 @@ public class Home {
         return  storageService.upload(req) ? returnOkResponse("upload Complete for a part") : returnInternalServerError();
     }
 
-    @PostMapping("/user/download")
-    public ResponseEntity<Resource> userDownload() throws FileNotFoundException, MalformedURLException {
+    @PostMapping("/user/download{id}")
+    public ResponseEntity<Resource> userDownload(@RequestParam("id") int id,Model model)
+            throws FileNotFoundException, MalformedURLException
+    {
         //to do
+        Map<Integer, String> fileList = (HashMap<Integer, String>) model.getAttribute("fileList");
+        String fileToDownload = fileList.get(id);
+
         return ResponseEntity
                 .ok()
-                .body(storageService.download(23));
+                .body(storageService.download(fileToDownload));
     }
 
     @PostMapping("/user/delete{id}")
     @ResponseBody
-    public String delete(){
-        boolean result =  storageService.deleteUserFile(0);
+    public String delete(@RequestParam("id") int id,Model model){
+
+        Map<Integer, String> fileList = (HashMap<Integer, String>) model.getAttribute("fileList");
+        String fileToDelete = fileList.get(id);
+        boolean result =  storageService.deleteUserFile(fileToDelete);
         return result ? returnOkResponse("file deleted").toString() : returnInternalServerError().toString();
     }
 
