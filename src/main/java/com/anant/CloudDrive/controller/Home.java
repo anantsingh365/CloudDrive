@@ -97,6 +97,13 @@ public class Home {
                 .body(storageService.download(23));
     }
 
+    @PostMapping("/user/delete{id}")
+    @ResponseBody
+    public String delete(){
+        boolean result =  storageService.deleteUserFile(0);
+        return result ? returnOkResponse("file deleted").toString() : returnInternalServerError().toString();
+    }
+
     @PostMapping("/user/CompleteUpload")
     @ResponseBody
     public ResponseEntity<String> completeUpload(@RequestHeader ("user-id") String uploadId){

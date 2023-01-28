@@ -1,13 +1,14 @@
 package com.anant.CloudDrive.service;
 
-import com.amazonaws.services.s3.AmazonS3;
 import com.anant.CloudDrive.requests.UploadRequest;
 import com.anant.CloudDrive.s3.S3Operations;
 import com.anant.CloudDrive.s3.UserUploads.UploadEntry;
+import com.anant.CloudDrive.s3.UserUploads.*;
+
 import org.slf4j.Logger;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import com.anant.CloudDrive.s3.UserUploads.*;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.core.io.Resource;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -19,20 +20,18 @@ import java.util.List;
 @Service
 public class S3Service implements StorageService {
 
-    private final AmazonS3 s3Client;
     private final Logger logger;
     private final String bucketName;
     private final UploadSessionsHolder uploadSessionsHolder;
     private final S3Operations s3Operations;
 
     public S3Service(@Value("${s3.bucketName}") String bucketName,
-                     @Autowired AmazonS3 s3Client,
                      @Autowired Logger logger,
                      @Autowired UploadSessionsHolder uploadSessionsHolder,
                      @Autowired S3Operations s3Operations)
     {
         this.bucketName = bucketName;
-        this.s3Client = s3Client;
+       // this.s3Client = s3Client;
         this.logger = logger;
         this.uploadSessionsHolder = uploadSessionsHolder;
         this.s3Operations = s3Operations;
@@ -48,11 +47,7 @@ public class S3Service implements StorageService {
     public boolean upload(UploadRequest req){
         var session = this.getUploadSession();
         var entry = session.getEntry(req.getUploadId());
-        if(entry == null){
-
-            return false;
-        }
-        return entry.upload(req);
+        return entry != null && entry.upload(req);
     }
 
     @Override
@@ -86,20 +81,25 @@ public class S3Service implements StorageService {
 
     @Override
     public boolean deleteUserFile(int id){
-        return false;
+       // final AmazonS3 s3 = AmazonS3ClientBuilder.standard().withRegion(Regions.DEFAULT_REGION).build();
+        String temp = "test@gmail.com/Ted Striker - Love Is Gonna Make Us Stronger (Accu Remix).flac";
+        return s3Operations.deleteObject(temp);
     }
 
     @Override
     public boolean renameFile(int id){
         return false;
     }
+
     private String getLoggedInUserName(){
         return SecurityContextHolder.getContext().getAuthentication().getName();
     }
+
     private UploadEntry getUserEntry(String uploadId){
         var session = uploadSessionsHolder.getExistingSession(getLoggedInUserName());
         return session != null ? session.getEntry(uploadId) : null;
     }
+
     private UploadSession getUploadSession(){
         return uploadSessionsHolder.getSession(getLoggedInUserName());
     }
