@@ -22,7 +22,7 @@ import java.util.List;
 public class UploadEntry {
 
     private final List<PartETag> partETags = new ArrayList<>();
-    private final AmazonS3 s3Client;
+    private AmazonS3 s3Client;
     private final String bucketName;
     private final Logger logger;
     private int partNumber = 1;
@@ -39,6 +39,7 @@ public class UploadEntry {
         this.s3Client = s3Client;
         this.logger = logger;
     }
+
 
     public void setUploadKeyName(String userName, String keyName) {
         this.userUploadKeyName = getUserNamePrefixForKeyName(userName, keyName);

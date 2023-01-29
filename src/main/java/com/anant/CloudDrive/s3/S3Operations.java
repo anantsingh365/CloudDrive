@@ -5,6 +5,8 @@ import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.DeleteObjectRequest;
 import com.amazonaws.services.s3.model.S3Object;
 import com.amazonaws.services.s3.model.S3ObjectSummary;
+import com.anant.CloudDrive.requests.UploadRequest;
+import com.anant.CloudDrive.s3.UserUploads.UploadEntry;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -45,11 +47,11 @@ public class S3Operations {
         S3Object o = s3Client.getObject(bucketName, getUserNameFolderPrefix());
     }
 
-    public List<String> getUserFileListing(){
+    public List<String> getUserFileListing(String key){
 
         // forward slash "/" is used to represent as folder in s3, there is no concept
         // of actual folders in s3. each user has a folder named after their username + "/".
-        return s3Client.listObjectsV2(bucketName, getLoggedInUserName()+"/")
+        return s3Client.listObjectsV2(bucketName, key+"/")
                 .getObjectSummaries().stream()
                     .map(
                             S3ObjectSummary::getKey
@@ -63,6 +65,10 @@ public class S3Operations {
         return s3Client
                 .getObject(bucketName, keyName)
                 .getObjectContent();
+    }
+
+    public boolean uploadFile(UploadEntry entry, UploadRequest req){
+        return entry.upload(req);
     }
 
     public boolean deleteObject(String keyName){

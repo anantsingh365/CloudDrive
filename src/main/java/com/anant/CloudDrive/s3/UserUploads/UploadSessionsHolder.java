@@ -18,19 +18,19 @@ public class UploadSessionsHolder {
 
     public UploadSessionsHolder(){}
 
-    public  UploadSession getSession(String userName){
-        var userSession = getExistingSession(userName);
+    public  UploadSession getSession(String session){
+        var userSession = getExistingSession(session);
         //if there is no active user session present, create new
-        //this will be created only once per user
+        //this will be created only once per sessionId
         if(userSession == null){
-            return createNewSession(userName);
+            return createNewSession(session);
         }
         //each time a new upload id has to be generated
         return userSession;
     }
 
-    public UploadSession getExistingSession(String userName){
-        return sessions.get(userName);
+    public UploadSession getExistingSession(String session){
+        return sessions.get(session);
     }
     private UploadSession createNewSession(String userName){
         var uploadSession = context.getBean(UploadSession.class);

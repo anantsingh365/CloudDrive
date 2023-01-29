@@ -13,6 +13,8 @@ import org.springframework.core.io.InputStreamResource;
 import org.springframework.core.io.Resource;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.context.WebApplicationContext;
+import org.springframework.web.context.request.RequestContextHolder;
 
 import java.io.InputStream;
 import java.util.List;
@@ -24,6 +26,7 @@ public class S3Service implements StorageService {
     private final String bucketName;
     private final UploadSessionsHolder uploadSessionsHolder;
     private final S3Operations s3Operations;
+    @Autowired WebApplicationContext context;
 
     public S3Service(@Value("${s3.bucketName}") String bucketName,
                      @Autowired Logger logger,
@@ -43,9 +46,10 @@ public class S3Service implements StorageService {
 
     @Override
     public boolean upload(UploadRequest req){
+
         var session = this.getUploadSession();
         var entry = session.getEntry(req.getUploadId());
-        return entry != null && entry.upload(req);
+        return entry != null && s3Operations.uploadFile(entry, req);
     }
 
     @Override
@@ -67,7 +71,7 @@ public class S3Service implements StorageService {
     @Override
     public List<String> getFilesListing(){
         //get objects for user with username as prefix
-        return s3Operations.getUserFileListing();
+        return s3Operations.getUserFileListing(getUserData(LoggedInUser.GET_USERNAME));
     }
 
     @Override
@@ -85,16 +89,34 @@ public class S3Service implements StorageService {
         return false;
     }
 
-    private String getLoggedInUserName(){
-        return SecurityContextHolder.getContext().getAuthentication().getName();
-    }
-
     private UploadEntry getUserEntry(String uploadId){
-        var session = uploadSessionsHolder.getExistingSession(getLoggedInUserName());
+        var session = uploadSessionsHolder.getExistingSession(getUserData(LoggedInUser.GET_SESSIONID));
         return session != null ? session.getEntry(uploadId) : null;
     }
 
     private UploadSession getUploadSession(){
-        return uploadSessionsHolder.getSession(getLoggedInUserName());
+        return uploadSessionsHolder.getSession(getUserData(LoggedInUser.GET_SESSIONID));
+    }
+
+    private String getUserData(LoggedInUser requestedData){
+        switch (requestedData){
+            case GET_SESSIONID ->  {
+                var sessionId = RequestContextHolder.currentRequestAttributes().getSessionId();
+                System.out.println("Session id from requestContextHolder is - " + sessionId);
+                return sessionId;
+            }
+            case GET_USERNAME -> {
+                return SecurityContextHolder.getContext().getAuthentication().getName();
+            }
+            case GET_AUTHORITIES -> {
+                return SecurityContextHolder.getContext().getAuthentication().getAuthorities().toString();
+            }
+        }
+        return null;
+    }
+    private enum LoggedInUser {
+        GET_SESSIONID,
+        GET_USERNAME,
+        GET_AUTHORITIES
     }
 }

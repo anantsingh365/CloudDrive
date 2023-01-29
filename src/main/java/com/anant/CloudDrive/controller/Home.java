@@ -44,7 +44,7 @@ public class Home {
         }
         System.out.println(session.getId());
         model.addAttribute("fileList", fileListIdMapping);
-
+        model.addAttribute("loggedInUser", SecurityContextHolder.getContext().getAuthentication().getName());
         return "UserHome";
     }
 
@@ -77,7 +77,7 @@ public class Home {
     @GetMapping("/user/uploadId")
     @ResponseBody
     public ResponseEntity<String> uploadId(@RequestHeader ("filename") String fileName){
-        return fileName == null ? returnBadResponse("filname missing") : returnOkResponse(storageService.getUploadId(fileName));
+        return fileName != null ?  returnOkResponse(storageService.getUploadId(fileName)):returnBadResponse("filname missing");
     }
 
     @PostMapping("/user/uploadFile")
@@ -89,14 +89,13 @@ public class Home {
         if( uploadId == null || contentLength == null ){
             return  returnBadResponse("Headers missing");
         }
+
         var req = new UploadRequest(ins, uploadId, Long.parseLong(contentLength));
         return  storageService.upload(req) ? returnOkResponse("upload Complete for a part") : returnInternalServerError();
     }
 
     @PostMapping("/user/download{id}")
-    public ResponseEntity<Resource> userDownload(@RequestParam("id") int id,Model model)
-            throws FileNotFoundException, MalformedURLException
-    {
+    public ResponseEntity<Resource> userDownload(@RequestParam("id") int id,Model model){
         //to do
         Map<Integer, String> fileList = (HashMap<Integer, String>) model.getAttribute("fileList");
         String fileToDownload = fileList.get(id);

@@ -9,8 +9,8 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 
+import java.util.HashMap;
 import java.util.UUID;
-import java.util.concurrent.ConcurrentHashMap;
 
 @Component
 @Qualifier("userUploadSession")
@@ -21,7 +21,7 @@ public class UploadSession{
     @Autowired private Logger logger;
 
     //represents multiple upload entries from a user
-    private final ConcurrentHashMap<String, UploadEntry> uploadEntries= new ConcurrentHashMap<>();
+    private final HashMap<String, UploadEntry> uploadEntries= new HashMap<>();
 
     public String registerUploadId(String keyName){
         String freshUploadId = UUID.randomUUID().toString();
@@ -29,14 +29,14 @@ public class UploadSession{
             throw new RuntimeException("Couldn't generate a unique uploadId");
         }
         //for every ask same entry will be used.
-        createEntry(freshUploadId).setUploadKeyName(getUserName(), keyName);
-        logger.info("Created Upload Entry for User - {}, Upload Id - {}", getUserName(), freshUploadId);
+        createEntry(freshUploadId).setUploadKeyName(getLoggedInUserName(), keyName);
+        logger.info("Created Upload Entry for User - {}, Upload Id - {}", getLoggedInUserName(), freshUploadId);
         return freshUploadId;
      }
      public UploadEntry getEntry(String uploadId){
          return uploadEntries.get(uploadId);
      }
-     private String getUserName(){
+     private String getLoggedInUserName(){
         return SecurityContextHolder.getContext().getAuthentication().getName();
      }
      private UploadEntry createEntry(String uploadId){
