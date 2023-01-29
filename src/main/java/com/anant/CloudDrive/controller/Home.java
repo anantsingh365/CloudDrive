@@ -6,7 +6,6 @@ import com.anant.CloudDrive.requests.UploadRequest;
 import com.anant.CloudDrive.service.StorageService;
 import com.anant.CloudDrive.service.UserService;
 
-import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 
@@ -15,14 +14,15 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.*;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.web.authentication.WebAuthenticationDetails;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
+
 import java.io.*;
 import java.net.MalformedURLException;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 @Controller
@@ -35,9 +35,7 @@ public class Home {
 
     @GetMapping("/user/home")
     public String UserHome(Model model, HttpSession session){
-        var fileList =  storageService.getFilesListing()
-                                                        .stream()
-                                                        .toList();
+        var fileList =  storageService.getFilesListing();
         HashMap<Integer, String> fileListIdMapping = new HashMap<>();
 
         for(int i =0; i < fileList.size() ; i++){
@@ -46,21 +44,17 @@ public class Home {
         }
         System.out.println(session.getId());
         model.addAttribute("fileList", fileListIdMapping);
-        //model.addAttribute("fileListing", fileListing);
 
         return "UserHome";
     }
 
     @GetMapping("/register")
     public String registerPage(Model model){
-        UserDto user = new UserDto();
-       // model.addAttribute("user", user);
         return "register";
     }
 
     @GetMapping("/login")
     public String loginForm(Model model) {
-        model.addAttribute("SessionClass",new SessionClass());
         return "login";
     }
 
@@ -107,6 +101,11 @@ public class Home {
         Map<Integer, String> fileList = (HashMap<Integer, String>) model.getAttribute("fileList");
         String fileToDownload = fileList.get(id);
 
+        if(fileToDownload == null){
+            return ResponseEntity
+                    .ok()
+                    .body(null);
+        }
         return ResponseEntity
                 .ok()
                 .body(storageService.download(fileToDownload));
@@ -118,6 +117,9 @@ public class Home {
 
         Map<Integer, String> fileList = (HashMap<Integer, String>) model.getAttribute("fileList");
         String fileToDelete = fileList.get(id);
+        if(fileToDelete != null){
+            fileList.remove(id);
+        }
         boolean result =  storageService.deleteUserFile(fileToDelete);
         return result ? returnOkResponse("file deleted").toString() : returnInternalServerError().toString();
     }

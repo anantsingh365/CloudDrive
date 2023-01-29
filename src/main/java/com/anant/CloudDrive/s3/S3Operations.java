@@ -66,7 +66,7 @@ public class S3Operations {
     }
 
     public boolean deleteObject(String keyName){
-        //DeleteObjectRequest del = new DeleteObjectRequest()
+        //DeleteObjectRequest del = new DeleteObjectRequest();
         try{
             s3Client.deleteObject(bucketName, keyName);
             return true;

@@ -39,7 +39,6 @@ public class S3Service implements StorageService {
     @Override
     public String getUploadId(String fileName){
         return this.getUploadSession().registerUploadId(fileName);
-
     }
 
     @Override
@@ -57,11 +56,8 @@ public class S3Service implements StorageService {
 
     @Override
     public Resource download(String key){
-        //String temp = "test@gmail.com/Ted Striker - Love Is Gonna Make Us Stronger (Accu Remix).flac";
-
         InputStream s3ObjectInputStream= s3Operations.getS3ObjectInputStream(key);
         return gets3ObjectAsResource(s3ObjectInputStream);
-
     }
 
     private Resource gets3ObjectAsResource(InputStream ins){
@@ -81,8 +77,6 @@ public class S3Service implements StorageService {
 
     @Override
     public boolean deleteUserFile(String key){
-       // final AmazonS3 s3 = AmazonS3ClientBuilder.standard().withRegion(Regions.DEFAULT_REGION).build();
-       // String temp = "test@gmail.com/Ted Striker - Love Is Gonna Make Us Stronger (Accu Remix).flac";
         return s3Operations.deleteObject(key);
     }
 
