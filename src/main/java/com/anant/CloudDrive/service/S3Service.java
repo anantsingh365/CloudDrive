@@ -71,7 +71,7 @@ public class S3Service implements StorageService {
     @Override
     public List<String> getFilesListing(){
         //get objects for user with username as prefix
-        return s3Operations.getUserFileListing(getUserData(LoggedInUser.GET_USERNAME));
+        return s3Operations.getUserFileListing(getUserData(signedInUser.GET_USERNAME));
     }
 
     @Override
@@ -90,15 +90,15 @@ public class S3Service implements StorageService {
     }
 
     private UploadEntry getUserEntry(String uploadId){
-        var session = uploadSessionsHolder.getExistingSession(getUserData(LoggedInUser.GET_SESSIONID));
+        var session = uploadSessionsHolder.getExistingSession(getUserData(signedInUser.GET_SESSIONID));
         return session != null ? session.getEntry(uploadId) : null;
     }
 
     private UploadSession getUploadSession(){
-        return uploadSessionsHolder.getSession(getUserData(LoggedInUser.GET_SESSIONID));
+        return uploadSessionsHolder.getSession(getUserData(signedInUser.GET_SESSIONID));
     }
 
-    private String getUserData(LoggedInUser requestedData){
+    private String getUserData(signedInUser requestedData){
         switch (requestedData){
             case GET_SESSIONID ->  {
                 var sessionId = RequestContextHolder.currentRequestAttributes().getSessionId();
@@ -114,7 +114,7 @@ public class S3Service implements StorageService {
         }
         return null;
     }
-    private enum LoggedInUser {
+    private enum signedInUser {
         GET_SESSIONID,
         GET_USERNAME,
         GET_AUTHORITIES

@@ -12,6 +12,14 @@
         <button id ="completeDownload">CompleteTransfer</button>
 
 <script src = "/js/sendFile.js"></script>
+
+    <br>
+    <br>
+
+    <h3>file Listing is  </h3>
+    <div th:each ="list: ${fileList}">
+        <p th:text="${#strings.substringAfter(list.value, '/')}">value</p>
+    </div>
  
 </body> 
 </html>
