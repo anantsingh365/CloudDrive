@@ -18,7 +18,11 @@
 
     <h3>file Listing is  </h3>
     <div th:each ="list: ${fileList}">
-        <p th:text="${#strings.substringAfter(list.value, '/')}">value</p>
+        <form th:action="@{/user/download}" method="GET">
+        <span th:text="${#strings.substringAfter(list.value, '/')}">value</span>
+        <input type="hidden" name="id" th:attr="value = @{${list.key}}" />
+        <button type = "submit" >Download</button>
+    </form>
     </div>
  
 </body> 

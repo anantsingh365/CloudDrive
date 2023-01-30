@@ -13,6 +13,8 @@ import jakarta.validation.Valid;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.*;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
@@ -36,6 +38,7 @@ public class Home {
     @GetMapping("/user/home")
     public String UserHome(Model model, HttpSession session){
         this.addHomePageAttributes(model);
+        System.out.println(session.getId());
 //        var fileList =  storageService.getFilesListing();
 //        HashMap<Integer, String> fileListIdMapping = new HashMap<>();
 //
@@ -95,8 +98,8 @@ public class Home {
         return  storageService.upload(req) ? returnOkResponse("upload Complete for a part") : returnInternalServerError();
     }
 
-    @PostMapping("/user/download{id}")
-    public ResponseEntity<Resource> userDownload(@RequestParam("id") int id,Model model){
+    @GetMapping("/user/download{id}")
+    public ResponseEntity<Resource> userDownload(@RequestParam("id") int id,Model model) throws IOException {
         //to do
         Map<Integer, String> fileList = (HashMap<Integer, String>) model.getAttribute("fileList");
         String fileToDownload = fileList.get(id);
@@ -105,7 +108,12 @@ public class Home {
             Resource res = new ByteArrayResource("no file to download".getBytes(StandardCharsets.UTF_8));
             return ResponseEntity.badRequest().body(res);
         }
-        return ResponseEntity.ok().body(storageService.download(fileToDownload));
+        //return ResponseEntity.ok().body(storageService.download(fileToDownload));
+        Resource res = storageService.download(fileToDownload);
+        return ResponseEntity.ok()
+                .contentType(MediaType.parseMediaType("audio/x-flac"))
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + fileToDownload.substring(fileToDownload.indexOf("/")) + "\"")
+                .body(res);
     }
 
     @PostMapping("/user/delete{id}")
