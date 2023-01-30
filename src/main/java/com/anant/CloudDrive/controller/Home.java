@@ -1,5 +1,6 @@
 package com.anant.CloudDrive.controller;
 
+import com.amazonaws.Response;
 import com.anant.CloudDrive.dto.UserDto;
 import com.anant.CloudDrive.entity.User;
 import com.anant.CloudDrive.requests.UploadRequest;
@@ -14,14 +15,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.*;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.web.authentication.WebAuthenticationDetails;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.*;
-import java.net.MalformedURLException;
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -35,16 +35,17 @@ public class Home {
 
     @GetMapping("/user/home")
     public String UserHome(Model model, HttpSession session){
-        var fileList =  storageService.getFilesListing();
-        HashMap<Integer, String> fileListIdMapping = new HashMap<>();
-
-        for(int i =0; i < fileList.size() ; i++){
-            fileListIdMapping.put(i, fileList.get(i));
-            System.out.println(fileListIdMapping.get(i));
-        }
-        System.out.println(session.getId());
-        model.addAttribute("fileList", fileListIdMapping);
-        model.addAttribute("loggedInUser", SecurityContextHolder.getContext().getAuthentication().getName());
+        this.addHomePageAttributes(model);
+//        var fileList =  storageService.getFilesListing();
+//        HashMap<Integer, String> fileListIdMapping = new HashMap<>();
+//
+//        for(int i =0; i < fileList.size() ; i++){
+//            fileListIdMapping.put(i, fileList.get(i));
+//            System.out.println(fileListIdMapping.get(i));
+//        }
+//        System.out.println(session.getId());
+//        model.addAttribute("fileList", fileListIdMapping);
+//        model.addAttribute("loggedInUser", SecurityContextHolder.getContext().getAuthentication().getName());
         return "UserHome";
     }
 
@@ -101,26 +102,22 @@ public class Home {
         String fileToDownload = fileList.get(id);
 
         if(fileToDownload == null){
-            return ResponseEntity
-                    .ok()
-                    .body(null);
+            Resource res = new ByteArrayResource("no file to download".getBytes(StandardCharsets.UTF_8));
+            return ResponseEntity.badRequest().body(res);
         }
-        return ResponseEntity
-                .ok()
-                .body(storageService.download(fileToDownload));
+        return ResponseEntity.ok().body(storageService.download(fileToDownload));
     }
 
     @PostMapping("/user/delete{id}")
     @ResponseBody
-    public String delete(@RequestParam("id") int id,Model model){
-
-        Map<Integer, String> fileList = (HashMap<Integer, String>) model.getAttribute("fileList");
-        String fileToDelete = fileList.get(id);
-        if(fileToDelete != null){
-            fileList.remove(id);
+    public ResponseEntity<String> delete(@RequestParam("id") int id, Model model){
+        String fileToDelete = this.resolveFileToDelete(id, model);
+        if(fileToDelete == null){
+            return returnBadResponse("there was no file with that id");
         }
+
         boolean result =  storageService.deleteUserFile(fileToDelete);
-        return result ? returnOkResponse("file deleted").toString() : returnInternalServerError().toString();
+        return result ? returnOkResponse("file deleted") : returnInternalServerError();
     }
 
     @PostMapping("/user/CompleteUpload")
@@ -141,5 +138,20 @@ public class Home {
     }
     private ResponseEntity<String> returnInternalServerError(){
         return ResponseEntity.internalServerError().body("Something went wrong while processing the request");
+    }
+    private void addHomePageAttributes(Model model){
+        var fileList =  storageService.getFilesListing();
+        HashMap<Integer, String> fileListIdMapping = new HashMap<>();
+        for(int i =0; i < fileList.size() ; i++){
+            fileListIdMapping.put(i, fileList.get(i));
+            System.out.println(fileListIdMapping.get(i));
+        }
+        model.addAttribute("fileList", fileListIdMapping);
+        model.addAttribute("loggedInUser", SecurityContextHolder.getContext().getAuthentication().getName());
+    }
+    private String resolveFileToDelete(int id, Model model){
+        var fileList = (HashMap<Integer, String>) model.getAttribute("fileList");
+        String fileToDelete = fileList.remove(id);
+        return fileToDelete;
     }
 }

@@ -32,22 +32,11 @@ public class S3Operations {
         this.bucketName = bucketName;
     }
 
-    private String getUserNameFolderPrefix(){
-        return getLoggedInUserName() + "/";
+    public void downloadFile(String keyName){
+        S3Object o = s3Client.getObject(bucketName, keyName + "/");
     }
 
-    private String getLoggedInUserName() {
-        return SecurityContextHolder
-                .getContext()
-                .getAuthentication()
-                .getName();
-    }
-
-    public void downloadFile(){
-        S3Object o = s3Client.getObject(bucketName, getUserNameFolderPrefix());
-    }
-
-    public List<String> getUserFileListing(String key){
+    public List<String> getUserObjectListing(String key){
 
         // forward slash "/" is used to represent as folder in s3, there is no concept
         // of actual folders in s3. each user has a folder named after their username + "/".

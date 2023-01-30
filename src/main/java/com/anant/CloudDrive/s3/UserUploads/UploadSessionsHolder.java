@@ -18,12 +18,12 @@ public class UploadSessionsHolder {
 
     public UploadSessionsHolder(){}
 
-    public  UploadSession getSession(String session){
-        var userSession = getExistingSession(session);
+    public  UploadSession getSession(String sessionId){
+        var userSession = getExistingSession(sessionId);
         //if there is no active user session present, create new
         //this will be created only once per sessionId
         if(userSession == null){
-            return createNewSession(session);
+            return createNewSession(sessionId);
         }
         //each time a new upload id has to be generated
         return userSession;

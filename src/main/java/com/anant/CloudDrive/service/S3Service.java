@@ -18,6 +18,8 @@ import org.springframework.web.context.request.RequestContextHolder;
 
 import java.io.InputStream;
 import java.util.List;
+import java.util.Objects;
+import java.util.concurrent.ConcurrentHashMap;
 
 @Service
 public class S3Service implements StorageService {
@@ -27,6 +29,8 @@ public class S3Service implements StorageService {
     private final UploadSessionsHolder uploadSessionsHolder;
     private final S3Operations s3Operations;
     @Autowired WebApplicationContext context;
+
+    private final ConcurrentHashMap<String, List<String>> savedFileListing = new ConcurrentHashMap<>();
 
     public S3Service(@Value("${s3.bucketName}") String bucketName,
                      @Autowired Logger logger,
@@ -71,7 +75,15 @@ public class S3Service implements StorageService {
     @Override
     public List<String> getFilesListing(){
         //get objects for user with username as prefix
-        return s3Operations.getUserFileListing(getUserData(signedInUser.GET_USERNAME));
+        String userName = getUserData(signedInUser.GET_USERNAME);
+       // if(savedFileListing.get(userName) == null){
+            System.out.println("Generating new File Listing");
+            var fileListing = s3Operations.getUserObjectListing(userName);
+            savedFileListing.put(Objects.requireNonNull(userName), fileListing);
+            return fileListing;
+     //   }
+      //  System.out.println("Using Saved File Listing");
+      //  return s3Operations.getUserObjectListing(userName);
     }
 
     @Override
@@ -81,7 +93,12 @@ public class S3Service implements StorageService {
 
     @Override
     public boolean deleteUserFile(String key){
-        return s3Operations.deleteObject(key);
+        boolean result = s3Operations.deleteObject(key);
+       // if(result){
+        //    System.out.println("Object deleted, removing saved fileListing");
+        //    savedFileListing.remove(Objects.requireNonNull(getUserData(signedInUser.GET_USERNAME)));
+        //}
+        return result;
     }
 
     @Override
@@ -100,7 +117,7 @@ public class S3Service implements StorageService {
 
     private String getUserData(signedInUser requestedData){
         switch (requestedData){
-            case GET_SESSIONID ->  {
+            case GET_SESSIONID -> {
                 var sessionId = RequestContextHolder.currentRequestAttributes().getSessionId();
                 System.out.println("Session id from requestContextHolder is - " + sessionId);
                 return sessionId;
