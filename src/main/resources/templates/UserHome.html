@@ -1,6 +1,9 @@
-<html  xmlns:th="http://www.w3.org/1999/xhtml">
+<html xmlns:th="http://www.w3.org/1999/xhtml" xmlns:style="http://www.w3.org/1999/xhtml">
     <head>
-        <!-- <link rel="stylesheet" href="style.css"> -->
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.1/jquery.min.js"></script>
+        <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
+        <link rel="stylesheet" href="/css/userHome.css">
     </head>
 <body>
         <h1>File handling</h1>
@@ -17,13 +20,22 @@
     <br>
 
     <h3>file Listing is  </h3>
-    <div th:each ="list: ${fileList}">
-        <form th:action="@{/user/download}" method="GET">
-        <span th:text="${#strings.substringAfter(list.value, '/')}">value</span>
-        <input type="hidden" name="id" th:attr="value = @{${list.key}}" />
-        <button type = "submit" >Download</button>
-    </form>
+    <div class = "list-group">
+        <div class = "list-group-item mw-50 mx-auto" th:each ="list: ${fileList}">
+                <form th:action="@{/user/download}" method="GET">
+                    <span class = "list-group-item-text">
+                    <span th:text="${#strings.substringAfter(list.value.name, '/')}">value</span><br>
+                    <span th:text = "|(size - ${list.value.size})|">value</span>
+                    <span th:text = "|(lastModified - ${list.value.lastModified})|">value</span>
+                    </span>
+                    <input type="hidden" name="id" th:attr="value = @{${list.key}}" />
+                    <button type = "submit" class ="btn btn-info btn-sm text-dark"><span class="glyphicon glyphicon-download">Download</span></button>
+                    <button type = "submit" th:formaction="@{/user/delete}" method = "GET" class="btn btn-danger btn-sm">
+                        <span class="glyphicon glyphicon-trash">Trash</span>
+                    </button>
+                </form>
+        </div>
     </div>
- 
+
 </body> 
 </html>

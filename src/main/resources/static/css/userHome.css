@@ -1,0 +1,24 @@
+*{
+font-family: sans-serif;
+}
+
+.list-group-item {
+    position: relative;
+    display: block;
+    padding: 10px 15px;
+    margin-bottom: -1px;
+    background-color: #fff;
+    border: 1px solid #ddd;
+    max-width: 60%;
+    margin: 10px auto;
+    border: 2px solid grey;
+    border-radius: 10px;
+}
+
+.list-group{
+text-align: center;
+}
+
+.btn-danger, .btn-info{
+font-size: 18px;
+}

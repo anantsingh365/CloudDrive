@@ -2,18 +2,18 @@ package com.anant.CloudDrive.s3;
 
 import com.amazonaws.AmazonServiceException;
 import com.amazonaws.services.s3.AmazonS3;
-import com.amazonaws.services.s3.model.DeleteObjectRequest;
-import com.amazonaws.services.s3.model.S3Object;
-import com.amazonaws.services.s3.model.S3ObjectSummary;
+import com.amazonaws.services.s3.model.*;
 import com.anant.CloudDrive.requests.UploadRequest;
 import com.anant.CloudDrive.s3.UserUploads.UploadEntry;
+import com.anant.CloudDrive.service.UserFileMetaData;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 
 import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 @Component
@@ -36,18 +36,17 @@ public class S3Operations {
         S3Object o = s3Client.getObject(bucketName, keyName + "/");
     }
 
-    public List<String> getUserObjectListing(String key){
+    public  List<UserFileMetaData> getUserObjectsMetaData(String key){
 
         // forward slash "/" is used to represent as folder in s3, there is no concept
         // of actual folders in s3. each user has a folder named after their username + "/".
-        return s3Client.listObjectsV2(bucketName, key+"/")
-                .getObjectSummaries().stream()
-                    .map(
-                            S3ObjectSummary::getKey
-//                                .substring((getLoggedInUserName()+"/")
-//                                .length())
-                        )
-                .toList();
+
+        List<UserFileMetaData> list = new ArrayList<>();
+
+          s3Client.listObjectsV2(bucketName, key+"/")
+                .getObjectSummaries().forEach(x -> list.add(new UserFileMetaData(x.getKey(), x.getSize(), x.getLastModified())));
+          return list;
+
     }
 
     public InputStream getS3ObjectInputStream(String keyName){
@@ -69,6 +68,10 @@ public class S3Operations {
             System.err.println(e.getErrorMessage());
             return false;
         }
+    }
+
+    public boolean completeUserUpload(UploadEntry entry){
+        return entry.completeUserUpload();
     }
 
     public boolean renameFile(){

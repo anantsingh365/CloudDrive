@@ -1,0 +1,18 @@
+*{
+font-family: sans-serif;
+}
+
+form{
+margin: 0 auto;
+max-width: 30%;
+min-width: 20%;
+font-size: 20px;
+}
+
+h1{
+margin: 40px auto 40px;
+text-align: center;
+font-size: 50px;
+font-weight: 800;
+}
+

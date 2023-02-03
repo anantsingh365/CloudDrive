@@ -1,5 +1,6 @@
 package com.anant.CloudDrive.service;
 
+import com.amazonaws.services.s3.model.S3ObjectSummary;
 import com.anant.CloudDrive.requests.UploadRequest;
 import org.springframework.core.io.Resource;
 
@@ -11,8 +12,8 @@ public interface StorageService {
      boolean upload(UploadRequest req);
      boolean completeUpload(String uploadId);
      Resource download(String key);
-     List<String> getFilesListing();
-     void getObjectMetaData(int id);
+     List<UserFileMetaData> getUserObjectsMetaData();
      boolean deleteUserFile(String key);
      boolean renameFile(int id);
+
 }

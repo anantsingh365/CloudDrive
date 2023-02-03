@@ -1,10 +1,12 @@
-package com.anant.CloudDrive.service;
+package com.anant.CloudDrive.service.impls;
 
 import com.anant.CloudDrive.requests.UploadRequest;
 import com.anant.CloudDrive.s3.S3Operations;
 import com.anant.CloudDrive.s3.UserUploads.UploadEntry;
 import com.anant.CloudDrive.s3.UserUploads.*;
 
+import com.anant.CloudDrive.service.StorageService;
+import com.anant.CloudDrive.service.UserFileMetaData;
 import org.slf4j.Logger;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,7 +32,7 @@ public class S3Service implements StorageService {
     private final S3Operations s3Operations;
     @Autowired WebApplicationContext context;
 
-    private final ConcurrentHashMap<String, List<String>> savedFileListing = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<String, List<UserFileMetaData>> savedFileListing = new ConcurrentHashMap<>();
 
     public S3Service(@Value("${s3.bucketName}") String bucketName,
                      @Autowired Logger logger,
@@ -59,7 +61,7 @@ public class S3Service implements StorageService {
     @Override
     public boolean completeUpload(String uploadId){
         var entry = this.getUserEntry(uploadId);
-        return entry != null && entry.completeUserUpload();
+        return entry != null && s3Operations.completeUserUpload(entry);
     }
 
     @Override
@@ -73,22 +75,17 @@ public class S3Service implements StorageService {
     }
 
     @Override
-    public List<String> getFilesListing(){
+    public List<UserFileMetaData> getUserObjectsMetaData(){
         //get objects for user with username as prefix
         String userName = getUserData(signedInUser.GET_USERNAME);
        // if(savedFileListing.get(userName) == null){
             System.out.println("Generating new File Listing");
-            var fileListing = s3Operations.getUserObjectListing(userName);
+            var fileListing = s3Operations.getUserObjectsMetaData(userName);
             savedFileListing.put(Objects.requireNonNull(userName), fileListing);
             return fileListing;
      //   }
       //  System.out.println("Using Saved File Listing");
       //  return s3Operations.getUserObjectListing(userName);
-    }
-
-    @Override
-    public void getObjectMetaData(int id){
-
     }
 
     @Override

@@ -1,12 +1,14 @@
 package com.anant.CloudDrive.controller;
 
-import com.amazonaws.Response;
 import com.anant.CloudDrive.dto.UserDto;
 import com.anant.CloudDrive.entity.User;
 import com.anant.CloudDrive.requests.UploadRequest;
 import com.anant.CloudDrive.service.StorageService;
+import com.anant.CloudDrive.service.UserFileMetaData;
 import com.anant.CloudDrive.service.UserService;
+import static com.anant.CloudDrive.Utils.CommonUtils.*;
 
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 
@@ -25,6 +27,7 @@ import org.springframework.web.bind.annotation.*;
 import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @Controller
@@ -53,7 +56,7 @@ public class Home {
     }
 
     @GetMapping("/register")
-    public String registerPage(Model model){
+    public String registerPage(Model model, HttpServletRequest req){
         return "register";
     }
 
@@ -101,8 +104,9 @@ public class Home {
     @GetMapping("/user/download{id}")
     public ResponseEntity<Resource> userDownload(@RequestParam("id") int id,Model model) throws IOException {
         //to do
-        Map<Integer, String> fileList = (HashMap<Integer, String>) model.getAttribute("fileList");
-        String fileToDownload = fileList.get(id);
+        Map<Integer, UserFileMetaData> fileList = (HashMap<Integer, UserFileMetaData>) model.getAttribute("fileList");
+       UserFileMetaData fileMetaData = fileList.get(id);
+        String fileToDownload = fileList.get(id).getName();
 
         if(fileToDownload == null){
             Resource res = new ByteArrayResource("no file to download".getBytes(StandardCharsets.UTF_8));
@@ -113,10 +117,11 @@ public class Home {
         return ResponseEntity.ok()
                 .contentType(MediaType.parseMediaType("audio/x-flac"))
                 .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + fileToDownload.substring(fileToDownload.indexOf("/")) + "\"")
+                .header(HttpHeaders.CONTENT_LENGTH, String.valueOf(fileMetaData.getSize()))
                 .body(res);
     }
 
-    @PostMapping("/user/delete{id}")
+    @GetMapping("/user/delete{id}")
     @ResponseBody
     public ResponseEntity<String> delete(@RequestParam("id") int id, Model model){
         String fileToDelete = this.resolveFileToDelete(id, model);
@@ -132,10 +137,16 @@ public class Home {
     @ResponseBody
     public ResponseEntity<String> completeUpload(@RequestHeader ("user-id") String uploadId){
         if(uploadId == null) {
+            logger.info("complete upload failed for user " + getUserData(signedInUser.GET_USERNAME) + ", upload id missing");
             return returnBadResponse("UploadId Missing");
         }
-        return storageService.completeUpload(uploadId) ? returnOkResponse("uploadComplete for uploadId " + uploadId) : returnBadResponse("couldn't " +
-                "complete upload for upload id - " + uploadId);
+        boolean completeUploadResult = storageService.completeUpload(uploadId);
+        if(completeUploadResult){
+            logger.info("Upload Complete for User " + getUserData(signedInUser.GET_USERNAME) +" upload id " + uploadId);
+
+            returnOkResponse("uploadComplete for uploadId " + uploadId);
+        }
+        return returnBadResponse("couldn't complete upload for upload id - " + uploadId);
     }
 
     private ResponseEntity<String> returnBadResponse(String reason){
@@ -148,8 +159,8 @@ public class Home {
         return ResponseEntity.internalServerError().body("Something went wrong while processing the request");
     }
     private void addHomePageAttributes(Model model){
-        var fileList =  storageService.getFilesListing();
-        HashMap<Integer, String> fileListIdMapping = new HashMap<>();
+        List<UserFileMetaData> fileList =  storageService.getUserObjectsMetaData();
+        HashMap<Integer, UserFileMetaData> fileListIdMapping = new HashMap<>();
         for(int i =0; i < fileList.size() ; i++){
             fileListIdMapping.put(i, fileList.get(i));
             System.out.println(fileListIdMapping.get(i));
@@ -158,8 +169,11 @@ public class Home {
         model.addAttribute("loggedInUser", SecurityContextHolder.getContext().getAuthentication().getName());
     }
     private String resolveFileToDelete(int id, Model model){
-        var fileList = (HashMap<Integer, String>) model.getAttribute("fileList");
-        String fileToDelete = fileList.remove(id);
-        return fileToDelete;
+        Map<Integer, UserFileMetaData> fileList = (HashMap<Integer, UserFileMetaData>) model.getAttribute("fileList");
+        var removedElem = fileList.remove(id);
+        if(removedElem == null){
+            return null;
+        }
+        return removedElem.getName();
     }
 }
