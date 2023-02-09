@@ -1,5 +1,6 @@
 package com.anant.CloudDrive.service.impls;
 
+import com.anant.CloudDrive.Utils.CommonUtils;
 import com.anant.CloudDrive.requests.UploadRequest;
 import com.anant.CloudDrive.s3.S3Operations;
 import com.anant.CloudDrive.s3.UserUploads.UploadEntry;
@@ -22,6 +23,8 @@ import java.io.InputStream;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
+
+import static com.anant.CloudDrive.Utils.CommonUtils.getUserData;
 
 @Service
 public class S3Service implements StorageService {
@@ -77,7 +80,7 @@ public class S3Service implements StorageService {
     @Override
     public List<UserFileMetaData> getUserObjectsMetaData(){
         //get objects for user with username as prefix
-        String userName = getUserData(signedInUser.GET_USERNAME);
+        String userName = getUserData(CommonUtils.signedInUser.GET_USERNAME);
        // if(savedFileListing.get(userName) == null){
             System.out.println("Generating new File Listing");
             var fileListing = s3Operations.getUserObjectsMetaData(userName);
@@ -104,33 +107,12 @@ public class S3Service implements StorageService {
     }
 
     private UploadEntry getUserEntry(String uploadId){
-        var session = uploadSessionsHolder.getExistingSession(getUserData(signedInUser.GET_SESSIONID));
+        var session = uploadSessionsHolder.getExistingSession(getUserData(CommonUtils.signedInUser.GET_SESSIONID));
         return session != null ? session.getEntry(uploadId) : null;
     }
 
     private UploadSession getUploadSession(){
-        return uploadSessionsHolder.getSession(getUserData(signedInUser.GET_SESSIONID));
+        return uploadSessionsHolder.getSession(getUserData(CommonUtils.signedInUser.GET_SESSIONID));
     }
 
-    private String getUserData(signedInUser requestedData){
-        switch (requestedData){
-            case GET_SESSIONID -> {
-                var sessionId = RequestContextHolder.currentRequestAttributes().getSessionId();
-                System.out.println("Session id from requestContextHolder is - " + sessionId);
-                return sessionId;
-            }
-            case GET_USERNAME -> {
-                return SecurityContextHolder.getContext().getAuthentication().getName();
-            }
-            case GET_AUTHORITIES -> {
-                return SecurityContextHolder.getContext().getAuthentication().getAuthorities().toString();
-            }
-        }
-        return null;
-    }
-    private enum signedInUser {
-        GET_SESSIONID,
-        GET_USERNAME,
-        GET_AUTHORITIES
-    }
 }

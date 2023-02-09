@@ -1,4 +1,4 @@
-const defaultPartSize = 3000 * 1024 * 1024;
+const defaultPartSize = 14 * 1024 * 1024;
 var fileObj;
 var uploadId;
 var uploadCompleteDoneMessage;
@@ -11,28 +11,33 @@ var completeDownloadButton = function(){
     sendUploadCompleteConfirmation();
 }
 
-document.getElementById('completeDownload').addEventListener("click", completeDownloadButton);
-
-document.getElementById('getUploadId').addEventListener("click", uploadIdButton);
-
-var submitButtonEventListener = function(){
+var submitButtonEventListener = async function(){
     var fileName = document.getElementById('file').files[0].name;
     var metaDataString = fileName;
 
-    console.log(uploadId);
+    await getUploadId("/user/uploadId", fileObj);
+
+    console.log("initiating upload for upload id -" + uploadId);
    // getJSessionId();
 
     sendFileInPartsToUrl(fileObj, defaultPartSize, "/user/uploadFile")
-    .then(function(value){
-
+    .then( function(value){
         console.log("Transmission successfull")
         console.log("Upload for id- " + uploadId + " successful");
-
+        console.log("attempting upload complettion");
+        sendUploadCompleteConfirmation().then( function(vaue){
+            console.log("###### Everthing is completed ######");
+        },
+        function(error){
+            console.log("##### Transmission unccessfull #####");
+        }
+        );
+         
     }, function(error){
        console.log("Transmission unsuccessful")
        console.log(error.status)
        console.log(error.statusText)
-    });
+    });  
 }
 
 document.getElementById('submitButton').addEventListener("click", submitButtonEventListener);
@@ -44,14 +49,14 @@ async function sendFileInPartsToUrl(fileObj, partSize, url){
     var filePart;
     let uploadID;
 
-    //file smaller than 14 mb, send it directly
+    //file smaller than default part size, send it directly
     if(fileObj.size < (partSize)){
         await sendPart(fileObj, url, true)
         return true;
     }
 
     if(partSize === null){
-        //set default size as 14 MB
+        //set part size to default size
         partSize = defaultPartSize;
         endIndx = partSize;
     }
@@ -64,6 +69,7 @@ async function sendFileInPartsToUrl(fileObj, partSize, url){
 
              filePart = fileObj.slice(start, endIndx)
              let result = await sendPart(filePart, url)
+              console.log("waiting for a part sent")
              endIndx += partSize;
 
         }else if( ((fileObj.size - start) < partSize) && ((fileObj.size - start) !== 0)  ){
@@ -71,6 +77,7 @@ async function sendFileInPartsToUrl(fileObj, partSize, url){
             endIndx = fileObj.size 
             filePart = fileObj.slice(start, endIndx)
             let result2 = await sendPart(filePart, url)
+             console.log("waiting for a part sent")
             console.log("all parts sent")
             return true;
         }else {
@@ -81,38 +88,45 @@ async function sendFileInPartsToUrl(fileObj, partSize, url){
     }
 }
 
-function getUploadId(url, file){
+async function getUploadId(url, file){
     //Fetch upload Id from server
     //return uploadID
-    let xhr = new XMLHttpRequest();
-            xhr.open("GET", url, true);
-            xhr.setRequestHeader("Accept", "application/json");
-            xhr.setRequestHeader("FileName", file.name);
-            xhr.setRequestHeader("MimeType", file.type);
-            xhr.onload = function () {
-                console.log(xhr.responeText);
-                if(xhr.status === 200){
-                    console.log("Upload Id succesfully received");
-                    uploadId = xhr.responseText;
-                   // return true;
-                }
-                if (this.status >= 200 && this.status < 300) {
 
-                } else {
+    return new Promise((resolve, reject) => {
+        let xhr = new XMLHttpRequest();
+        xhr.open("GET", url, true);
+        xhr.setRequestHeader("Accept", "application/json");
+        xhr.setRequestHeader("FileName", file.name);
+        xhr.setRequestHeader("MimeType", file.type);
 
-                }
-            };
-            xhr.onerror = function () {
-                console.log("error getting upload Id ")
-            };
-            xhr.send(null);
+        xhr.onload = function () {
+            console.log(xhr.responeText);
+            if(xhr.status === 200){
+                console.log("Upload Id succesfully received");
+                uploadId = xhr.responseText;
+                resolve(true);
+               // return true;
+            }
+            if (this.status >= 200 && this.status < 300) {
+
+            } else {
+             reject(null);
+            }
+        };
+
+        xhr.onerror = function () {
+            console.log("error getting upload Id ")
+        };
+        xhr.send(null);
+    }) 
     }
 
-
-function sendUploadCompleteConfirmation(){
+async function sendUploadCompleteConfirmation(){
     // send the upload id to server indicating transfer complete from client side.
     // return true
-    let xhr = new XMLHttpRequest();
+
+    return new Promise((resolve, reject) => {
+        let xhr = new XMLHttpRequest();
     xhr.open("POST", "/user/CompleteUpload", true);
     xhr.setRequestHeader("Accept", "application/json");
     xhr.setRequestHeader("FileNmae", file.name);
@@ -120,21 +134,23 @@ function sendUploadCompleteConfirmation(){
     xhr.onload = function () {
         console.log(xhr.responeText);
         if(xhr.status === 200){
-            console.log("Upload Id succesfully received");
             uploadCompleteDoneMessage = xhr.responseText;
             console.log(uploadCompleteDoneMessage);
-           // return true;
+            resolve(true);
         }
         if (this.status >= 200 && this.status < 300) {
-
+            return true;
         } else {
-
+            reject(false);
         }
     };
     xhr.onerror = function () {
         console.log("error getting upload Id ")
+        return false;
     };
     xhr.send(null);
+
+    });
 
 }
 
@@ -172,19 +188,6 @@ function sendPart(filePart, url){
         console.log(filePart.size)
     });
 }
-
-function getJSessionId(){
-        var jsId = document.cookie;
-        if(jsId != null) {
-            if (jsId instanceof Array)
-                jsId = jsId[0].substring(11);
-            else
-                jsId = jsId.substring(11);
-        }
-        console.log(jsId);
-        return jsId;
-    }
-
 document.querySelector('input').addEventListener('change', async (event) => {
   fileObj = await event.target.files[0]
 

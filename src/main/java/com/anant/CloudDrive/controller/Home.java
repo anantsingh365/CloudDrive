@@ -42,16 +42,6 @@ public class Home {
     public String UserHome(Model model, HttpSession session){
         this.addHomePageAttributes(model);
         System.out.println(session.getId());
-//        var fileList =  storageService.getFilesListing();
-//        HashMap<Integer, String> fileListIdMapping = new HashMap<>();
-//
-//        for(int i =0; i < fileList.size() ; i++){
-//            fileListIdMapping.put(i, fileList.get(i));
-//            System.out.println(fileListIdMapping.get(i));
-//        }
-//        System.out.println(session.getId());
-//        model.addAttribute("fileList", fileListIdMapping);
-//        model.addAttribute("loggedInUser", SecurityContextHolder.getContext().getAuthentication().getName());
         return "UserHome";
     }
 
@@ -89,7 +79,7 @@ public class Home {
 
     @PostMapping("/user/uploadFile")
     @ResponseBody
-    public  ResponseEntity<String> uploadFile(InputStream ins,
+    public ResponseEntity<String> uploadFile(InputStream ins,
                                               @RequestHeader ("user-id") String uploadId,
                                               @RequestHeader ("content-length") String contentLength)
     {
@@ -98,7 +88,7 @@ public class Home {
         }
 
         var req = new UploadRequest(ins, uploadId, Long.parseLong(contentLength));
-        return  storageService.upload(req) ? returnOkResponse("upload Complete for a part") : returnInternalServerError();
+        return  storageService.upload(req) ? returnOkResponse("dataReceived") : returnInternalServerError();
     }
 
     @GetMapping("/user/download{id}")
@@ -109,10 +99,9 @@ public class Home {
         String fileToDownload = fileList.get(id).getName();
 
         if(fileToDownload == null){
-            Resource res = new ByteArrayResource("no file to download".getBytes(StandardCharsets.UTF_8));
-            return ResponseEntity.badRequest().body(res);
+           // Resource res = new ByteArrayResource("no file to download".getBytes(StandardCharsets.UTF_8));
+            return ResponseEntity.badRequest().body(null);
         }
-        //return ResponseEntity.ok().body(storageService.download(fileToDownload));
         Resource res = storageService.download(fileToDownload);
         return ResponseEntity.ok()
                 .contentType(MediaType.parseMediaType("audio/x-flac"))
@@ -143,8 +132,7 @@ public class Home {
         boolean completeUploadResult = storageService.completeUpload(uploadId);
         if(completeUploadResult){
             logger.info("Upload Complete for User " + getUserData(signedInUser.GET_USERNAME) +" upload id " + uploadId);
-
-            returnOkResponse("uploadComplete for uploadId " + uploadId);
+            return  returnOkResponse("uploadComplete for uploadId " + uploadId);
         }
         return returnBadResponse("couldn't complete upload for upload id - " + uploadId);
     }
@@ -161,6 +149,7 @@ public class Home {
     private void addHomePageAttributes(Model model){
         List<UserFileMetaData> fileList =  storageService.getUserObjectsMetaData();
         HashMap<Integer, UserFileMetaData> fileListIdMapping = new HashMap<>();
+
         for(int i =0; i < fileList.size() ; i++){
             fileListIdMapping.put(i, fileList.get(i));
             System.out.println(fileListIdMapping.get(i));

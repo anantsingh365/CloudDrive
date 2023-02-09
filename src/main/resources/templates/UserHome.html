@@ -1,27 +1,25 @@
 <html xmlns:th="http://www.w3.org/1999/xhtml" xmlns:style="http://www.w3.org/1999/xhtml">
     <head>
         <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
-        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.1/jquery.min.js"></script>
-        <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
-        <link rel="stylesheet" href="/css/userHome.css">
+<!--        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.1/jquery.min.js"></script>-->
+<!--        <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>-->
     </head>
 <body>
+
+<link rel="stylesheet" href="/css/userHome.css">
         <h1>File handling</h1>
         <h2 id = "loggedInUser" th:inline = "text">Hi, [[${loggedInUser}]]</h2>
         <input type="file" id="file" onchange="fileInfo()"/>
         <br>
         <button id ="submitButton">send file Data</button>
-        <button id ="getUploadId">uploadId</button><br><br><br>
-        <button id ="completeDownload">CompleteTransfer</button>
 
 <script src = "/js/sendFile.js"></script>
-
     <br>
     <br>
 
     <h3>file Listing is  </h3>
     <div class = "list-group">
-        <div class = "list-group-item mw-50 mx-auto" th:each ="list: ${fileList}">
+        <div class = "list-group-item" th:each ="list: ${fileList}">
                 <form th:action="@{/user/download}" method="GET">
                     <span class = "list-group-item-text">
                     <span th:text="${#strings.substringAfter(list.value.name, '/')}">value</span><br>
