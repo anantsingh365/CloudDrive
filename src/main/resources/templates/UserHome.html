@@ -12,6 +12,9 @@
         <input type="file" id="file" onchange="fileInfo()"/>
         <br>
         <button id ="submitButton">send file Data</button>
+        <form action="/subscriptions">
+            <input type="submit" value="Upgrade Your Account" />
+        </form>
 
 <script src = "/js/sendFile.js"></script>
     <br>
@@ -26,7 +29,7 @@
                     <span th:text = "|(size - ${list.value.size})|">value</span>
                     <span th:text = "|(lastModified - ${list.value.lastModified})|">value</span>
                     </span>
-                    <input type="hidden" name="id" th:attr="value = @{${list.key}}" />
+                    <input type="hidden" name="id" th:attr="value = @{${list.key}}" /><br>
                     <button type = "submit" class ="btn btn-info btn-sm text-dark"><span class="glyphicon glyphicon-download">Download</span></button>
                     <button type = "submit" th:formaction="@{/user/delete}" method = "GET" class="btn btn-danger btn-sm">
                         <span class="glyphicon glyphicon-trash">Trash</span>

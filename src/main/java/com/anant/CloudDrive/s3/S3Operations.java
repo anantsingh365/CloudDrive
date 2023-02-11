@@ -42,11 +42,9 @@ public class S3Operations {
         // of actual folders in s3. each user has a folder named after their username + "/".
 
         List<UserFileMetaData> list = new ArrayList<>();
-
-          s3Client.listObjectsV2(bucketName, key+"/")
+        s3Client.listObjectsV2(bucketName, key+"/")
                 .getObjectSummaries().forEach(x -> list.add(new UserFileMetaData(x.getKey(), x.getSize(), x.getLastModified())));
           return list;
-
     }
 
     public InputStream getS3ObjectInputStream(String keyName){

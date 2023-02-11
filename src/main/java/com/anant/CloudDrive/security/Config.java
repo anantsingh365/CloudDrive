@@ -33,6 +33,7 @@ public class Config {
                         authorize.requestMatchers("/register/**").permitAll()
                                 .requestMatchers("/register").permitAll()
                                 .requestMatchers("/user/**").hasRole("USER")
+                                .requestMatchers("/subscriptions/**").hasRole("USER")
                                 .requestMatchers("/js/**").permitAll()
                                 .requestMatchers("/css/**").permitAll()
                 ).formLogin(

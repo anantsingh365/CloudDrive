@@ -137,6 +137,12 @@ public class Home {
         return returnBadResponse("couldn't complete upload for upload id - " + uploadId);
     }
 
+    @GetMapping("/user/playMedia/{id}")
+    public String playMedia(@RequestParam int id){
+        
+        return null;
+    }
+
     private ResponseEntity<String> returnBadResponse(String reason){
         return ResponseEntity.badRequest().body(reason);
     }

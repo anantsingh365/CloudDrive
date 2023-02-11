@@ -22,14 +22,13 @@ var submitButtonEventListener = async function(){
 
     sendFileInPartsToUrl(fileObj, defaultPartSize, "/user/uploadFile")
     .then( function(value){
-        console.log("Transmission successfull")
-        console.log("Upload for id- " + uploadId + " successful");
-        console.log("attempting upload complettion");
+        console.log("Transmission successfull for upload id -" + uploadId);
+        console.log("attempting upload completion.....");
         sendUploadCompleteConfirmation().then( function(vaue){
             console.log("###### Everthing is completed ######");
         },
         function(error){
-            console.log("##### Transmission unccessfull #####");
+            console.log("##### Upload Completetion Failed #####");
         }
         );
          
@@ -54,7 +53,6 @@ async function sendFileInPartsToUrl(fileObj, partSize, url){
         await sendPart(fileObj, url, true)
         return true;
     }
-
     if(partSize === null){
         //set part size to default size
         partSize = defaultPartSize;
@@ -66,28 +64,26 @@ async function sendFileInPartsToUrl(fileObj, partSize, url){
 
     while(true){
         if ( ((fileObj.size - start) >= partSize) ) {
-
              filePart = fileObj.slice(start, endIndx)
+             console.log("sending a part")
              let result = await sendPart(filePart, url)
-              console.log("waiting for a part sent")
              endIndx += partSize;
 
         }else if( ((fileObj.size - start) < partSize) && ((fileObj.size - start) !== 0)  ){
             //this is the last part
             endIndx = fileObj.size 
             filePart = fileObj.slice(start, endIndx)
+            console.log("sending last part")
             let result2 = await sendPart(filePart, url)
-             console.log("waiting for a part sent")
             console.log("all parts sent")
             return true;
         }else {
+        // this is rare but if file size is perfectly divisible by partSize, then we will probably be here
             return true;
         }
-
         start += filePart.size; 
     }
 }
-
 async function getUploadId(url, file){
     //Fetch upload Id from server
     //return uploadID

@@ -91,7 +91,10 @@ public class UploadEntry {
 
     public boolean completeUserUpload() {
         // Complete the multipart upload.
-
+        if(!isUploadInitiated){
+            throw new IllegalStateException("upload for keyname "
+                    + userUploadKeyName + " hasn't initiated.");
+        }
         if(isUploadCompleted){
             logger.info("Upload for keyName {} already completed", userUploadKeyName);
             return true;

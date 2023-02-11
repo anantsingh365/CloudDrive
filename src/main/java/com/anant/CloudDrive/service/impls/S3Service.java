@@ -52,10 +52,8 @@ public class S3Service implements StorageService {
     public String getUploadId(String fileName){
         return this.getUploadSession().registerUploadId(fileName);
     }
-
     @Override
     public boolean upload(UploadRequest req){
-
         var session = this.getUploadSession();
         var entry = session.getEntry(req.getUploadId());
         return entry != null && s3Operations.uploadFile(entry, req);
@@ -70,11 +68,7 @@ public class S3Service implements StorageService {
     @Override
     public Resource download(String key){
         InputStream s3ObjectInputStream= s3Operations.getS3ObjectInputStream(key);
-        return gets3ObjectAsResource(s3ObjectInputStream);
-    }
-
-    private Resource gets3ObjectAsResource(InputStream ins){
-        return new InputStreamResource(ins);
+        return new InputStreamResource(s3ObjectInputStream);
     }
 
     @Override
@@ -102,7 +96,7 @@ public class S3Service implements StorageService {
     }
 
     @Override
-    public boolean renameFile(int id){
+    public boolean renameFile(int id)   {
         return false;
     }
 
@@ -114,5 +108,4 @@ public class S3Service implements StorageService {
     private UploadSession getUploadSession(){
         return uploadSessionsHolder.getSession(getUserData(CommonUtils.signedInUser.GET_SESSIONID));
     }
-
 }
