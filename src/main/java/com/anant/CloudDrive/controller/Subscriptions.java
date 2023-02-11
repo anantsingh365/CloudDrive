@@ -1,4 +1,5 @@
 package com.anant.CloudDrive.controller;
+import com.anant.CloudDrive.Utils.CommonUtils;
 import com.anant.CloudDrive.repository.UserSubscriptionRepo;
 import com.anant.CloudDrive.service.SubscriptionService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,10 +17,10 @@ public class Subscriptions {
     @PostMapping("/subscriptions/buy")
     @ResponseBody
     public String subscribeToPremium(@RequestParam Map<String, String> body){
-        subscriptionService.setTier("TestUserName", body.get("Tier"));
-        String tier = subscriptionService.getTier("TestUserName");
-        System.out.println("TestUserName has " + tier + " subscription");
-        return tier +" purchased!!";
+        String currentUser = CommonUtils.getUserData(CommonUtils.signedInUser.GET_USERNAME);
+        var tierPurchased = subscriptionService.setTier(currentUser, body.get("Tier"));
+        System.out.println(currentUser+ tierPurchased + " subscription");
+        return tierPurchased +" purchased!!";
     }
 
     @GetMapping("/subscriptions")

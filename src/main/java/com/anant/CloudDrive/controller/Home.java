@@ -25,7 +25,6 @@ import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.*;
-import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -139,7 +138,7 @@ public class Home {
 
     @GetMapping("/user/playMedia/{id}")
     public String playMedia(@RequestParam int id){
-        
+
         return null;
     }
 
@@ -162,6 +161,12 @@ public class Home {
         }
         model.addAttribute("fileList", fileListIdMapping);
         model.addAttribute("loggedInUser", SecurityContextHolder.getContext().getAuthentication().getName());
+        model.addAttribute("userQuota", addUserStorageQuota());
+    }
+    private double addUserStorageQuota(){
+        //System.out.println(storageService.getUserStorageQuota());
+        long userQuota = storageService.getUserStorageQuota();
+        return (double) (userQuota/1048576);
     }
     private String resolveFileToDelete(int id, Model model){
         Map<Integer, UserFileMetaData> fileList = (HashMap<Integer, UserFileMetaData>) model.getAttribute("fileList");

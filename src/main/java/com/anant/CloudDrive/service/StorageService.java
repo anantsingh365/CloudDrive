@@ -15,5 +15,5 @@ public interface StorageService {
      List<UserFileMetaData> getUserObjectsMetaData();
      boolean deleteUserFile(String key);
      boolean renameFile(int id);
-
+     long getUserStorageQuota();
 }

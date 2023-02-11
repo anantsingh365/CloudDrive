@@ -22,6 +22,7 @@ import org.springframework.web.context.request.RequestContextHolder;
 import java.io.InputStream;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 
 import static com.anant.CloudDrive.Utils.CommonUtils.getUserData;
@@ -78,7 +79,7 @@ public class S3Service implements StorageService {
        // if(savedFileListing.get(userName) == null){
             System.out.println("Generating new File Listing");
             var fileListing = s3Operations.getUserObjectsMetaData(userName);
-            savedFileListing.put(Objects.requireNonNull(userName), fileListing);
+           // savedFileListing.put(Objects.requireNonNull(userName), fileListing);
             return fileListing;
      //   }
       //  System.out.println("Using Saved File Listing");
@@ -98,6 +99,16 @@ public class S3Service implements StorageService {
     @Override
     public boolean renameFile(int id)   {
         return false;
+    }
+
+    @Override
+    public long getUserStorageQuota() {
+        var userObjectListing = getUserObjectsMetaData();
+        long sum=0;
+        for(UserFileMetaData file: userObjectListing){
+            sum += file.getSize();
+        }
+        return sum;
     }
 
     private UploadEntry getUserEntry(String uploadId){

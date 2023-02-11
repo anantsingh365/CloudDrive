@@ -20,10 +20,11 @@ public class SubscriptionService {
         return "Basic Tier";
     }
 
-    public void setTier(String userName, String Tier){
+    public String setTier(String userName, String Tier){
         var userSubscription = new UserSubscription();
         userSubscription.setTier(Tier);
         userSubscription.setEmail(userName);
         var user = userSubscriptionRepo.save(userSubscription);
+        return user.getTier();
     }
 }

@@ -8,6 +8,7 @@
 
 <link rel="stylesheet" href="/css/userHome.css">
         <h1>File handling</h1>
+        <p th:inline = "text">[[${userQuota}]] / 10GB</p>
         <h2 id = "loggedInUser" th:inline = "text">Hi, [[${loggedInUser}]]</h2>
         <input type="file" id="file" onchange="fileInfo()"/>
         <br>
