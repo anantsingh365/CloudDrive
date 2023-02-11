@@ -7,6 +7,7 @@ import com.anant.CloudDrive.s3.UserUploads.UploadEntry;
 import com.anant.CloudDrive.s3.UserUploads.*;
 
 import com.anant.CloudDrive.service.StorageService;
+import com.anant.CloudDrive.service.SubscriptionService;
 import com.anant.CloudDrive.service.UserFileMetaData;
 import org.slf4j.Logger;
 
@@ -14,15 +15,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.core.io.Resource;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
-import org.springframework.web.context.WebApplicationContext;
-import org.springframework.web.context.request.RequestContextHolder;
 
 import java.io.InputStream;
 import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 
 import static com.anant.CloudDrive.Utils.CommonUtils.getUserData;
@@ -34,19 +30,21 @@ public class S3Service implements StorageService {
     private final String bucketName;
     private final UploadSessionsHolder uploadSessionsHolder;
     private final S3Operations s3Operations;
-    @Autowired WebApplicationContext context;
+    private final SubscriptionService subscriptionService;
 
     private final ConcurrentHashMap<String, List<UserFileMetaData>> savedFileListing = new ConcurrentHashMap<>();
 
     public S3Service(@Value("${s3.bucketName}") String bucketName,
                      @Autowired Logger logger,
                      @Autowired UploadSessionsHolder uploadSessionsHolder,
-                     @Autowired S3Operations s3Operations)
+                     @Autowired S3Operations s3Operations,
+                     @Autowired SubscriptionService subscriptionService)
     {
         this.bucketName = bucketName;
         this.logger = logger;
         this.uploadSessionsHolder = uploadSessionsHolder;
         this.s3Operations = s3Operations;
+        this.subscriptionService = subscriptionService;
     }
 
     @Override
@@ -55,9 +53,12 @@ public class S3Service implements StorageService {
     }
     @Override
     public boolean upload(UploadRequest req){
-        var session = this.getUploadSession();
-        var entry = session.getEntry(req.getUploadId());
-        return entry != null && s3Operations.uploadFile(entry, req);
+        if(validateUploadRequestTier()){
+            var session = this.getUploadSession();
+            var entry = session.getEntry(req.getUploadId());
+            return entry != null && s3Operations.uploadFile(entry, req);
+        }
+        return false;
     }
 
     @Override
@@ -115,8 +116,18 @@ public class S3Service implements StorageService {
         var session = uploadSessionsHolder.getExistingSession(getUserData(CommonUtils.signedInUser.GET_SESSIONID));
         return session != null ? session.getEntry(uploadId) : null;
     }
-
     private UploadSession getUploadSession(){
         return uploadSessionsHolder.getSession(getUserData(CommonUtils.signedInUser.GET_SESSIONID));
+    }
+    private boolean validateUploadRequestTier(){
+        String storageTier = subscriptionService.getTier(getUserData(CommonUtils.signedInUser.GET_USERNAME));
+        int storageTierInMB = Integer.parseInt(storageTier);
+        long storageQuotaInMB = (int) getUserStorageQuota()/1048576;
+        if(storageQuotaInMB < storageTierInMB){
+            System.out.println("User Upload has valid tier");
+            return true;
+        }
+        System.out.println("User Upload has invalid tier");
+        return false;
     }
 }
