@@ -11,6 +11,7 @@
         <p th:inline = "text">[[${userQuota}]] / 10GB</p>
         <h2 id = "loggedInUser" th:inline = "text">Hi, [[${loggedInUser}]]</h2>
         <input type="file" id="file" onchange="fileInfo()"/>
+        <button type = "button" id = "pauseResumeButton" style="visibility: hidden;">Pause Upload</button>
         <br> 
         <button id ="submitButton">send file Data</button>
         <form action="/subscriptions">

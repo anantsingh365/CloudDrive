@@ -2,12 +2,36 @@
 const defaultPartSize = 14 * 1024 * 1024;
 var fileObj;
 var uploadCompleteDoneMessage;
+const resumeState = {};
+var pauseUploadFlag = false;
+var uploadID;
+var uploadfileLink = "/user/uploadFile";
+var isUploadCompleted = false;
+
+var pauseButtonEventListener = function (){
+    // to do resume ongoing Upload
+    if(pauseUploadFlag == true && !isUploadCompleted){
+        pauseUploadFlag = false;
+        const pauseButton = document.getElementById("pauseResumeButton");
+        pauseButton.innerHTML = "Pause Upload";
+        startTransferOfFile(true);
+    }else if(isUploadCompleted){
+        console.log("upload completed, can't pause or resume")
+    }else{
+        const pauseButton = document.getElementById("pauseResumeButton");
+        pauseButton.innerHTML = "Resume Upload";
+        pauseUploadFlag = true;
+    }
+}
+
+document.getElementById("pauseResumeButton")?.addEventListener("click", pauseButtonEventListener);
 
 var submitButtonEventListener = async function(){
     const fileName = document.getElementById('file').files[0].name;
     //const metaDataString = fileName;
 
     const uploadId = await getUploadId("/user/uploadId", fileObj);
+    uploadID = uploadId;
 
     if(uploadId === undefined){
         console.log("Error fetching upload id");
@@ -15,24 +39,34 @@ var submitButtonEventListener = async function(){
     }
     console.log("initiating upload for upload id -" + uploadId);
    // getJSessionId();
+   
+    startTransferOfFile(false); 
+}
 
-    sendFileInPartsToUrl(fileObj, defaultPartSize, "/user/uploadFile", uploadId)
+async function startTransferOfFile(isResuming){
+    sendFileInPartsToUrl(fileObj, defaultPartSize, uploadfileLink, uploadID, isResuming)
     .then( function(value){
-        console.log("Transmission successfull of all parts for upload id -" + uploadId);
-        console.log("attempting upload completion.....");
-        sendUploadCompleteConfirmation(uploadId).then( function(vaue){
+        if(value == false && !isUploadCompleted){
+            console.log("Upload Paused")
+            return false;
+        }else{
+            console.log("Transmission successfull of all parts for upload id -" + uploadID);
+            console.log("attempting upload completion.....");
+            sendUploadCompleteConfirmation(uploadID).then( function(vaue){
             console.log("###### Upload Completion Successfull ######");
             showUploadCompleteMessage();
+            return true;
         },
         function(error){
             console.log("##### Upload Completetion Failed #####");
-        }
-        );
-    }, function(error){
+            return false;
+        });
+    }}, function(error){
        console.log("Transmission unsuccessful")
        console.log(error.status)
        console.log(error.statusText)
-    });  
+       return false;
+    }); 
 }
 
 function showUploadCompleteMessage(){
@@ -52,27 +86,36 @@ function showUploadCompleteMessage(){
 
 document.getElementById('submitButton').addEventListener("click", submitButtonEventListener);
 
-async function sendFileInPartsToUrl(fileObj, partSize, url, uploadId){
-
+async function sendFileInPartsToUrl(fileObj, partSize, url, uploadId, isResuming){
+   
     var start = 0;
     var endIndx;
     var filePart;
 
-    //file smaller than default part size, send it directly
+    if(!isResuming){
+         //file smaller than default part size, send it directly
     if(fileObj.size < (partSize)){
-        await sendPart(fileObj, url, true)
+        await sendPart(fileObj, url, uploadId)
         return true;
     }
     if(partSize === null){
         //set part size to default size
-        partSize = defaultPartSize;
+        partSize =  defaultPartSize;
         endIndx = partSize;
     }
     else{
         endIndx = partSize;
     }
+    }else{
+        start = resumeState.startIndex;
+        partSize = defaultPartSize;
+        endIndx = start + partSize;
+    }
 
-    while(true){
+    var elem = document.getElementById("pauseResumeButton");
+    elem.style.visibility = 'visible';
+
+    while(true && !pauseUploadFlag){
         if ( ((fileObj.size - start) >= partSize) ) {
              filePart = fileObj.slice(start, endIndx)
              console.log("sending a part")
@@ -86,14 +129,24 @@ async function sendFileInPartsToUrl(fileObj, partSize, url, uploadId){
             console.log("sending last part")
             let result2 = await sendPart(filePart, url, uploadId)
             console.log("all parts sent")
+            isUploadCompleted = true;
+            elem.style.visibility = 'hidden';
             return true;
         }else {
         // this is rare but if file size is perfectly divisible by partSize, then we will probably be here....I think?
+            isUploadCompleted = true;
+            elem.style.visibility = 'hidden';
             return true;
         }
         start += filePart.size; 
     }
+
+    if(pauseUploadFlag){
+        resumeState.startIndex = start;
+    }
+    return false;
 }
+
 async function getUploadId(url, file){
     //Fetch upload Id from server
     //return uploadID
@@ -193,7 +246,10 @@ function sendPart(filePart, url, uploadId){
         console.log(filePart.size)
     });
 }
-document.querySelector('input').addEventListener('change', async (event) => {
-  fileObj = await event.target.files[0]
 
+document.querySelector('input').addEventListener('change', async (event) => {
+  isUploadCompleted = false;
+  pauseUploadFlag = false;
+  resumeState.startIndex = 0;
+  fileObj = await event.target.files[0]
 }, false)
