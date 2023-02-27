@@ -22,8 +22,8 @@ public class SubscriptionService {
 
     public String setTier(String userName, String Tier){
         var userSubscription = new UserSubscription();
-        userSubscription.setTier(Tier);
         userSubscription.setEmail(userName);
+        userSubscription.setTier(Tier);
         var user = userSubscriptionRepo.save(userSubscription);
         return user.getTier();
     }

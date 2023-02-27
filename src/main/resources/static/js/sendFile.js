@@ -1,37 +1,33 @@
+//@ts-check
 const defaultPartSize = 14 * 1024 * 1024;
 var fileObj;
-var uploadId;
 var uploadCompleteDoneMessage;
 
-var uploadIdButton = function(){
-    uploadId = getUploadId("/user/uploadId", fileObj);
-}
-
-var completeDownloadButton = function(){
-    sendUploadCompleteConfirmation();
-}
-
 var submitButtonEventListener = async function(){
-    var fileName = document.getElementById('file').files[0].name;
-    var metaDataString = fileName;
+    const fileName = document.getElementById('file').files[0].name;
+    //const metaDataString = fileName;
 
-    await getUploadId("/user/uploadId", fileObj);
+    const uploadId = await getUploadId("/user/uploadId", fileObj);
 
+    if(uploadId === undefined){
+        console.log("Error fetching upload id");
+        return;
+    }
     console.log("initiating upload for upload id -" + uploadId);
    // getJSessionId();
 
-    sendFileInPartsToUrl(fileObj, defaultPartSize, "/user/uploadFile")
+    sendFileInPartsToUrl(fileObj, defaultPartSize, "/user/uploadFile", uploadId)
     .then( function(value){
-        console.log("Transmission successfull for upload id -" + uploadId);
+        console.log("Transmission successfull of all parts for upload id -" + uploadId);
         console.log("attempting upload completion.....");
-        sendUploadCompleteConfirmation().then( function(vaue){
-            console.log("###### Everthing is completed ######");
+        sendUploadCompleteConfirmation(uploadId).then( function(vaue){
+            console.log("###### Upload Completion Successfull ######");
+            showUploadCompleteMessage();
         },
         function(error){
             console.log("##### Upload Completetion Failed #####");
         }
         );
-         
     }, function(error){
        console.log("Transmission unsuccessful")
        console.log(error.status)
@@ -39,14 +35,28 @@ var submitButtonEventListener = async function(){
     });  
 }
 
+function showUploadCompleteMessage(){
+
+    const fileInput = document.getElementById('file');
+    const para = document.createElement('span');
+    para.setAttribute('id', 'uploadCompleteMessage');
+    para.textContent = "Upload Complete";
+    fileInput?.after(para);
+
+    //removing after 3 seconds
+    setTimeout(function(){
+     const elem = document.getElementById('uploadCompleteMessage');
+     elem?.remove();
+    }, 3000);
+}
+
 document.getElementById('submitButton').addEventListener("click", submitButtonEventListener);
 
-async function sendFileInPartsToUrl(fileObj, partSize, url){
+async function sendFileInPartsToUrl(fileObj, partSize, url, uploadId){
 
-    let start = 0;
-    let endIndx;
+    var start = 0;
+    var endIndx;
     var filePart;
-    let uploadID;
 
     //file smaller than default part size, send it directly
     if(fileObj.size < (partSize)){
@@ -66,7 +76,7 @@ async function sendFileInPartsToUrl(fileObj, partSize, url){
         if ( ((fileObj.size - start) >= partSize) ) {
              filePart = fileObj.slice(start, endIndx)
              console.log("sending a part")
-             let result = await sendPart(filePart, url)
+             let result = await sendPart(filePart, url, uploadId)
              endIndx += partSize;
 
         }else if( ((fileObj.size - start) < partSize) && ((fileObj.size - start) !== 0)  ){
@@ -74,11 +84,11 @@ async function sendFileInPartsToUrl(fileObj, partSize, url){
             endIndx = fileObj.size 
             filePart = fileObj.slice(start, endIndx)
             console.log("sending last part")
-            let result2 = await sendPart(filePart, url)
+            let result2 = await sendPart(filePart, url, uploadId)
             console.log("all parts sent")
             return true;
         }else {
-        // this is rare but if file size is perfectly divisible by partSize, then we will probably be here
+        // this is rare but if file size is perfectly divisible by partSize, then we will probably be here....I think?
             return true;
         }
         start += filePart.size; 
@@ -98,9 +108,8 @@ async function getUploadId(url, file){
         xhr.onload = function () {
             console.log(xhr.responeText);
             if(xhr.status === 200){
-                console.log("Upload Id succesfully received");
-                uploadId = xhr.responseText;
-                resolve(true);
+                //uploadId = xhr.responseText;
+                resolve(xhr.responseText);
                // return true;
             }
             if (this.status >= 200 && this.status < 300) {
@@ -117,7 +126,7 @@ async function getUploadId(url, file){
     }) 
     }
 
-async function sendUploadCompleteConfirmation(){
+async function sendUploadCompleteConfirmation(uploadId){
     // send the upload id to server indicating transfer complete from client side.
     // return true
 
@@ -150,7 +159,7 @@ async function sendUploadCompleteConfirmation(){
 
 }
 
-function sendPart(filePart, url){
+function sendPart(filePart, url, uploadId){
     return new Promise(function (resolve, reject) {
         let xhr = new XMLHttpRequest();
         xhr.open("POST", url, true);

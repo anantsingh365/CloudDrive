@@ -8,7 +8,6 @@ public class UploadRequest {
     private final String uploadId;
     private final long contentLength;
 
-
     public UploadRequest(InputStream ins, String uploadId, long contentLength) {
         this.ins = ins;
         this.uploadId = uploadId;

@@ -91,10 +91,10 @@ public class Home {
     }
 
     @GetMapping("/user/download{id}")
-    public ResponseEntity<Resource> userDownload(@RequestParam("id") int id,Model model) throws IOException {
-        //to do
+    public ResponseEntity<Resource> download(@RequestParam("id") int id, Model model) throws IOException {
+
         Map<Integer, UserFileMetaData> fileList = (HashMap<Integer, UserFileMetaData>) model.getAttribute("fileList");
-       UserFileMetaData fileMetaData = fileList.get(id);
+        UserFileMetaData fileMetaData = fileList.get(id);
         String fileToDownload = fileList.get(id).getName();
 
         if(fileToDownload == null){
@@ -165,7 +165,7 @@ public class Home {
     }
     private double addUserStorageQuota(){
         //System.out.println(storageService.getUserStorageQuota());
-        long userQuota = storageService.getUserStorageQuota();
+        long userQuota = storageService.getStorageUsedByUser();
         return (double) (userQuota/1048576);
     }
     private String resolveFileToDelete(int id, Model model){

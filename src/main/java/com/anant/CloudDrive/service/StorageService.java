@@ -9,11 +9,18 @@ import java.util.List;
 public interface StorageService {
 
      String getUploadId(String fileName);
+
      boolean upload(UploadRequest req);
+
      boolean completeUpload(String uploadId);
+
      Resource download(String key);
+
      List<UserFileMetaData> getUserObjectsMetaData();
+
      boolean deleteUserFile(String key);
+
      boolean renameFile(int id);
-     long getUserStorageQuota();
+
+     long getStorageUsedByUser();
 }

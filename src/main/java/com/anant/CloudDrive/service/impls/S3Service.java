@@ -103,7 +103,7 @@ public class S3Service implements StorageService {
     }
 
     @Override
-    public long getUserStorageQuota() {
+    public long getStorageUsedByUser() {
         var userObjectListing = getUserObjectsMetaData();
         long sum=0;
         for(UserFileMetaData file: userObjectListing){
@@ -116,13 +116,17 @@ public class S3Service implements StorageService {
         var session = uploadSessionsHolder.getExistingSession(getUserData(CommonUtils.signedInUser.GET_SESSIONID));
         return session != null ? session.getEntry(uploadId) : null;
     }
+
     private UploadSession getUploadSession(){
         return uploadSessionsHolder.getSession(getUserData(CommonUtils.signedInUser.GET_SESSIONID));
     }
+
     private boolean validateUploadRequestTier(){
         String storageTier = subscriptionService.getTier(getUserData(CommonUtils.signedInUser.GET_USERNAME));
         int storageTierInMB = Integer.parseInt(storageTier);
-        long storageQuotaInMB = (int) getUserStorageQuota()/1048576;
+
+        // to get MB from bytes divide by 1024*1024 i.e, (1048576)
+        long storageQuotaInMB = (int) getStorageUsedByUser()/1048576;
         if(storageQuotaInMB < storageTierInMB){
             System.out.println("User Upload has valid tier");
             return true;

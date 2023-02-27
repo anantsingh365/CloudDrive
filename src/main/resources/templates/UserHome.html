@@ -11,7 +11,7 @@
         <p th:inline = "text">[[${userQuota}]] / 10GB</p>
         <h2 id = "loggedInUser" th:inline = "text">Hi, [[${loggedInUser}]]</h2>
         <input type="file" id="file" onchange="fileInfo()"/>
-        <br>
+        <br> 
         <button id ="submitButton">send file Data</button>
         <form action="/subscriptions">
             <input type="submit" value="Upgrade Your Account" />

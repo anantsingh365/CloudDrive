@@ -5,6 +5,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Component;
 
+import java.util.Enumeration;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Component
@@ -36,5 +37,12 @@ public class UploadSessionsHolder {
         var uploadSession = context.getBean(UploadSession.class);
         sessions.put(userName, uploadSession);
         return uploadSession;
+    }
+    public void removeUploadSession(String sessionId){
+        sessions.remove(sessionId);
+    }
+
+    public Enumeration<String> getActiveSessionIds(){
+        return sessions.keys();
     }
 }

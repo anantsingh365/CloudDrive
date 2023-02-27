@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.Map;
 
 @Controller
-public class Subscriptions {
+public class SubscriptionController {
 
     @Autowired
     SubscriptionService subscriptionService;

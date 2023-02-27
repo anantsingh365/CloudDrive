@@ -22,8 +22,8 @@ import java.util.List;
 public class UploadEntry {
 
     private final List<PartETag> partETags = new ArrayList<>();
-    private AmazonS3 s3Client;
-    private final String bucketName;
+    private final AmazonS3 s3Client;
+    private final String bucketName ;
     private final Logger logger;
     private int partNumber = 1;
     private InitiateMultipartUploadResult initResponse;
