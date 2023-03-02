@@ -33,7 +33,6 @@ import java.util.Map;
 @SessionAttributes("fileList")
 public class Home {
 
-    @Autowired private UserService userService;
     @Autowired private Logger logger;
     @Autowired StorageService storageService;
 
@@ -42,32 +41,6 @@ public class Home {
         this.addHomePageAttributes(model);
         System.out.println(session.getId());
         return "UserHome";
-    }
-
-    @GetMapping("/register")
-    public String registerPage(Model model, HttpServletRequest req){
-        return "register";
-    }
-
-    @GetMapping("/login")
-    public String loginForm(Model model) {
-        return "login";
-    }
-
-    @PostMapping("/register/save")
-    public String registration(@Valid @ModelAttribute("user") UserDto user,
-                               BindingResult result,
-                               Model model){
-        User existing = userService.findByEmail(user.getEmail());
-        if (existing != null) {
-            result.rejectValue("email", null, "There is already an account registered with that email");
-        }
-        if (result.hasErrors()) {
-            model.addAttribute("user", user);
-            return "register";
-        }
-        userService.saveUser(user);
-        return "redirect:/register?success";
     }
 
     @PostMapping("/user/uploadId")
