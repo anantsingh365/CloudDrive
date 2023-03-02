@@ -70,9 +70,11 @@ public class Home {
         return "redirect:/register?success";
     }
 
-    @GetMapping("/user/uploadId")
+    @PostMapping("/user/uploadId")
     @ResponseBody
-    public ResponseEntity<String> uploadId(@RequestHeader ("filename") String fileName){
+    public ResponseEntity<String> uploadId(@RequestBody Map<String, String> uploadIdPayLoad){
+        String fileName = uploadIdPayLoad.get("filename");
+        System.out.println(uploadIdPayLoad.get("filename is - " + fileName));
         return fileName != null ?  returnOkResponse(storageService.getUploadId(fileName)):returnBadResponse("filname missing");
     }
 
@@ -123,7 +125,7 @@ public class Home {
 
     @PostMapping("/user/CompleteUpload")
     @ResponseBody
-    public ResponseEntity<String> completeUpload(@RequestHeader ("user-id") String uploadId){
+    public ResponseEntity<String> completeUpload(@RequestHeader ("upload-id") String uploadId){
         if(uploadId == null) {
             logger.info("complete upload failed for user " + getUserData(signedInUser.GET_USERNAME) + ", upload id missing");
             return returnBadResponse("UploadId Missing");
