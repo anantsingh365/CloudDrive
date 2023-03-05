@@ -1,5 +1,6 @@
-package com.anant.CloudDrive.service.impls;
+package com.anant.CloudDrive.s3;
 
+import com.amazonaws.services.s3.model.S3ObjectInputStream;
 import com.anant.CloudDrive.Utils.CommonUtils;
 import com.anant.CloudDrive.requests.UploadRequest;
 import com.anant.CloudDrive.s3.S3Operations;
@@ -24,7 +25,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import static com.anant.CloudDrive.Utils.CommonUtils.getUserData;
 
 @Service
-public class S3Service implements StorageService {
+public class S3Service implements StorageService{
 
     private final Logger logger;
     private final String bucketName;
@@ -49,16 +50,19 @@ public class S3Service implements StorageService {
 
     @Override
     public String getUploadId(String fileName){
-        return this.getUploadSession().registerUploadId(fileName);
+        if(validateUploadRequestTier()){
+            return this.getUploadSession().registerUploadId(fileName);
+        }
+        return "Account Upgrade";
     }
     @Override
     public boolean upload(UploadRequest req){
-        if(validateUploadRequestTier()){
+       // if(validateUploadRequestTier()){
             var session = this.getUploadSession();
             var entry = session.getEntry(req.getUploadId());
             return entry != null && s3Operations.uploadFile(entry, req);
-        }
-        return false;
+        //}
+       // return false;
     }
 
     @Override
@@ -69,7 +73,7 @@ public class S3Service implements StorageService {
 
     @Override
     public Resource download(String key){
-        InputStream s3ObjectInputStream= s3Operations.getS3ObjectInputStream(key);
+        S3ObjectInputStream s3ObjectInputStream = s3Operations.getS3ObjectInputStream(key);
         return new InputStreamResource(s3ObjectInputStream);
     }
 
@@ -110,6 +114,11 @@ public class S3Service implements StorageService {
             sum += file.getSize();
         }
         return sum;
+    }
+
+    @Override
+    public byte[] getVideoBytes() {
+        return new byte[0];
     }
 
     private UploadEntry getUserEntry(String uploadId){

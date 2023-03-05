@@ -32,11 +32,11 @@ public class S3Operations {
         this.bucketName = bucketName;
     }
 
-    public void downloadFile(String keyName){
+    protected void downloadFile(String keyName){
         S3Object o = s3Client.getObject(bucketName, keyName + "/");
     }
 
-    public  List<UserFileMetaData> getUserObjectsMetaData(String key){
+    protected  List<UserFileMetaData> getUserObjectsMetaData(String key){
 
         // forward slash "/" is used to represent as folder in s3, there is no concept
         // of actual folders in s3. each user has a folder named after their username + "/".
@@ -47,17 +47,17 @@ public class S3Operations {
           return list;
     }
 
-    public InputStream getS3ObjectInputStream(String keyName){
+    protected S3ObjectInputStream getS3ObjectInputStream(String keyName){
         return s3Client
                 .getObject(bucketName, keyName)
                 .getObjectContent();
     }
 
-    public boolean uploadFile(UploadEntry entry, UploadRequest req){
+    protected boolean uploadFile(UploadEntry entry, UploadRequest req){
         return entry.upload(req);
     }
 
-    public boolean deleteObject(String keyName){
+    protected boolean deleteObject(String keyName){
         //DeleteObjectRequest del = new DeleteObjectRequest();
         try{
             s3Client.deleteObject(bucketName, keyName);
@@ -68,11 +68,11 @@ public class S3Operations {
         }
     }
 
-    public boolean completeUserUpload(UploadEntry entry){
+    protected boolean completeUserUpload(UploadEntry entry){
         return entry.completeUserUpload();
     }
 
-    public boolean renameFile(){
+    protected boolean renameFile(){
         return false;
     }
 }
