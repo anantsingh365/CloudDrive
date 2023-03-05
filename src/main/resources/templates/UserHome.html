@@ -1,12 +1,35 @@
 <html xmlns:th="http://www.w3.org/1999/xhtml" xmlns:style="http://www.w3.org/1999/xhtml">
     <head>
         <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
-<!--        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.1/jquery.min.js"></script>-->
+        <link rel="stylesheet" href="/css/userHome.css">
+
+        <!--        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.1/jquery.min.js"></script>-->
 <!--        <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>-->
     </head>
 <body>
 
-<link rel="stylesheet" href="/css/userHome.css">
+<header>
+    <nav>
+        <div id = "navBar">
+            <div id = "rightSide">
+                <ul>
+                    <li> <a href="https://reddit.com">Reddit</a></li>
+                    <li> <a href="https://instagram.com">Instagram</a></li>
+                    <li> <a href="https://youtube.com">Youtube</a></li>
+                    <li class="left"> <a href="https://Home.com">Home</a></li>
+                </ul>
+            </div>
+            <div id = "leftSide">
+                <ul>
+                    <li> <a href="https://google.com">Google</a></li>
+                </ul>
+            </div>
+        </div>
+
+    </nav>
+</header>
+
+
         <h1>File handling</h1>
         <p th:inline = "text">[[${userQuota}]] / 10GB</p>
         <h2 id = "loggedInUser" th:inline = "text">Hi, [[${loggedInUser}]]</h2>

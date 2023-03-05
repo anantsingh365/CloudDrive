@@ -33,17 +33,39 @@ document.getElementById("pauseResumeButton")?.addEventListener("click", pauseBut
 
 var submitButtonEventListener = async function(){
    getUploadId(uploadIdLink, fileObj)
-    .then
-    ((uploadId)=>{
-        uploadID = uploadId;
-        console.log("initiating upload for upload id -" + uploadId);
-        startTransferOfFile(false, uploadId);
-    },
-    (error)=>{
-        console.log("Error fetching upload id");
-        return;
-    });
+    .then(fetchingUploadIdSuccessHanlder,fetchingUploadIdFailedHandler);
 }
+
+function fetchingUploadIdSuccessHanlder(uploadId){
+    uploadID = uploadId;
+    console.log("initiating upload for upload id -" + uploadId);
+    //got upload id for file, start transfer
+    startTransferOfFile(false, uploadId);
+}
+
+function fetchingUploadIdFailedHandler(error){
+    const rejectMessage = error;
+    console.log("Error fetching upload id");
+    switch(rejectMessage){
+        case "Account Upgrade":
+            console.log("Please Upgrade Your Account");
+            const fileInput = document.getElementById('file');
+            const para = document.createElement('span');
+            para.setAttribute('id', 'AccountUpgradeMessage');
+            para.textContent = "Please Upgrade Your Account to Upload More Files";
+            fileInput?.after(para);
+
+            //removing success message after 3 seconds
+            const elem = document.getElementById('AccountUpgradeMessage');
+            removeDomElement(elem, 3000);
+            break;
+
+        default: 
+            console.log("Unknown Error Occured while getting uploadId");    
+    }
+    return;
+}
+document.getElementById('submitButton').addEventListener("click", submitButtonEventListener);
 
 function startTransferOfFile(isResuming, uploadId){
     sendFileInPartsToUrl(fileObj, defaultPartSize, uploadfileLink, uploadId, isResuming)
@@ -52,7 +74,8 @@ function startTransferOfFile(isResuming, uploadId){
     },
     function(error){
       wasUploadFailed(error);
-    });
+    })
+    .finally(fileInputReset);
 }
 
 async function sendFileInPartsToUrl(fileObj, partSize, url, uploadId, isResuming){
@@ -152,6 +175,10 @@ function wasUploadPaused(value, uploadId){
     }
 }
 
+function fileInputReset(){
+    document.getElementById("file").value = "";
+}
+
 function showUploadCompleteMessage(){
 
     const fileInput = document.getElementById('file');
@@ -160,14 +187,14 @@ function showUploadCompleteMessage(){
     para.textContent = "Upload Complete";
     fileInput?.after(para);
 
-    //removing after 3 seconds
-    setTimeout(function(){
-     const elem = document.getElementById('uploadCompleteMessage');
-     elem?.remove();
-    }, 3000);
+    //removing success message after 3 seconds
+    const elem = document.getElementById('uploadCompleteMessage');
+    removeDomElement(elem, 3000);
 }
 
-document.getElementById('submitButton').addEventListener("click", submitButtonEventListener);
+function removeDomElement(elem, inSeconds){
+    setTimeout(()=> elem.remove(), inSeconds);
+}
 
 async function getUploadId(url, file){
     //Fetch upload Id from server
@@ -182,6 +209,9 @@ async function getUploadId(url, file){
 
         xhr.onload = ()=>{
             if(xhr.status === 200){
+                if(xhr.responseText === "Account Upgrade"){
+                    reject(xhr.responseText);
+                }
                 resolve(xhr.responseText);
             }
             if (this.status >= 200 && this.status < 300) {
@@ -191,7 +221,10 @@ async function getUploadId(url, file){
             }
         };
 
-        xhr.onerror = () => console.log("error getting upload Id ");
+        xhr.onerror = () => {
+            console.log("error getting upload Id ");
+
+        }
         xhr.send(UploadIdRequestBody);
     })
     }
@@ -258,9 +291,9 @@ function sendPart(filePart, url, uploadId){
     });
 }
 
-document.querySelector('input').addEventListener('change', async (event) => {
+document.getElementById('file').addEventListener('change', async (event) => {
   isUploadCompleted = false;
   pauseUploadFlag = false;
   resumeState.startIndex = 0;
-  fileObj = await event.target.files[0]
+  fileObj = await event.target.files[0];
 }, false)
