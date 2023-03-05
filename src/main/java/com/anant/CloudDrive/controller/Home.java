@@ -1,11 +1,17 @@
 package com.anant.CloudDrive.controller;
 
+import com.amazonaws.services.alexaforbusiness.AmazonAlexaForBusinessClient;
+import com.amazonaws.services.directconnect.model.AmazonDirectConnectException;
 import com.anant.CloudDrive.dto.UserDto;
 import com.anant.CloudDrive.entity.User;
 import com.anant.CloudDrive.requests.UploadRequest;
+import com.anant.CloudDrive.s3.S3Operations;
 import com.anant.CloudDrive.service.StorageService;
 import com.anant.CloudDrive.service.UserFileMetaData;
 import com.anant.CloudDrive.service.UserService;
+
+import static com.anant.CloudDrive.Constants.CONTENT_TYPE;
+import static com.anant.CloudDrive.Constants.VIDEO_CONTENT;
 import static com.anant.CloudDrive.Utils.CommonUtils.*;
 
 import jakarta.servlet.http.HttpServletRequest;
@@ -60,12 +66,12 @@ public class Home {
         if( uploadId == null || contentLength == null ){
             return  returnBadResponse("Headers missing");
         }
-
         var req = new UploadRequest(ins, uploadId, Long.parseLong(contentLength));
         return  storageService.upload(req) ? returnOkResponse("dataReceived") : returnInternalServerError();
     }
 
     @GetMapping("/user/download{id}")
+    @ResponseBody
     public ResponseEntity<Resource> download(@RequestParam("id") int id, Model model) throws IOException {
 
         Map<Integer, UserFileMetaData> fileList = (HashMap<Integer, UserFileMetaData>) model.getAttribute("fileList");
@@ -77,15 +83,16 @@ public class Home {
             return ResponseEntity.badRequest().body(null);
         }
         Resource res = storageService.download(fileToDownload);
+
         return ResponseEntity.ok()
-                .contentType(MediaType.parseMediaType("audio/x-flac"))
+                //.contentType(MediaType.parseMediaType("audio/x-flac"))
+                .header(CONTENT_TYPE, VIDEO_CONTENT + "mp4")
                 .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + fileToDownload.substring(fileToDownload.indexOf("/")) + "\"")
                 .header(HttpHeaders.CONTENT_LENGTH, String.valueOf(fileMetaData.getSize()))
                 .body(res);
     }
 
     @GetMapping("/user/delete{id}")
-    @ResponseBody
     public ResponseEntity<String> delete(@RequestParam("id") int id, Model model){
         String fileToDelete = this.resolveFileToDelete(id, model);
         if(fileToDelete == null){

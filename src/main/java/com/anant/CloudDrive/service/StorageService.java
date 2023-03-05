@@ -23,4 +23,6 @@ public interface StorageService {
      boolean renameFile(int id);
 
      long getStorageUsedByUser();
+
+     byte[] getVideoBytes();
 }

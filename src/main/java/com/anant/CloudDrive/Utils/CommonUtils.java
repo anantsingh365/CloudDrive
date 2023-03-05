@@ -1,6 +1,5 @@
 package com.anant.CloudDrive.Utils;
 
-import com.anant.CloudDrive.service.impls.S3Service;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.context.request.RequestContextHolder;
 
