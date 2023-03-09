@@ -1,33 +1,23 @@
 package com.anant.CloudDrive.controller;
 
-import com.amazonaws.services.alexaforbusiness.AmazonAlexaForBusinessClient;
-import com.amazonaws.services.directconnect.model.AmazonDirectConnectException;
-import com.anant.CloudDrive.dto.UserDto;
-import com.anant.CloudDrive.entity.User;
 import com.anant.CloudDrive.requests.UploadRequest;
-import com.anant.CloudDrive.s3.S3Operations;
 import com.anant.CloudDrive.service.StorageService;
 import com.anant.CloudDrive.service.UserFileMetaData;
-import com.anant.CloudDrive.service.UserService;
 
 import static com.anant.CloudDrive.Constants.CONTENT_TYPE;
 import static com.anant.CloudDrive.Constants.VIDEO_CONTENT;
 import static com.anant.CloudDrive.Utils.CommonUtils.*;
 
-import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
-import jakarta.validation.Valid;
 
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.*;
 import org.springframework.http.HttpHeaders;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.*;

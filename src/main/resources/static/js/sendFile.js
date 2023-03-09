@@ -30,7 +30,8 @@ var pauseButtonEventListener = function (){
 document.getElementById("pauseResumeButton")?.addEventListener("click", pauseButtonEventListener);
 
 var submitButtonEventListener = ()=>{
-     uploadSequence();
+    document.getElementById('submitButton').disabled = true;
+    uploadSequence();
 }
 document.getElementById('submitButton').addEventListener("click", submitButtonEventListener);
 
@@ -56,12 +57,14 @@ async function uploadSequence(){
                     console.log("###### Upload Completion Successfull ######");
                     showUploadCompleteMessage();
                     fileInputReset();
+                    document.getElementById('submitButton').disabled = false;
+
                 }else{
                     console.log("##### Upload Completetion Failed #####");
                 }
                }else{
                    // false promise resolve means upload was paused
-                   console.log("Upload Paused")
+                    console.log("Upload Paused")
                }
         }catch(err){
             uploadFailed(err);
@@ -126,8 +129,8 @@ async function sendFileInPartsToUrl(fileObj, partSize, url, uploadId, isResuming
         endIndx = start + partSize;
     }
 
-    var elem = document.getElementById("pauseResumeButton");
-    elem.style.visibility = 'visible';
+    var pauseButton = document.getElementById("pauseResumeButton");
+    pauseButton.style.visibility = 'visible';
 
     while(true && !pauseUploadFlag){
         if ( ((fileObj.size - start) >= partSize) ) {
@@ -138,28 +141,41 @@ async function sendFileInPartsToUrl(fileObj, partSize, url, uploadId, isResuming
 
         }else if( ((fileObj.size - start) < partSize) && ((fileObj.size - start) !== 0)  ){
             //this is the last part
-            elem.style.visibility = 'hidden';
+            pauseButton.style.visibility = 'hidden';
             endIndx = fileObj.size
             filePart = fileObj.slice(start, endIndx)
             console.log("sending last part")
-            let result2 = await sendPart(filePart, url, uploadId)
+            let result2 = await sendPart(filePart, url, uploadId);
             console.log("all parts sent")
             isUploadCompleted = true;
+
+            //this is temporary
+            const uploadCompletionResult = await sendUploadCompleteConfirmation(uploadId);
+                if(uploadCompletionResult){
+                    console.log("###### Upload Completion Successfull ######");
+                    showUploadCompleteMessage();
+                    fileInputReset();
+                    document.getElementById('submitButton').disabled = false;
+
+                }else{
+                    console.log("##### Upload Completetion Failed #####");
+                }
             return true;
         }else {
         // this is rare but if file size is perfectly divisible by partSize, then we will probably be here....I think?
             isUploadCompleted = true;
-            elem.style.visibility = 'hidden';
+            pauseButton.style.visibility = 'hidden';
             return true;
         }
         start += filePart.size;
     }
 
     if(pauseUploadFlag){
+        console.log("Upload Paused");
         resumeState.startIndex = start;
     }
-    // this false represents upload was paused
-    // other true means upload successful
+    //returning false indicates that upload was paused
+    //for failure an exception will be thrown by sendPart() and should be handled by uploadSequence().
     return false;
 }
 
