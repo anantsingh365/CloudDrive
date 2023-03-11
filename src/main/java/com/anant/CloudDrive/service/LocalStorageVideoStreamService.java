@@ -47,7 +47,7 @@ public class LocalStorageVideoStreamService {
              String fileKey = fileName ;
                     //+ "." + fileType;
 
-            fileKey = SecurityContextHolder.getContext().getAuthentication().getName() + "/" + fileKey;
+          //  fileKey = SecurityContextHolder.getContext().getAuthentication().getName() + "/" + fileKey;
 
             long rangeStart = 0;
             long rangeEnd = CHUNK_SIZE;

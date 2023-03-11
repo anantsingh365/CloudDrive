@@ -53,6 +53,12 @@ public class S3Operations {
                 .getObjectContent();
     }
 
+    protected S3ObjectInputStream getRangedS3ObjectInputStream(String keyName, long start, long end){
+        GetObjectRequest getObjectRequest = new GetObjectRequest(bucketName, keyName).withRange(start,end);
+        S3Object object = s3Client.getObject(getObjectRequest);
+        return object.getObjectContent();
+    }
+
     protected boolean uploadFile(UploadEntry entry, UploadRequest req){
         return entry.upload(req);
     }

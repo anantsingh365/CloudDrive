@@ -3,6 +3,7 @@ package com.anant.CloudDrive.service;
 import com.amazonaws.services.s3.model.S3ObjectSummary;
 import com.anant.CloudDrive.requests.UploadRequest;
 import org.springframework.core.io.Resource;
+import org.springframework.http.ResponseEntity;
 
 import java.util.List;
 
@@ -24,5 +25,5 @@ public interface StorageService {
 
      long getStorageUsedByUser();
 
-     byte[] getFileBytes(String fileName, long startRange, long endRange);
+     ResponseEntity<byte[]> getFileBytes(String fileName, String range);
 }

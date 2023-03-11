@@ -63,7 +63,6 @@ public class Home {
     @GetMapping("/user/download{id}")
     @ResponseBody
     public ResponseEntity<byte[]> download(@RequestParam("id") int id,
-                                           @RequestHeader(value = "Range", required = true) String range,
                                            Model model) throws IOException {
 
         Map<Integer, UserFileMetaData> fileList = (HashMap<Integer, UserFileMetaData>) model.getAttribute("fileList");
@@ -75,88 +74,32 @@ public class Home {
             return ResponseEntity.badRequest().body(null);
         }
         Resource res = storageService.download(fileToDownload);
-
-/////////////////////////////////////////////////////////
-        long rangeStart = 0;
-        long rangeEnd = CHUNK_SIZE;
-        String[] ranges = range.split("-");
-        rangeStart = Long.parseLong(ranges[0].substring(6));
-        if (ranges.length > 1) {
-            rangeEnd = Long.parseLong(ranges[1]);
-        } else {
-            rangeEnd = rangeStart + CHUNK_SIZE;
-        }
-        final Long fileSize = fileList.get(id).getSize();
-        rangeEnd = Math.min(rangeEnd, fileSize - 1);
-
-        byte[] streamResponse = storageService.getFileBytes(fileList.get(id).getName(), rangeStart, rangeEnd);
-
-        //byte[] result = new byte[(int) (rangeStart - rangeEnd) + 1];
-
-///////////////////////////////////////////////////////////
-
         return ResponseEntity.ok()
-                //.contentType(MediaType.parseMediaType("audio/x-flac"))
-                .header(CONTENT_TYPE, VIDEO_CONTENT + "mp4")
                 .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + fileToDownload.substring(fileToDownload.indexOf("/")) + "\"")
                 .header(HttpHeaders.CONTENT_LENGTH, String.valueOf(fileMetaData.getSize()))
-                .body(streamResponse);
+                .body(res.getInputStream().readAllBytes());
     }
 
     @GetMapping("/user/video{id}")
-    //@ResponseBody
-    public ResponseEntity<byte[]> StreamVideo(@RequestParam("id") int id,
-                                           @RequestHeader(value = "Range", required = true) String range,
-                                           Model model) throws IOException {
-
+    @ResponseBody
+    public ResponseEntity<byte[]> videoStream(@RequestParam("id") int id, Model model, @RequestHeader(value = "Range", required = false) String httpRangeList){
         Map<Integer, UserFileMetaData> fileList = (HashMap<Integer, UserFileMetaData>) model.getAttribute("fileList");
         UserFileMetaData fileMetaData = fileList.get(id);
-        String fileToDownload = fileList.get(id).getName();
+        String fileToStream = fileList.get(id).getName();
 
-        if(fileToDownload == null){
+        if(fileToStream == null){
             // Resource res = new ByteArrayResource("no file to download".getBytes(StandardCharsets.UTF_8));
             return ResponseEntity.badRequest().body(null);
         }
-      //  Resource res = storageService.download(fileToDownload);
-
-/////////////////////////////////////////////////////////
-        long rangeStart = 0;
-        long rangeEnd = CHUNK_SIZE;
-        String[] ranges = range.split("-");
-        rangeStart = Long.parseLong(ranges[0].substring(6));
-        if (ranges.length > 1) {
-            rangeEnd = Long.parseLong(ranges[1]);
-        } else {
-            rangeEnd = rangeStart + CHUNK_SIZE;
-        }
-        final Long fileSize = fileList.get(id).getSize();
-        rangeEnd = Math.min(rangeEnd, fileSize - 1);
-
-        byte[] streamResponse = storageService.getFileBytes(fileList.get(id).getName(), rangeStart, rangeEnd);
-
-        final String contentLength = String.valueOf((rangeEnd - rangeStart) + 1);
-        HttpStatus httpStatus = HttpStatus.PARTIAL_CONTENT;
-        if (rangeEnd >= fileSize) {
-            httpStatus = HttpStatus.OK;
-        }
-        return ResponseEntity.status(httpStatus)
-                //.header(CONTENT_TYPE, BYTES + "/application")
-                .header(ACCEPT_RANGES, BYTES)
-                .header(CONTENT_LENGTH, contentLength)
-                .header(CONTENT_RANGE, BYTES + " " + rangeStart + "-" + rangeEnd + "/" + fileSize)
-                .body(streamResponse);
-
-        //byte[] result = new byte[(int) (rangeStart - rangeEnd) + 1;
-
-///////////////////////////////////////////////////////////
+        return storageService.getFileBytes(fileToStream,httpRangeList);
 
 //        return ResponseEntity.ok()
-//                //.contentType(MediaType.parseMediaType("audio/x-flac"))
-//                .header(CONTENT_TYPE, VIDEO_CONTENT + "mp4")
 //                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + fileToDownload.substring(fileToDownload.indexOf("/")) + "\"")
 //                .header(HttpHeaders.CONTENT_LENGTH, String.valueOf(fileMetaData.getSize()))
-//                .body(streamResponse);
+//                .body(res.getInputStream().readAllBytes());
+
     }
+
     @GetMapping("/user/delete{id}")
     public ResponseEntity<String> delete(@RequestParam("id") int id, Model model){
         String fileToDelete = this.resolveFileToDelete(id, model);
@@ -181,12 +124,6 @@ public class Home {
             return  returnOkResponse("uploadComplete for uploadId " + uploadId);
         }
         return returnBadResponse("couldn't complete upload for upload id - " + uploadId);
-    }
-
-    @GetMapping("/user/playMedia/{id}")
-    public String playMedia(@RequestParam int id){
-
-        return null;
     }
 
     private ResponseEntity<String> returnBadResponse(String reason){

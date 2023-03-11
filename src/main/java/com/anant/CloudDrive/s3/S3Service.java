@@ -10,6 +10,7 @@ import com.anant.CloudDrive.s3.S3Operations;
 import com.anant.CloudDrive.s3.UserUploads.UploadEntry;
 import com.anant.CloudDrive.s3.UserUploads.*;
 
+import com.anant.CloudDrive.service.LocalStorageVideoStreamService;
 import com.anant.CloudDrive.service.StorageService;
 import com.anant.CloudDrive.service.SubscriptionService;
 import com.anant.CloudDrive.service.UserFileMetaData;
@@ -19,6 +20,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.core.io.Resource;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.io.*;
@@ -36,6 +38,7 @@ public class S3Service implements StorageService{
     private final S3Operations s3Operations;
     private final SubscriptionService subscriptionService;
     @Autowired private AmazonS3 s3;
+    @Autowired private LocalStorageVideoStreamService videoStreamService;
 
     private final ConcurrentHashMap<String, List<UserFileMetaData>> savedFileListing = new ConcurrentHashMap<>();
 
@@ -121,37 +124,14 @@ public class S3Service implements StorageService{
     }
 
     @Override
-    public byte[] getFileBytes(String key_name, long start, long end){
-        S3Object o = s3.getObject(bucketName, key_name);
-
-       // System.out.println(o.getObjectMetadata().getContentLength());
-        System.out.println("pulling bytes for video with name, " + o.getKey());
-
-        GetObjectRequest getObjectRequest = new GetObjectRequest(bucketName,key_name).withRange(start, end);
-
-        S3Object objectPortion;
-        objectPortion = s3.getObject(getObjectRequest);
-       // System.out.println("storing bytes retrieved.");
-
-        S3ObjectInputStream s3is = objectPortion.getObjectContent();
-        //S3ObjectInputStream s3is = o.getObjectContent();
-
-        //FileOutputStream fos = new FileOutputStream(new File("file"), true);
-        // long transferred = s3is.transferTo(fos);
-
-        byte[] read_buf = new byte[(int)(end - start)+1];
-        try {
-            s3is.read(read_buf);
-            File file = new File("videoChunkFromS3");
-            BufferedOutputStream out = new BufferedOutputStream(new FileOutputStream(file));
-            out.write(read_buf);
-            out.close();
-            s3is.close();
-            return read_buf;
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        return null;
+    public ResponseEntity<byte[]> getFileBytes(String key_name, String range){
+        return videoStreamService.prepareContent(key_name, "mp4", range);
+//        try {
+//            return s3Operations.getRangedS3ObjectInputStream(key_name,start,end).readAllBytes();
+//        } catch (IOException e) {
+//            e.printStackTrace();
+//            throw new RuntimeException("Couldn't Read Ranged S3 Input Stream");
+//        }
     }
 
     private UploadEntry getUserEntry(String uploadId){
