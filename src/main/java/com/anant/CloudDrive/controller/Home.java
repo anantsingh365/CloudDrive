@@ -4,8 +4,7 @@ import com.anant.CloudDrive.requests.UploadRequest;
 import com.anant.CloudDrive.service.StorageService;
 import com.anant.CloudDrive.service.UserFileMetaData;
 
-import static com.anant.CloudDrive.Constants.CONTENT_TYPE;
-import static com.anant.CloudDrive.Constants.VIDEO_CONTENT;
+import static com.anant.CloudDrive.Constants.*;
 import static com.anant.CloudDrive.Utils.CommonUtils.*;
 
 import jakarta.servlet.http.HttpSession;
@@ -14,6 +13,7 @@ import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.*;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
@@ -62,7 +62,9 @@ public class Home {
 
     @GetMapping("/user/download{id}")
     @ResponseBody
-    public ResponseEntity<Resource> download(@RequestParam("id") int id, Model model) throws IOException {
+    public ResponseEntity<byte[]> download(@RequestParam("id") int id,
+                                           @RequestHeader(value = "Range", required = true) String range,
+                                           Model model) throws IOException {
 
         Map<Integer, UserFileMetaData> fileList = (HashMap<Integer, UserFileMetaData>) model.getAttribute("fileList");
         UserFileMetaData fileMetaData = fileList.get(id);
@@ -74,14 +76,87 @@ public class Home {
         }
         Resource res = storageService.download(fileToDownload);
 
+/////////////////////////////////////////////////////////
+        long rangeStart = 0;
+        long rangeEnd = CHUNK_SIZE;
+        String[] ranges = range.split("-");
+        rangeStart = Long.parseLong(ranges[0].substring(6));
+        if (ranges.length > 1) {
+            rangeEnd = Long.parseLong(ranges[1]);
+        } else {
+            rangeEnd = rangeStart + CHUNK_SIZE;
+        }
+        final Long fileSize = fileList.get(id).getSize();
+        rangeEnd = Math.min(rangeEnd, fileSize - 1);
+
+        byte[] streamResponse = storageService.getFileBytes(fileList.get(id).getName(), rangeStart, rangeEnd);
+
+        //byte[] result = new byte[(int) (rangeStart - rangeEnd) + 1];
+
+///////////////////////////////////////////////////////////
+
         return ResponseEntity.ok()
                 //.contentType(MediaType.parseMediaType("audio/x-flac"))
                 .header(CONTENT_TYPE, VIDEO_CONTENT + "mp4")
                 .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + fileToDownload.substring(fileToDownload.indexOf("/")) + "\"")
                 .header(HttpHeaders.CONTENT_LENGTH, String.valueOf(fileMetaData.getSize()))
-                .body(res);
+                .body(streamResponse);
     }
 
+    @GetMapping("/user/video{id}")
+    //@ResponseBody
+    public ResponseEntity<byte[]> StreamVideo(@RequestParam("id") int id,
+                                           @RequestHeader(value = "Range", required = true) String range,
+                                           Model model) throws IOException {
+
+        Map<Integer, UserFileMetaData> fileList = (HashMap<Integer, UserFileMetaData>) model.getAttribute("fileList");
+        UserFileMetaData fileMetaData = fileList.get(id);
+        String fileToDownload = fileList.get(id).getName();
+
+        if(fileToDownload == null){
+            // Resource res = new ByteArrayResource("no file to download".getBytes(StandardCharsets.UTF_8));
+            return ResponseEntity.badRequest().body(null);
+        }
+      //  Resource res = storageService.download(fileToDownload);
+
+/////////////////////////////////////////////////////////
+        long rangeStart = 0;
+        long rangeEnd = CHUNK_SIZE;
+        String[] ranges = range.split("-");
+        rangeStart = Long.parseLong(ranges[0].substring(6));
+        if (ranges.length > 1) {
+            rangeEnd = Long.parseLong(ranges[1]);
+        } else {
+            rangeEnd = rangeStart + CHUNK_SIZE;
+        }
+        final Long fileSize = fileList.get(id).getSize();
+        rangeEnd = Math.min(rangeEnd, fileSize - 1);
+
+        byte[] streamResponse = storageService.getFileBytes(fileList.get(id).getName(), rangeStart, rangeEnd);
+
+        final String contentLength = String.valueOf((rangeEnd - rangeStart) + 1);
+        HttpStatus httpStatus = HttpStatus.PARTIAL_CONTENT;
+        if (rangeEnd >= fileSize) {
+            httpStatus = HttpStatus.OK;
+        }
+        return ResponseEntity.status(httpStatus)
+                //.header(CONTENT_TYPE, BYTES + "/application")
+                .header(ACCEPT_RANGES, BYTES)
+                .header(CONTENT_LENGTH, contentLength)
+                .header(CONTENT_RANGE, BYTES + " " + rangeStart + "-" + rangeEnd + "/" + fileSize)
+                .body(streamResponse);
+
+        //byte[] result = new byte[(int) (rangeStart - rangeEnd) + 1;
+
+///////////////////////////////////////////////////////////
+
+//        return ResponseEntity.ok()
+//                //.contentType(MediaType.parseMediaType("audio/x-flac"))
+//                .header(CONTENT_TYPE, VIDEO_CONTENT + "mp4")
+//                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + fileToDownload.substring(fileToDownload.indexOf("/")) + "\"")
+//                .header(HttpHeaders.CONTENT_LENGTH, String.valueOf(fileMetaData.getSize()))
+//                .body(streamResponse);
+    }
     @GetMapping("/user/delete{id}")
     public ResponseEntity<String> delete(@RequestParam("id") int id, Model model){
         String fileToDelete = this.resolveFileToDelete(id, model);

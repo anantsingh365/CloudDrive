@@ -24,5 +24,5 @@ public interface StorageService {
 
      long getStorageUsedByUser();
 
-     byte[] getVideoBytes();
+     byte[] getFileBytes(String fileName, long startRange, long endRange);
 }

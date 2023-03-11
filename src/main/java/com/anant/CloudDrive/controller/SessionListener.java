@@ -31,5 +31,4 @@ public class SessionListener implements HttpSessionListener {
             System.out.println(iter.next());
         }
     }
-
 }

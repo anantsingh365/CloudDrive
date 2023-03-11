@@ -1,5 +1,8 @@
 package com.anant.CloudDrive.s3;
 
+import com.amazonaws.services.s3.AmazonS3;
+import com.amazonaws.services.s3.model.GetObjectRequest;
+import com.amazonaws.services.s3.model.S3Object;
 import com.amazonaws.services.s3.model.S3ObjectInputStream;
 import com.anant.CloudDrive.Utils.CommonUtils;
 import com.anant.CloudDrive.requests.UploadRequest;
@@ -18,7 +21,7 @@ import org.springframework.core.io.InputStreamResource;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
 
-import java.io.InputStream;
+import java.io.*;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -32,6 +35,7 @@ public class S3Service implements StorageService{
     private final UploadSessionsHolder uploadSessionsHolder;
     private final S3Operations s3Operations;
     private final SubscriptionService subscriptionService;
+    @Autowired private AmazonS3 s3;
 
     private final ConcurrentHashMap<String, List<UserFileMetaData>> savedFileListing = new ConcurrentHashMap<>();
 
@@ -53,7 +57,7 @@ public class S3Service implements StorageService{
         if(validateUploadRequestTier()){
             return this.getUploadSession().registerUploadId(fileName);
         }
-        return "Account Upgrade";
+        return AccountStates.ACCOUNT_UPGRADE.getValue();
     }
     @Override
     public boolean upload(UploadRequest req){
@@ -117,8 +121,37 @@ public class S3Service implements StorageService{
     }
 
     @Override
-    public byte[] getVideoBytes() {
-        return new byte[0];
+    public byte[] getFileBytes(String key_name, long start, long end){
+        S3Object o = s3.getObject(bucketName, key_name);
+
+       // System.out.println(o.getObjectMetadata().getContentLength());
+        System.out.println("pulling bytes for video with name, " + o.getKey());
+
+        GetObjectRequest getObjectRequest = new GetObjectRequest(bucketName,key_name).withRange(start, end);
+
+        S3Object objectPortion;
+        objectPortion = s3.getObject(getObjectRequest);
+       // System.out.println("storing bytes retrieved.");
+
+        S3ObjectInputStream s3is = objectPortion.getObjectContent();
+        //S3ObjectInputStream s3is = o.getObjectContent();
+
+        //FileOutputStream fos = new FileOutputStream(new File("file"), true);
+        // long transferred = s3is.transferTo(fos);
+
+        byte[] read_buf = new byte[(int)(end - start)+1];
+        try {
+            s3is.read(read_buf);
+            File file = new File("videoChunkFromS3");
+            BufferedOutputStream out = new BufferedOutputStream(new FileOutputStream(file));
+            out.write(read_buf);
+            out.close();
+            s3is.close();
+            return read_buf;
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return null;
     }
 
     private UploadEntry getUserEntry(String uploadId){
@@ -143,4 +176,20 @@ public class S3Service implements StorageService{
         System.out.println("User Upload has invalid tier");
         return false;
     }
+
+    private enum AccountStates{
+        ACCOUNT_UPGRADE("Account Upgrade"), ACCOUNT_BLOCKED("Account Blocked");
+        private final String value;
+
+        AccountStates(String value){
+            this.value = value;
+        }
+        public String getValue(){
+            return this.value;
+        }
+        @Override
+        public String toString() {
+            return this.getValue();
+        }
+        }
 }

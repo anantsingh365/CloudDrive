@@ -89,10 +89,14 @@ function fetchingUploadIdFailedHandler(error){
             //removing success message after 3 seconds
             const elem = document.getElementById('AccountUpgradeMessage');
             removeDomElement(elem, 3000);
+
+            //re enable submit button
+            document.getElementById('submitButton').disabled = false;
             break;
 
         default: 
             console.log("Unknown Error Occured while getting uploadId");    
+            document.getElementById('submitButton').disabled = false;
     }
     return;
 }
