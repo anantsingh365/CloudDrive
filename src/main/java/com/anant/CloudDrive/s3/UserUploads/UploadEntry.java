@@ -30,6 +30,7 @@ public class UploadEntry {
     private boolean isUploadInitiated = false;
     private boolean isUploadCompleted = false;
     private String userUploadKeyName;
+    private String contentType;
 
     public UploadEntry(@Value("${s3.bucketName}") String bucketName,
                        @Autowired AmazonS3 s3Client,
@@ -41,12 +42,18 @@ public class UploadEntry {
     }
 
 
-    public void setUploadKeyName(String userName, String keyName) {
+    public void setUploadKeyName(String userName, String keyName, String contentType) {
         this.userUploadKeyName = getUserNamePrefixForKeyName(userName, keyName);
+        this.contentType = contentType;
     }
-    private void initiateUploadForKeyName(String userSpecificKeyName) {
+    private void initiateUploadForKeyName(String userSpecificKeyName, String contentType) {
         var initRequest = new InitiateMultipartUploadRequest(bucketName, userSpecificKeyName);
+        ObjectMetadata metadata = new ObjectMetadata();
+        this.contentType = contentType;
+        metadata.setContentType(contentType);
+        initRequest.setObjectMetadata(metadata);
         initResponse = s3Client.initiateMultipartUpload(initRequest);
+
         isUploadInitiated = true;
     }
     private String getUserNamePrefixForKeyName(String username, String keyName) {
@@ -59,7 +66,7 @@ public class UploadEntry {
         long partSize = req.getContentLength();
 
         if (!isUploadInitiated && !isUploadCompleted) {
-            initiateUploadForKeyName(userUploadKeyName);
+            initiateUploadForKeyName(userUploadKeyName, contentType);
         }
         if (isUploadCompleted) {
             throw new IllegalStateException("Upload has already been completed");

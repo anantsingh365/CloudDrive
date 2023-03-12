@@ -9,7 +9,7 @@ import java.util.List;
 
 public interface StorageService {
 
-     String getUploadId(String fileName);
+     String getUploadId(String fileName, String contentType);
 
      boolean upload(UploadRequest req);
 
@@ -25,5 +25,5 @@ public interface StorageService {
 
      long getStorageUsedByUser();
 
-     ResponseEntity<byte[]> getFileBytes(String fileName, String range);
+     ResponseEntity<byte[]> getFileBytes(String fileName, String range, String contentType);
 }

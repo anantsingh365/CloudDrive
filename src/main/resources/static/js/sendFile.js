@@ -8,6 +8,7 @@ var uploadID;
 const uploadfileLink = "/user/uploadFile";
 const uploadIdLink = "/user/uploadId"
 var isUploadCompleted = false;
+var fileType;
 
 var pauseButtonEventListener = function (){
     // upload underway, pause it  
@@ -213,7 +214,7 @@ async function getUploadId(url, file){
     //Fetch upload Id from server
     //return uploadID
     return new Promise((resolve, reject) => {
-        const UploadIdRequestBody = '{ "filename": "'+file.name+'","mimetype":"'+file.name+'"}';
+        const UploadIdRequestBody = '{ "filename": "'+file.name+'","mimetype":"'+file.name+'", "contenttype":"'+fileType+'" }';
         let xhr = new XMLHttpRequest();
         xhr.open("POST", url, true);
       //  xhr.setRequestHeader("FileName", file.name);
@@ -306,6 +307,7 @@ function sendPart(filePart, url, uploadId){
 document.getElementById('file').addEventListener('change', async (event) => {
   resetUploadState();
   fileObj = await event.target.files[0];
+  fileType = fileObj.type;
 }, false)
 
 function resetUploadState(){

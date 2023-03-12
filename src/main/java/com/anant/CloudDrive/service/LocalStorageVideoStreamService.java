@@ -41,7 +41,7 @@ public class LocalStorageVideoStreamService {
      * @return ResponseEntity.
      *
      */
-    public ResponseEntity<byte[]> prepareContent(final String fileName, final String fileType, final String range) {
+    public ResponseEntity<byte[]> prepareContent(final String fileName, final String range, final String fileType) {
 
         try {
              String fileKey = fileName ;
@@ -54,7 +54,8 @@ public class LocalStorageVideoStreamService {
             final Long fileSize = getFileSize(fileKey);
             if (range == null) {
                 return ResponseEntity.status(HttpStatus.PARTIAL_CONTENT)
-                        .header(CONTENT_TYPE, VIDEO_CONTENT + fileType)
+                        //.header(CONTENT_TYPE, VIDEO_CONTENT + fileType)
+                        .header(CONTENT_TYPE, fileType)
                         .header(ACCEPT_RANGES, BYTES)
                         .header(CONTENT_LENGTH, String.valueOf(rangeEnd))
                         .header(CONTENT_RANGE, BYTES + " " + rangeStart + "-" + rangeEnd + "/" + fileSize)
@@ -77,7 +78,7 @@ public class LocalStorageVideoStreamService {
                 httpStatus = HttpStatus.OK;
             }
             return ResponseEntity.status(httpStatus)
-                    .header(CONTENT_TYPE, VIDEO_CONTENT + fileType)
+                    .header(CONTENT_TYPE, fileType)
                     .header(ACCEPT_RANGES, BYTES)
                     .header(CONTENT_LENGTH, contentLength)
                     .header(CONTENT_RANGE, BYTES + " " + rangeStart + "-" + rangeEnd + "/" + fileSize)

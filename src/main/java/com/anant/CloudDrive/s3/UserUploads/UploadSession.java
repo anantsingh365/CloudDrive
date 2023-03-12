@@ -23,13 +23,13 @@ public class UploadSession{
     //represents multiple upload entries from a user
     private final HashMap<String, UploadEntry> uploadEntries= new HashMap<>();
 
-    public String registerUploadId(String keyName){
+    public String registerUploadId(String keyName, String contentType){
         String freshUploadId = UUID.randomUUID().toString();
         if(uploadIdAlreadyExists(freshUploadId)){
             throw new RuntimeException("Couldn't generate a unique uploadId");
         }
         //for every ask same entry will be used.
-        createEntry(freshUploadId).setUploadKeyName(getLoggedInUserName(), keyName);
+        createEntry(freshUploadId).setUploadKeyName(getLoggedInUserName(), keyName, contentType);
         logger.info("Created Upload Entry for User - {}, Upload Id - {}", getLoggedInUserName(), freshUploadId);
         return freshUploadId;
      }

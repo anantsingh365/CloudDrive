@@ -56,9 +56,9 @@ public class S3Service implements StorageService{
     }
 
     @Override
-    public String getUploadId(String fileName){
+    public String getUploadId(String fileName, String contentType){
         if(validateUploadRequestTier()){
-            return this.getUploadSession().registerUploadId(fileName);
+            return this.getUploadSession().registerUploadId(fileName, contentType);
         }
         return AccountStates.ACCOUNT_UPGRADE.getValue();
     }
@@ -124,8 +124,8 @@ public class S3Service implements StorageService{
     }
 
     @Override
-    public ResponseEntity<byte[]> getFileBytes(String key_name, String range){
-        return videoStreamService.prepareContent(key_name, "mp4", range);
+    public ResponseEntity<byte[]> getFileBytes(String key_name, String range, String contentType){
+        return videoStreamService.prepareContent(key_name, range, contentType);
 //        try {
 //            return s3Operations.getRangedS3ObjectInputStream(key_name,start,end).readAllBytes();
 //        } catch (IOException e) {

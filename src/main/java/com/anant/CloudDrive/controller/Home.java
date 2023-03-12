@@ -4,16 +4,15 @@ import com.anant.CloudDrive.requests.UploadRequest;
 import com.anant.CloudDrive.service.StorageService;
 import com.anant.CloudDrive.service.UserFileMetaData;
 
-import static com.anant.CloudDrive.Constants.*;
 import static com.anant.CloudDrive.Utils.CommonUtils.*;
 
 import jakarta.servlet.http.HttpSession;
 
 import org.slf4j.Logger;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.*;
 import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
@@ -43,8 +42,9 @@ public class Home {
     @ResponseBody
     public ResponseEntity<String> uploadId(@RequestBody Map<String, String> uploadIdPayLoad){
         String fileName = uploadIdPayLoad.get("filename");
+        String contentType = uploadIdPayLoad.get("contenttype");
         System.out.println(uploadIdPayLoad.get("filename is - " + fileName));
-        return fileName != null ?  returnOkResponse(storageService.getUploadId(fileName)):returnBadResponse("filname missing");
+        return fileName != null ?  returnOkResponse(storageService.getUploadId(fileName,contentType)) : returnBadResponse("filname missing");
     }
 
     @PostMapping("/user/uploadFile")
@@ -62,7 +62,7 @@ public class Home {
 
     @GetMapping("/user/download{id}")
     @ResponseBody
-    public ResponseEntity<byte[]> download(@RequestParam("id") int id,
+    public ResponseEntity<Resource> download(@RequestParam("id") int id,
                                            Model model) throws IOException {
 
         Map<Integer, UserFileMetaData> fileList = (HashMap<Integer, UserFileMetaData>) model.getAttribute("fileList");
@@ -77,7 +77,7 @@ public class Home {
         return ResponseEntity.ok()
                 .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + fileToDownload.substring(fileToDownload.indexOf("/")) + "\"")
                 .header(HttpHeaders.CONTENT_LENGTH, String.valueOf(fileMetaData.getSize()))
-                .body(res.getInputStream().readAllBytes());
+                .body(res);
     }
 
     @GetMapping("/user/video{id}")
@@ -85,19 +85,13 @@ public class Home {
     public ResponseEntity<byte[]> videoStream(@RequestParam("id") int id, Model model, @RequestHeader(value = "Range", required = false) String httpRangeList){
         Map<Integer, UserFileMetaData> fileList = (HashMap<Integer, UserFileMetaData>) model.getAttribute("fileList");
         UserFileMetaData fileMetaData = fileList.get(id);
+        String contentType = fileMetaData.getContentType();
         String fileToStream = fileList.get(id).getName();
 
         if(fileToStream == null){
-            // Resource res = new ByteArrayResource("no file to download".getBytes(StandardCharsets.UTF_8));
             return ResponseEntity.badRequest().body(null);
         }
-        return storageService.getFileBytes(fileToStream,httpRangeList);
-
-//        return ResponseEntity.ok()
-//                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + fileToDownload.substring(fileToDownload.indexOf("/")) + "\"")
-//                .header(HttpHeaders.CONTENT_LENGTH, String.valueOf(fileMetaData.getSize()))
-//                .body(res.getInputStream().readAllBytes());
-
+        return storageService.getFileBytes(fileToStream,httpRangeList, contentType);
     }
 
     @GetMapping("/user/delete{id}")
@@ -136,6 +130,11 @@ public class Home {
         return ResponseEntity.internalServerError().body("Something went wrong while processing the request");
     }
     private void addHomePageAttributes(Model model){
+        model.addAttribute("fileList", addUserFileListing());
+        model.addAttribute("loggedInUser", SecurityContextHolder.getContext().getAuthentication().getName());
+        model.addAttribute("userQuota", addUserStorageQuota());
+    }
+    private Map<Integer, UserFileMetaData> addUserFileListing(){
         List<UserFileMetaData> fileList =  storageService.getUserObjectsMetaData();
         HashMap<Integer, UserFileMetaData> fileListIdMapping = new HashMap<>();
 
@@ -143,9 +142,7 @@ public class Home {
             fileListIdMapping.put(i, fileList.get(i));
             System.out.println(fileListIdMapping.get(i));
         }
-        model.addAttribute("fileList", fileListIdMapping);
-        model.addAttribute("loggedInUser", SecurityContextHolder.getContext().getAuthentication().getName());
-        model.addAttribute("userQuota", addUserStorageQuota());
+        return fileListIdMapping;
     }
     private double addUserStorageQuota(){
         //System.out.println(storageService.getUserStorageQuota());
