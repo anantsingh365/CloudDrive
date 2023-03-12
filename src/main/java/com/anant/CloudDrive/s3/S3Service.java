@@ -1,12 +1,10 @@
 package com.anant.CloudDrive.s3;
 
 import com.amazonaws.services.s3.AmazonS3;
-import com.amazonaws.services.s3.model.GetObjectRequest;
-import com.amazonaws.services.s3.model.S3Object;
 import com.amazonaws.services.s3.model.S3ObjectInputStream;
 import com.anant.CloudDrive.Utils.CommonUtils;
-import com.anant.CloudDrive.requests.UploadRequest;
-import com.anant.CloudDrive.s3.S3Operations;
+import com.anant.CloudDrive.requests.UploadIdRequest;
+import com.anant.CloudDrive.requests.UploadPartRequest;
 import com.anant.CloudDrive.s3.UserUploads.UploadEntry;
 import com.anant.CloudDrive.s3.UserUploads.*;
 
@@ -23,7 +21,6 @@ import org.springframework.core.io.Resource;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
-import java.io.*;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -56,14 +53,14 @@ public class S3Service implements StorageService{
     }
 
     @Override
-    public String getUploadId(String fileName, String contentType){
+    public String getUploadId(UploadIdRequest uploadIdRequest){
         if(validateUploadRequestTier()){
-            return this.getUploadSession().registerUploadId(fileName, contentType);
+            return this.getUploadSession().registerUploadId(uploadIdRequest);
         }
         return AccountStates.ACCOUNT_UPGRADE.getValue();
     }
     @Override
-    public boolean upload(UploadRequest req){
+    public boolean upload(UploadPartRequest req){
        // if(validateUploadRequestTier()){
             var session = this.getUploadSession();
             var entry = session.getEntry(req.getUploadId());

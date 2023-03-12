@@ -17,12 +17,6 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 
 import java.io.*;
-import java.net.URL;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.Objects;
-import java.util.Optional;
 
 import static com.anant.CloudDrive.Constants.*;
 
@@ -45,22 +39,15 @@ public class LocalStorageVideoStreamService {
 
         try {
              String fileKey = fileName ;
-                    //+ "." + fileType;
-
-          //  fileKey = SecurityContextHolder.getContext().getAuthentication().getName() + "/" + fileKey;
 
             long rangeStart = 0;
             long rangeEnd = CHUNK_SIZE;
-            final Long fileSize = getFileSize(fileKey);
+            String rangeEndString = String.valueOf(rangeEnd);
+            final long fileSize = getFileSize(fileKey);
             if (range == null) {
-                return ResponseEntity.status(HttpStatus.PARTIAL_CONTENT)
-                        //.header(CONTENT_TYPE, VIDEO_CONTENT + fileType)
-                        .header(CONTENT_TYPE, fileType)
-                        .header(ACCEPT_RANGES, BYTES)
-                        .header(CONTENT_LENGTH, String.valueOf(rangeEnd))
-                        .header(CONTENT_RANGE, BYTES + " " + rangeStart + "-" + rangeEnd + "/" + fileSize)
-                        .header(CONTENT_LENGTH, String.valueOf(fileSize))
-                        .body(readByteRangeNew(fileKey, rangeStart, rangeEnd)); // Read the object and convert it as bytes
+                byte[] data = readByteRangeNew(fileKey, rangeStart, rangeEnd);
+                HttpStatus status = HttpStatus.PARTIAL_CONTENT;
+                return getResponse(status, fileType, rangeEndString, rangeStart, rangeEnd, fileSize, data);
             }
             String[] ranges = range.split("-");
             rangeStart = Long.parseLong(ranges[0].substring(6));
@@ -77,17 +64,21 @@ public class LocalStorageVideoStreamService {
             if (rangeEnd >= fileSize) {
                 httpStatus = HttpStatus.OK;
             }
-            return ResponseEntity.status(httpStatus)
-                    .header(CONTENT_TYPE, fileType)
-                    .header(ACCEPT_RANGES, BYTES)
-                    .header(CONTENT_LENGTH, contentLength)
-                    .header(CONTENT_RANGE, BYTES + " " + rangeStart + "-" + rangeEnd + "/" + fileSize)
-                    .body(data);
+            return getResponse(httpStatus, fileType, contentLength, rangeStart, rangeEnd, fileSize, data);
         } catch (IOException e) {
            // logger.error("Exception while reading the file {}", e.getMessage());
             e.printStackTrace();
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
+    }
+
+    private ResponseEntity<byte[]> getResponse(HttpStatus status, String contentType, String contentLength, long rangeStart, long rangeEnd, long fileSize, byte[] data){
+        return ResponseEntity.status(status)
+                .header(CONTENT_TYPE, contentType)
+                .header(ACCEPT_RANGES, BYTES)
+                .header(CONTENT_LENGTH, contentLength)
+                .header(CONTENT_RANGE, BYTES + " " + rangeStart + "-" + rangeEnd + "/" + fileSize)
+                .body(data);
     }
 
     /**

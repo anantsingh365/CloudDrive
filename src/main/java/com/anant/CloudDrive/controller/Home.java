@@ -1,9 +1,11 @@
 package com.anant.CloudDrive.controller;
 
-import com.anant.CloudDrive.requests.UploadRequest;
+import com.anant.CloudDrive.requests.UploadIdRequest;
+import com.anant.CloudDrive.requests.UploadPartRequest;
 import com.anant.CloudDrive.service.StorageService;
 import com.anant.CloudDrive.service.UserFileMetaData;
 
+import static com.anant.CloudDrive.Constants.CONTENT_TYPE;
 import static com.anant.CloudDrive.Utils.CommonUtils.*;
 
 import jakarta.servlet.http.HttpSession;
@@ -43,8 +45,8 @@ public class Home {
     public ResponseEntity<String> uploadId(@RequestBody Map<String, String> uploadIdPayLoad){
         String fileName = uploadIdPayLoad.get("filename");
         String contentType = uploadIdPayLoad.get("contenttype");
-        System.out.println(uploadIdPayLoad.get("filename is - " + fileName));
-        return fileName != null ?  returnOkResponse(storageService.getUploadId(fileName,contentType)) : returnBadResponse("filname missing");
+        var uploadIdRequest = new UploadIdRequest(fileName, contentType);
+        return fileName != null ?  returnOkResponse(storageService.getUploadId(uploadIdRequest)) : returnBadResponse("filname missing");
     }
 
     @PostMapping("/user/uploadFile")
@@ -56,7 +58,7 @@ public class Home {
         if( uploadId == null || contentLength == null ){
             return  returnBadResponse("Headers missing");
         }
-        var req = new UploadRequest(ins, uploadId, Long.parseLong(contentLength));
+        var req = new UploadPartRequest(ins, uploadId, Long.parseLong(contentLength));
         return  storageService.upload(req) ? returnOkResponse("dataReceived") : returnInternalServerError();
     }
 
@@ -68,6 +70,7 @@ public class Home {
         Map<Integer, UserFileMetaData> fileList = (HashMap<Integer, UserFileMetaData>) model.getAttribute("fileList");
         UserFileMetaData fileMetaData = fileList.get(id);
         String fileToDownload = fileList.get(id).getName();
+        String fileContentType = fileMetaData.getContentType();
 
         if(fileToDownload == null){
            // Resource res = new ByteArrayResource("no file to download".getBytes(StandardCharsets.UTF_8));
@@ -75,6 +78,7 @@ public class Home {
         }
         Resource res = storageService.download(fileToDownload);
         return ResponseEntity.ok()
+                .header(CONTENT_TYPE, fileContentType)
                 .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + fileToDownload.substring(fileToDownload.indexOf("/")) + "\"")
                 .header(HttpHeaders.CONTENT_LENGTH, String.valueOf(fileMetaData.getSize()))
                 .body(res);

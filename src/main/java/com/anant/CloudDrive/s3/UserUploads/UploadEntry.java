@@ -3,7 +3,8 @@ package com.anant.CloudDrive.s3.UserUploads;
 import com.amazonaws.SdkClientException;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.*;
-import com.anant.CloudDrive.requests.UploadRequest;
+import com.anant.CloudDrive.requests.UploadIdRequest;
+import com.anant.CloudDrive.requests.UploadPartRequest;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -42,10 +43,11 @@ public class UploadEntry {
     }
 
 
-    public void setUploadKeyName(String userName, String keyName, String contentType) {
-        this.userUploadKeyName = getUserNamePrefixForKeyName(userName, keyName);
-        this.contentType = contentType;
+    public void setUploadKeyName(String userName, UploadIdRequest uploadIdRequest) {
+        this.userUploadKeyName = getUserNamePrefixForKeyName(userName, uploadIdRequest.getFileName());
+        this.contentType = uploadIdRequest.getContentType();
     }
+
     private void initiateUploadForKeyName(String userSpecificKeyName, String contentType) {
         var initRequest = new InitiateMultipartUploadRequest(bucketName, userSpecificKeyName);
         ObjectMetadata metadata = new ObjectMetadata();
@@ -53,17 +55,16 @@ public class UploadEntry {
         metadata.setContentType(contentType);
         initRequest.setObjectMetadata(metadata);
         initResponse = s3Client.initiateMultipartUpload(initRequest);
-
         isUploadInitiated = true;
     }
+
     private String getUserNamePrefixForKeyName(String username, String keyName) {
         return userUploadKeyName = username + "/" + keyName;
     }
 
-    public boolean upload(UploadRequest req) {
-
-        InputStream ins = req.getInputStream();
-        long partSize = req.getContentLength();
+    public boolean upload(UploadPartRequest uploadPartRequest) {
+        InputStream ins = uploadPartRequest.getInputStream();
+        long partSize = uploadPartRequest.getContentLength();
 
         if (!isUploadInitiated && !isUploadCompleted) {
             initiateUploadForKeyName(userUploadKeyName, contentType);
@@ -74,7 +75,7 @@ public class UploadEntry {
 
         try {
             //UploadPartRequest uploadRequest = new UploadPartRequest()
-            var uploadPartRequest = new UploadPartRequest()
+            var S3uploadPartRequest = new com.amazonaws.services.s3.model.UploadPartRequest()
                     .withBucketName(bucketName)
                     .withKey(userUploadKeyName)
                     .withUploadId(initResponse.getUploadId())
@@ -84,7 +85,7 @@ public class UploadEntry {
                     .withPartSize(partSize);
 
             // Upload the part and add the response's ETag to our list.
-            var uploadResult = s3Client.uploadPart(uploadPartRequest);
+            var uploadResult = s3Client.uploadPart(S3uploadPartRequest);
             partETags.add(uploadResult.getPartETag());
             logger.info("Uploading a part for key {} ", userUploadKeyName);
             ++partNumber;

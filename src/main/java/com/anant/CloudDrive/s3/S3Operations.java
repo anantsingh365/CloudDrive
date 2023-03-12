@@ -4,7 +4,7 @@ import com.amazonaws.AmazonServiceException;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.*;
 
-import com.anant.CloudDrive.requests.UploadRequest;
+import com.anant.CloudDrive.requests.UploadPartRequest;
 import com.anant.CloudDrive.s3.UserUploads.UploadEntry;
 import com.anant.CloudDrive.service.UserFileMetaData;
 
@@ -71,7 +71,7 @@ public class S3Operations {
         return object.getObjectContent();
     }
 
-    protected boolean uploadFile(UploadEntry entry, UploadRequest req){
+    protected boolean uploadFile(UploadEntry entry, UploadPartRequest req){
         return entry.upload(req);
     }
 

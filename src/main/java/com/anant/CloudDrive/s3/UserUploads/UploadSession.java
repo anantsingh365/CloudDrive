@@ -1,5 +1,6 @@
 package com.anant.CloudDrive.s3.UserUploads;
 
+import com.anant.CloudDrive.requests.UploadIdRequest;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -23,13 +24,13 @@ public class UploadSession{
     //represents multiple upload entries from a user
     private final HashMap<String, UploadEntry> uploadEntries= new HashMap<>();
 
-    public String registerUploadId(String keyName, String contentType){
+    public String registerUploadId(UploadIdRequest uploadIdRequest){
         String freshUploadId = UUID.randomUUID().toString();
         if(uploadIdAlreadyExists(freshUploadId)){
             throw new RuntimeException("Couldn't generate a unique uploadId");
         }
         //for every ask same entry will be used.
-        createEntry(freshUploadId).setUploadKeyName(getLoggedInUserName(), keyName, contentType);
+        createEntry(freshUploadId).setUploadKeyName(getLoggedInUserName(), uploadIdRequest);
         logger.info("Created Upload Entry for User - {}, Upload Id - {}", getLoggedInUserName(), freshUploadId);
         return freshUploadId;
      }
