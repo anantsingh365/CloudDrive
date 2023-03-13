@@ -3,13 +3,11 @@ package com.anant.CloudDrive.s3;
 import com.amazonaws.AmazonServiceException;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.*;
+import com.anant.CloudDrive.s3.UserUploads.S3UploadEntry;
 
-import com.anant.CloudDrive.requests.UploadPartRequest;
-import com.anant.CloudDrive.s3.UserUploads.UploadEntry;
+import com.anant.CloudDrive.service.Uploads.requests.UploadPartRequest;
 import com.anant.CloudDrive.service.UserFileMetaData;
-
 import org.slf4j.Logger;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -44,21 +42,16 @@ public class S3Operations {
 
         List<UserFileMetaData> list = new ArrayList<>();
 
-
-
         s3Client.listObjectsV2(bucketName, key+"/")
                 .getObjectSummaries().forEach(x -> list.add(
-                                                                new UserFileMetaData(x.getKey(),
-                                                                    x.getSize(),
-                                                                    x.getLastModified(),
-                                                                    getContentType(x.getKey()))
+                                                            new UserFileMetaData(x.getKey(),
+                                                                x.getSize(),
+                                                                x.getLastModified(),
+                                                                s3Client.getObjectMetadata(bucketName, x.getKey()).getContentType())
+                                                                //getContentType(x.getKey()))
                                                             ));
           return list;
     }
-    private String getContentType(String keyName){
-        return s3Client.getObjectMetadata(bucketName, keyName).getContentType();
-    }
-
     protected S3ObjectInputStream getS3ObjectInputStream(String keyName){
         return s3Client
                 .getObject(bucketName, keyName)
@@ -71,8 +64,8 @@ public class S3Operations {
         return object.getObjectContent();
     }
 
-    protected boolean uploadFile(UploadEntry entry, UploadPartRequest req){
-        return entry.upload(req);
+    protected boolean uploadFile(S3UploadEntry entry, UploadPartRequest req){
+        return entry.uploadPart(req);
     }
 
     protected boolean deleteObject(String keyName){
@@ -86,11 +79,21 @@ public class S3Operations {
         }
     }
 
-    protected boolean completeUserUpload(UploadEntry entry){
+    protected boolean completeUserUpload(S3UploadEntry entry){
         return entry.completeUserUpload();
     }
 
-    protected boolean renameFile(){
-        return false;
+    // in s3 you have to copy a object with new name and delete the original to rename it.
+    protected boolean renameFile(String originalKeyName, String newKeyName){
+        CopyObjectRequest copyObjRequest = new CopyObjectRequest(bucketName,
+                originalKeyName, bucketName, newKeyName);
+        try{
+            var result = s3Client.copyObject(copyObjRequest);
+            s3Client.deleteObject(new DeleteObjectRequest(bucketName, originalKeyName));
+            return true;
+        }catch(Exception e){
+            e.printStackTrace();
+            return false;
+        }
     }
 }

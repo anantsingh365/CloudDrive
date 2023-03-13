@@ -3,15 +3,12 @@ package com.anant.CloudDrive.s3;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.S3ObjectInputStream;
 import com.anant.CloudDrive.Utils.CommonUtils;
-import com.anant.CloudDrive.requests.UploadIdRequest;
-import com.anant.CloudDrive.requests.UploadPartRequest;
-import com.anant.CloudDrive.s3.UserUploads.UploadEntry;
-import com.anant.CloudDrive.s3.UserUploads.*;
 
-import com.anant.CloudDrive.service.LocalStorageVideoStreamService;
-import com.anant.CloudDrive.service.StorageService;
-import com.anant.CloudDrive.service.SubscriptionService;
-import com.anant.CloudDrive.service.UserFileMetaData;
+import com.anant.CloudDrive.s3.UserUploads.S3UploadEntry;
+import com.anant.CloudDrive.service.Uploads.requests.*;
+import com.anant.CloudDrive.service.*;
+import com.anant.CloudDrive.service.Uploads.UploadSession;
+import com.anant.CloudDrive.service.Uploads.UploadSessionsHolder;
 import org.slf4j.Logger;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -60,10 +57,10 @@ public class S3Service implements StorageService{
         return AccountStates.ACCOUNT_UPGRADE.getValue();
     }
     @Override
-    public boolean upload(UploadPartRequest req){
+    public boolean uploadPart(UploadPartRequest req){
        // if(validateUploadRequestTier()){
             var session = this.getUploadSession();
-            var entry = session.getEntry(req.getUploadId());
+            var entry = (S3UploadEntry) session.getEntry(req.getUploadId());
             return entry != null && s3Operations.uploadFile(entry, req);
         //}
        // return false;
@@ -106,8 +103,8 @@ public class S3Service implements StorageService{
     }
 
     @Override
-    public boolean renameFile(int id)   {
-        return false;
+    public boolean renameFile(String originalFileName, String newFileName){
+        return s3Operations.renameFile(originalFileName, newFileName);
     }
 
     @Override
@@ -131,9 +128,9 @@ public class S3Service implements StorageService{
 //        }
     }
 
-    private UploadEntry getUserEntry(String uploadId){
+    private S3UploadEntry getUserEntry(String uploadId){
         var session = uploadSessionsHolder.getExistingSession(getUserData(CommonUtils.signedInUser.GET_SESSIONID));
-        return session != null ? session.getEntry(uploadId) : null;
+        return session != null ? (S3UploadEntry) session.getEntry(uploadId) : null;
     }
 
     private UploadSession getUploadSession(){

@@ -1,7 +1,6 @@
 package com.anant.CloudDrive.controller;
 
-import com.anant.CloudDrive.requests.UploadIdRequest;
-import com.anant.CloudDrive.requests.UploadPartRequest;
+import com.anant.CloudDrive.service.Uploads.requests.*;
 import com.anant.CloudDrive.service.StorageService;
 import com.anant.CloudDrive.service.UserFileMetaData;
 
@@ -43,10 +42,8 @@ public class Home {
     @PostMapping("/user/uploadId")
     @ResponseBody
     public ResponseEntity<String> uploadId(@RequestBody Map<String, String> uploadIdPayLoad){
-        String fileName = uploadIdPayLoad.get("filename");
-        String contentType = uploadIdPayLoad.get("contenttype");
-        var uploadIdRequest = new UploadIdRequest(fileName, contentType);
-        return fileName != null ?  returnOkResponse(storageService.getUploadId(uploadIdRequest)) : returnBadResponse("filname missing");
+        var uploadIdRequest = new UploadIdRequest(uploadIdPayLoad.get("filename"), uploadIdPayLoad.get("contenttype"));
+        return uploadIdRequest.isRequestValid() ? returnOkResponse(storageService.getUploadId(uploadIdRequest)) : returnBadResponse("filname or content type missing");
     }
 
     @PostMapping("/user/uploadFile")
@@ -59,7 +56,7 @@ public class Home {
             return  returnBadResponse("Headers missing");
         }
         var req = new UploadPartRequest(ins, uploadId, Long.parseLong(contentLength));
-        return  storageService.upload(req) ? returnOkResponse("dataReceived") : returnInternalServerError();
+        return  storageService.uploadPart(req) ? returnOkResponse("dataReceived") : returnInternalServerError();
     }
 
     @GetMapping("/user/download{id}")

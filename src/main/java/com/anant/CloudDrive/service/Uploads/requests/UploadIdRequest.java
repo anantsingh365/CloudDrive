@@ -1,4 +1,4 @@
-package com.anant.CloudDrive.requests;
+package com.anant.CloudDrive.service.Uploads.requests;
 
 public class UploadIdRequest {
 
@@ -14,5 +14,8 @@ public class UploadIdRequest {
     }
     public String getContentType(){
         return contentType;
+    }
+    public boolean isRequestValid(){
+        return this.fileName != null && this.contentType != null;
     }
 }

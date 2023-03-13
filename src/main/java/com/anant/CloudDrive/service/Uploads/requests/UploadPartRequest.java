@@ -1,4 +1,4 @@
-package com.anant.CloudDrive.requests;
+package com.anant.CloudDrive.service.Uploads.requests;
 
 import java.io.InputStream;
 

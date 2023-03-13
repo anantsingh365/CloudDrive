@@ -1,4 +1,4 @@
-package com.anant.CloudDrive.s3.UserUploads;
+package com.anant.CloudDrive.service.Uploads;
 
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,13 +11,16 @@ import java.util.concurrent.ConcurrentHashMap;
 @Component
 public class UploadSessionsHolder {
 
-    @Autowired private ApplicationContext context;
-    @Autowired private Logger logger;
+     private final ApplicationContext context;
+     private final Logger logger;
+
+    public UploadSessionsHolder(@Autowired ApplicationContext context, @Autowired Logger logger){
+        this.context = context;
+        this.logger = logger;
+    }
 
     //stores current upload sessions for users
     private final ConcurrentHashMap<String, UploadSession> sessions = new ConcurrentHashMap<>();
-
-    public UploadSessionsHolder(){}
 
     public UploadSession getSession(String sessionId){
         var userSession = getExistingSession(sessionId);

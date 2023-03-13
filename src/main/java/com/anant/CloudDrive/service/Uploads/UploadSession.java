@@ -1,6 +1,6 @@
-package com.anant.CloudDrive.s3.UserUploads;
+package com.anant.CloudDrive.service.Uploads;
 
-import com.anant.CloudDrive.requests.UploadIdRequest;
+import com.anant.CloudDrive.service.Uploads.requests.*;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -18,8 +18,13 @@ import java.util.UUID;
 @Scope(value = ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 public class UploadSession{
 
-    @Autowired private  ApplicationContext context;
-    @Autowired private Logger logger;
+     private  final ApplicationContext context;
+     private final Logger logger;
+
+    public UploadSession(@Autowired ApplicationContext context, @Autowired Logger logger){
+        this.context = context;
+        this.logger = logger;
+    }
 
     //represents multiple upload entries from a user
     private final HashMap<String, UploadEntry> uploadEntries= new HashMap<>();
@@ -42,6 +47,7 @@ public class UploadSession{
      }
      private UploadEntry createEntry(String uploadId){
         var s3MultiPartUpload = context.getBean(UploadEntry.class);
+        //context.getBean(UploadEntry.class);
         this.uploadEntries.put(uploadId, s3MultiPartUpload);
         return s3MultiPartUpload;
      }

@@ -3,10 +3,12 @@ package com.anant.CloudDrive.s3.UserUploads;
 import com.amazonaws.SdkClientException;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.*;
-import com.anant.CloudDrive.requests.UploadIdRequest;
-import com.anant.CloudDrive.requests.UploadPartRequest;
+import com.anant.CloudDrive.service.Uploads.requests.*;
+import com.anant.CloudDrive.service.Uploads.UploadEntry;
+import com.anant.CloudDrive.service.Uploads.requests.UploadPartRequest;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.PropertySource;
@@ -20,12 +22,14 @@ import java.util.List;
 @Component
 @Scope(value = ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 @PropertySource("classpath:S3Credentials.properties")
-public class UploadEntry {
+@Qualifier("S3UploadEntry")
+public class S3UploadEntry implements UploadEntry {
 
     private final List<PartETag> partETags = new ArrayList<>();
     private final AmazonS3 s3Client;
     private final String bucketName ;
     private final Logger logger;
+
     private int partNumber = 1;
     private InitiateMultipartUploadResult initResponse;
     private boolean isUploadInitiated = false;
@@ -33,9 +37,9 @@ public class UploadEntry {
     private String userUploadKeyName;
     private String contentType;
 
-    public UploadEntry(@Value("${s3.bucketName}") String bucketName,
-                       @Autowired AmazonS3 s3Client,
-                       @Autowired Logger logger)
+    public S3UploadEntry(@Value("${s3.bucketName}") String bucketName,
+                         @Autowired AmazonS3 s3Client,
+                         @Autowired Logger logger)
     {
         this.bucketName = bucketName;
         this.s3Client = s3Client;
@@ -62,7 +66,7 @@ public class UploadEntry {
         return userUploadKeyName = username + "/" + keyName;
     }
 
-    public boolean upload(UploadPartRequest uploadPartRequest) {
+    public boolean uploadPart(UploadPartRequest uploadPartRequest) {
         InputStream ins = uploadPartRequest.getInputStream();
         long partSize = uploadPartRequest.getContentLength();
 
