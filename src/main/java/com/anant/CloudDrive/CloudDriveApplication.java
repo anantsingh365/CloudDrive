@@ -9,19 +9,23 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InjectionPoint;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.ApplicationArguments;
+import org.springframework.boot.ApplicationRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Profile;
 import org.springframework.context.annotation.Scope;
 
 @SpringBootApplication
-public class CloudDriveApplication {
+public class CloudDriveApplication{
 
 	public static void main(String[] args) {
 		SpringApplication.run(CloudDriveApplication.class, args);
 	}
 
 	@Bean
+	@Profile("s3")
 	public AmazonS3 getS3Client(){
 		return AmazonS3ClientBuilder
 				.standard()

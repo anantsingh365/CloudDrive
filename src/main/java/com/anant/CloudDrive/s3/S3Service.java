@@ -5,6 +5,7 @@ import com.amazonaws.services.s3.model.S3ObjectInputStream;
 import com.anant.CloudDrive.Utils.CommonUtils;
 
 import com.anant.CloudDrive.s3.UserUploads.S3UploadEntry;
+import com.anant.CloudDrive.service.Uploads.UploadEntry;
 import com.anant.CloudDrive.service.Uploads.requests.*;
 import com.anant.CloudDrive.service.*;
 import com.anant.CloudDrive.service.Uploads.UploadSession;
@@ -13,6 +14,7 @@ import org.slf4j.Logger;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Profile;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.core.io.Resource;
 import org.springframework.http.ResponseEntity;
@@ -24,6 +26,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import static com.anant.CloudDrive.Utils.CommonUtils.getUserData;
 
 @Service
+@Profile("s3")
 public class S3Service implements StorageService{
 
     private final Logger logger;
@@ -31,7 +34,6 @@ public class S3Service implements StorageService{
     private final UploadSessionsHolder uploadSessionsHolder;
     private final S3Operations s3Operations;
     private final SubscriptionService subscriptionService;
-    @Autowired private AmazonS3 s3;
     @Autowired private LocalStorageVideoStreamService videoStreamService;
 
     private final ConcurrentHashMap<String, List<UserFileMetaData>> savedFileListing = new ConcurrentHashMap<>();
@@ -58,18 +60,17 @@ public class S3Service implements StorageService{
     }
     @Override
     public boolean uploadPart(UploadPartRequest req){
-       // if(validateUploadRequestTier()){
-            var session = this.getUploadSession();
-            var entry = (S3UploadEntry) session.getEntry(req.getUploadId());
+        if(validateUploadRequestTier()){
+            var entry = (S3UploadEntry) this.getUserEntry(req.getUploadId());
             return entry != null && s3Operations.uploadFile(entry, req);
-        //}
-       // return false;
+        }
+        return false;
     }
 
     @Override
     public boolean completeUpload(String uploadId){
         var entry = this.getUserEntry(uploadId);
-        return entry != null && s3Operations.completeUserUpload(entry);
+        return entry != null && s3Operations.completeUserUpload((S3UploadEntry) entry);
     }
 
     @Override
@@ -128,9 +129,9 @@ public class S3Service implements StorageService{
 //        }
     }
 
-    private S3UploadEntry getUserEntry(String uploadId){
+    private UploadEntry getUserEntry(String uploadId){
         var session = uploadSessionsHolder.getExistingSession(getUserData(CommonUtils.signedInUser.GET_SESSIONID));
-        return session != null ? (S3UploadEntry) session.getEntry(uploadId) : null;
+        return session != null ? session.getEntry(uploadId) : null;
     }
 
     private UploadSession getUploadSession(){
