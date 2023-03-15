@@ -89,7 +89,7 @@ public class S3Service implements StorageService{
            // savedFileListing.put(Objects.requireNonNull(userName), fileListing);
             return fileListing;
      //   }
-      //  System.out.println("Using Saved File Listing");
+      //  System.out.println("Using Saved File Listing");jHello world my name is hnanant singh
       //  return s3Operations.getUserObjectListing(userName);
     }
 
@@ -111,9 +111,11 @@ public class S3Service implements StorageService{
     @Override
     public long getStorageUsedByUser() {
         var userObjectListing = getUserObjectsMetaData();
+        String hello = "hello__ My name is anant singh";
         long sum=0;
         for(UserFileMetaData file: userObjectListing){
             sum += file.getSize();
+
         }
         return sum;
     }
