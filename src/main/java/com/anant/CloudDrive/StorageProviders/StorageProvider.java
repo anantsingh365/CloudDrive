@@ -1,13 +1,14 @@
-package com.anant.CloudDrive.service;
+package com.anant.CloudDrive.StorageProviders;
 
 import com.anant.CloudDrive.Utils.CommonUtils;
-import com.anant.CloudDrive.s3.S3Operations;
-import com.anant.CloudDrive.s3.S3Service;
-import com.anant.CloudDrive.service.Uploads.UploadEntry;
-import com.anant.CloudDrive.service.Uploads.UploadSession;
-import com.anant.CloudDrive.service.Uploads.UploadSessionsHolder;
-import com.anant.CloudDrive.service.Uploads.requests.*;
+import com.anant.CloudDrive.StorageProviders.s3.S3Operations;
+import com.anant.CloudDrive.StorageProviders.s3.S3Service;
+import com.anant.CloudDrive.StorageProviders.Uploads.UploadEntry;
+import com.anant.CloudDrive.StorageProviders.Uploads.UploadSession;
+import com.anant.CloudDrive.StorageProviders.Uploads.UploadSessionsHolder;
+import com.anant.CloudDrive.StorageProviders.Uploads.requests.*;
 
+import com.anant.CloudDrive.service.SubscriptionService;
 import org.springframework.core.io.Resource;
 import org.springframework.http.ResponseEntity;
 
@@ -15,12 +16,12 @@ import java.util.List;
 
 import static com.anant.CloudDrive.Utils.CommonUtils.getUserData;
 
-public abstract class StorageService {
+public abstract class StorageProvider {
 
      private final UploadSessionsHolder uploadSessionsHolder;
      private final SubscriptionService subscriptionService;
 
-     protected StorageService(UploadSessionsHolder uploadSessionsHolder, SubscriptionService subscriptionService) {
+     protected StorageProvider(UploadSessionsHolder uploadSessionsHolder, SubscriptionService subscriptionService) {
           this.uploadSessionsHolder = uploadSessionsHolder;
           this.subscriptionService = subscriptionService;
      }
@@ -44,7 +45,7 @@ public abstract class StorageService {
           if(validateUploadRequestTier()){
                return this.getUploadSession().registerUploadId(uploadIdRequest);
           }
-          return StorageService.AccountStates.ACCOUNT_UPGRADE.getValue();
+          return StorageProvider.AccountStates.ACCOUNT_UPGRADE.getValue();
      }
 
      public UploadEntry getExistingUserEntry(String uploadId){

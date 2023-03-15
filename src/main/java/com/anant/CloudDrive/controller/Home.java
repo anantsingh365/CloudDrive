@@ -1,8 +1,8 @@
 package com.anant.CloudDrive.controller;
 
-import com.anant.CloudDrive.service.Uploads.requests.*;
-import com.anant.CloudDrive.service.StorageService;
-import com.anant.CloudDrive.service.UserFileMetaData;
+import com.anant.CloudDrive.StorageProviders.Uploads.requests.*;
+import com.anant.CloudDrive.StorageProviders.StorageProvider;
+import com.anant.CloudDrive.StorageProviders.UserFileMetaData;
 
 import static com.anant.CloudDrive.Constants.CONTENT_TYPE;
 import static com.anant.CloudDrive.Utils.CommonUtils.*;
@@ -30,7 +30,8 @@ import java.util.Map;
 public class Home {
 
     @Autowired private Logger logger;
-    @Autowired StorageService storageService;
+    @Autowired
+    StorageProvider storageProvider;
 
     @GetMapping("/user/home")
     public String UserHome(Model model, HttpSession session){
@@ -43,7 +44,7 @@ public class Home {
     @ResponseBody
     public ResponseEntity<String> uploadId(@RequestBody Map<String, String> uploadIdPayLoad){
         var uploadIdRequest = new UploadIdRequest(uploadIdPayLoad.get("filename"), uploadIdPayLoad.get("contenttype"));
-        return uploadIdRequest.isRequestValid() ? returnOkResponse(storageService.getUploadId(uploadIdRequest)) : returnBadResponse("filname or content type missing");
+        return uploadIdRequest.isRequestValid() ? returnOkResponse(storageProvider.getUploadId(uploadIdRequest)) : returnBadResponse("filname or content type missing");
     }
 
     @PostMapping("/user/uploadFile")
@@ -56,7 +57,7 @@ public class Home {
             return  returnBadResponse("Headers missing");
         }
         var req = new UploadPartRequest(ins, uploadId, Long.parseLong(contentLength));
-        return  storageService.uploadPart(req) ? returnOkResponse("dataReceived") : returnInternalServerError();
+        return  storageProvider.uploadPart(req) ? returnOkResponse("dataReceived") : returnInternalServerError();
     }
 
     @GetMapping("/user/download{id}")
@@ -73,7 +74,7 @@ public class Home {
            // Resource res = new ByteArrayResource("no file to download".getBytes(StandardCharsets.UTF_8));
             return ResponseEntity.badRequest().body(null);
         }
-        Resource res = storageService.download(fileToDownload);
+        Resource res = storageProvider.download(fileToDownload);
         return ResponseEntity.ok()
                 .header(CONTENT_TYPE, fileContentType)
                 .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + fileToDownload.substring(fileToDownload.indexOf("/")) + "\"")
@@ -92,7 +93,7 @@ public class Home {
         if(fileToStream == null){
             return ResponseEntity.badRequest().body(null);
         }
-        return storageService.getFileBytes(fileToStream,httpRangeList, contentType);
+        return storageProvider.getFileBytes(fileToStream,httpRangeList, contentType);
     }
 
     @GetMapping("/user/delete{id}")
@@ -102,7 +103,7 @@ public class Home {
             return returnBadResponse("there was no file with that id");
         }
 
-        boolean result =  storageService.deleteUserFile(fileToDelete);
+        boolean result =  storageProvider.deleteUserFile(fileToDelete);
         return result ? returnOkResponse("file deleted") : returnInternalServerError();
     }
 
@@ -113,7 +114,7 @@ public class Home {
             logger.info("complete upload failed for user " + getUserData(signedInUser.GET_USERNAME) + ", upload id missing");
             return returnBadResponse("UploadId Missing");
         }
-        boolean completeUploadResult = storageService.completeUpload(uploadId);
+        boolean completeUploadResult = storageProvider.completeUpload(uploadId);
         if(completeUploadResult){
             logger.info("Upload Complete for User " + getUserData(signedInUser.GET_USERNAME) +" upload id " + uploadId);
             return  returnOkResponse("uploadComplete for uploadId " + uploadId);
@@ -136,7 +137,7 @@ public class Home {
         model.addAttribute("userQuota", addUserStorageQuota());
     }
     private Map<Integer, UserFileMetaData> addUserFileListing(){
-        List<UserFileMetaData> fileList =  storageService.getUserObjectsMetaData();
+        List<UserFileMetaData> fileList =  storageProvider.getUserObjectsMetaData();
         HashMap<Integer, UserFileMetaData> fileListIdMapping = new HashMap<>();
 
         for(int i =0; i < fileList.size() ; i++){
@@ -147,7 +148,7 @@ public class Home {
     }
     private double addUserStorageQuota(){
         //System.out.println(storageService.getUserStorageQuota());
-        long userQuota = storageService.getStorageUsedByUser();
+        long userQuota = storageProvider.getStorageUsedByUser();
         return (double) (userQuota/1048576);
     }
     private String resolveFileToDelete(int id, Model model){

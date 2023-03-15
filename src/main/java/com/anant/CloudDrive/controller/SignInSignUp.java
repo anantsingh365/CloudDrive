@@ -2,7 +2,7 @@ package com.anant.CloudDrive.controller;
 
 import com.anant.CloudDrive.dto.UserDto;
 import com.anant.CloudDrive.entity.User;
-import com.anant.CloudDrive.service.UserService;
+import com.anant.CloudDrive.security.UserService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;

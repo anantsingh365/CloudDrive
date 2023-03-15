@@ -1,32 +1,25 @@
-package com.anant.CloudDrive.LocalFileSystem;
+package com.anant.CloudDrive.StorageProviders.LocalFileSystem;
 
-import com.anant.CloudDrive.Utils.CommonUtils;
-import com.anant.CloudDrive.s3.UserUploads.S3UploadEntry;
-import com.anant.CloudDrive.service.StorageService;
+import com.anant.CloudDrive.StorageProviders.StorageProvider;
 import com.anant.CloudDrive.service.SubscriptionService;
-import com.anant.CloudDrive.service.Uploads.UploadEntry;
-import com.anant.CloudDrive.service.Uploads.UploadSession;
-import com.anant.CloudDrive.service.Uploads.UploadSessionsHolder;
-import com.anant.CloudDrive.service.UserFileMetaData;
-import jakarta.transaction.NotSupportedException;
+import com.anant.CloudDrive.StorageProviders.Uploads.UploadSessionsHolder;
+import com.anant.CloudDrive.StorageProviders.UserFileMetaData;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Profile;
 import org.springframework.core.io.Resource;
 import org.springframework.http.ResponseEntity;
 
-import com.anant.CloudDrive.service.Uploads.requests.*;
+import com.anant.CloudDrive.StorageProviders.Uploads.requests.*;
 import org.springframework.stereotype.Service;
 
-import java.io.*;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
-import static com.anant.CloudDrive.Utils.CommonUtils.getUserData;
-
 @Service
 @Profile("local")
-public class FileSystemService extends StorageService {
+public class FileSystemService extends StorageProvider {
 
     private final FileSystemOperations fileSystemOperations;
 

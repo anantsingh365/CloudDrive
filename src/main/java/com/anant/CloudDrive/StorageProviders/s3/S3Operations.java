@@ -1,12 +1,12 @@
-package com.anant.CloudDrive.s3;
+package com.anant.CloudDrive.StorageProviders.s3;
 
 import com.amazonaws.AmazonServiceException;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.*;
-import com.anant.CloudDrive.s3.UserUploads.S3UploadEntry;
+import com.anant.CloudDrive.StorageProviders.s3.UserUploads.S3UploadEntry;
 
-import com.anant.CloudDrive.service.Uploads.requests.UploadPartRequest;
-import com.anant.CloudDrive.service.UserFileMetaData;
+import com.anant.CloudDrive.StorageProviders.Uploads.requests.UploadPartRequest;
+import com.anant.CloudDrive.StorageProviders.UserFileMetaData;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;

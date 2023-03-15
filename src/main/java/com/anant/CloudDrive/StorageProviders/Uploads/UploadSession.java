@@ -1,6 +1,6 @@
-package com.anant.CloudDrive.service.Uploads;
+package com.anant.CloudDrive.StorageProviders.Uploads;
 
-import com.anant.CloudDrive.service.Uploads.requests.*;
+import com.anant.CloudDrive.StorageProviders.Uploads.requests.*;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;

@@ -1,7 +1,7 @@
 package com.anant.CloudDrive.controller;
 
 
-import com.anant.CloudDrive.service.Uploads.UploadSessionsHolder;
+import com.anant.CloudDrive.StorageProviders.Uploads.UploadSessionsHolder;
 import jakarta.servlet.http.HttpSessionEvent;
 import jakarta.servlet.http.HttpSessionListener;
 import org.springframework.beans.factory.annotation.Autowired;

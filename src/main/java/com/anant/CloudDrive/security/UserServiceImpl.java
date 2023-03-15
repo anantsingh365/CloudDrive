@@ -1,4 +1,4 @@
-package com.anant.CloudDrive.service.impls;
+package com.anant.CloudDrive.security;
 
 
 import com.anant.CloudDrive.dto.UserDto;
@@ -6,7 +6,7 @@ import com.anant.CloudDrive.entity.Role;
 import com.anant.CloudDrive.entity.User;
 import com.anant.CloudDrive.repository.RoleRepository;
 import com.anant.CloudDrive.repository.UserRepository;
-import com.anant.CloudDrive.service.UserService;
+import com.anant.CloudDrive.security.UserService;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 

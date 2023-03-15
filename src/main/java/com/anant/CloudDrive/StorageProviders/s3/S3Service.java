@@ -1,15 +1,15 @@
-package com.anant.CloudDrive.s3;
+package com.anant.CloudDrive.StorageProviders.s3;
 
-import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.S3ObjectInputStream;
+import com.anant.CloudDrive.StorageProviders.LocalStorageVideoStreamService;
+import com.anant.CloudDrive.StorageProviders.StorageProvider;
+import com.anant.CloudDrive.StorageProviders.UserFileMetaData;
 import com.anant.CloudDrive.Utils.CommonUtils;
 
-import com.anant.CloudDrive.s3.UserUploads.S3UploadEntry;
-import com.anant.CloudDrive.service.Uploads.UploadEntry;
-import com.anant.CloudDrive.service.Uploads.requests.*;
+import com.anant.CloudDrive.StorageProviders.s3.UserUploads.S3UploadEntry;
+import com.anant.CloudDrive.StorageProviders.Uploads.requests.*;
 import com.anant.CloudDrive.service.*;
-import com.anant.CloudDrive.service.Uploads.UploadSession;
-import com.anant.CloudDrive.service.Uploads.UploadSessionsHolder;
+import com.anant.CloudDrive.StorageProviders.Uploads.UploadSessionsHolder;
 import org.slf4j.Logger;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,7 +27,7 @@ import static com.anant.CloudDrive.Utils.CommonUtils.getUserData;
 
 @Service
 @Profile("s3")
-public class S3Service extends StorageService{
+public class S3Service extends StorageProvider {
 
     private final Logger logger;
     private final String bucketName;
