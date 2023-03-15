@@ -3,10 +3,12 @@ package com.anant.CloudDrive.LocalFileSystem;
 import com.anant.CloudDrive.Utils.CommonUtils;
 import com.anant.CloudDrive.s3.UserUploads.S3UploadEntry;
 import com.anant.CloudDrive.service.StorageService;
+import com.anant.CloudDrive.service.SubscriptionService;
 import com.anant.CloudDrive.service.Uploads.UploadEntry;
 import com.anant.CloudDrive.service.Uploads.UploadSession;
 import com.anant.CloudDrive.service.Uploads.UploadSessionsHolder;
 import com.anant.CloudDrive.service.UserFileMetaData;
+import jakarta.transaction.NotSupportedException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Profile;
 import org.springframework.core.io.Resource;
@@ -24,31 +26,20 @@ import static com.anant.CloudDrive.Utils.CommonUtils.getUserData;
 
 @Service
 @Profile("local")
-public class FileSystemService implements StorageService {
+public class FileSystemService extends StorageService {
 
-    private final UploadSessionsHolder uploadSessionsHolder;
     private final FileSystemOperations fileSystemOperations;
 
-    public FileSystemService(@Autowired UploadSessionsHolder uploadSessionsHolder,
-                             @Autowired FileSystemOperations fileSystemOperations) {
-        this.uploadSessionsHolder = uploadSessionsHolder;
+    public FileSystemService(@Autowired UploadSessionsHolder uploadSessionsHolder, @Autowired SubscriptionService subscriptionService, @Autowired FileSystemOperations fileSystemOperations) {
+        super(uploadSessionsHolder, subscriptionService);
         this.fileSystemOperations = fileSystemOperations;
     }
 
-    @Override
-    public String getUploadId(UploadIdRequest request) {
-
-        return this.getUploadSession().registerUploadId(request);
-        //testing
-        //return "abcd123";
-    }
 
     @Override
     public boolean uploadPart(UploadPartRequest req) {
         //testing
-
-        var session = this.getExistingSession(CommonUtils.getUserData(CommonUtils.signedInUser.GET_SESSIONID));
-        var entry =  session.getEntry(req.getUploadId());
+        var entry = super.getExistingUserEntry(req.getUploadId());
         return entry != null && fileSystemOperations.uploadFile(req);
     }
 
@@ -87,17 +78,5 @@ public class FileSystemService implements StorageService {
     @Override
     public ResponseEntity<byte[]> getFileBytes(String fileName, String range, String contentType) {
         return null;
-    }
-
-    private UploadEntry getUserEntry(String uploadId){
-        var session = uploadSessionsHolder.getExistingSession(getUserData(CommonUtils.signedInUser.GET_SESSIONID));
-        return session != null ? session.getEntry(uploadId) : null;
-    }
-
-    private UploadSession getUploadSession(){
-        return uploadSessionsHolder.getSession(getUserData(CommonUtils.signedInUser.GET_SESSIONID));
-    }
-    private UploadSession getExistingSession(String sessionId){
-        return uploadSessionsHolder.getExistingSession(sessionId);
     }
 }

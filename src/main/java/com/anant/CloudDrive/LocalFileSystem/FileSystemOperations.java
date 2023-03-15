@@ -18,7 +18,7 @@ public class FileSystemOperations {
         var ins = req.getInputStream();
         File file = new File("tempUserData");
         try {
-            Thread.sleep(500);
+           // Thread.sleep(500);
             BufferedOutputStream out = new BufferedOutputStream(new FileOutputStream(file, true));
             ins.transferTo(out);
             out.close();
