@@ -1,4 +1,4 @@
-package com.anant.CloudDrive.userDetailsService;
+package com.anant.CloudDrive.security.userDetailsService;
 
 import com.anant.CloudDrive.entity.Role;
 import com.anant.CloudDrive.entity.User;

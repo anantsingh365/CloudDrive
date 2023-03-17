@@ -1,8 +1,6 @@
 package com.anant.CloudDrive.StorageProviders;
 
 import com.anant.CloudDrive.Utils.CommonUtils;
-import com.anant.CloudDrive.StorageProviders.s3.S3Operations;
-import com.anant.CloudDrive.StorageProviders.s3.S3Service;
 import com.anant.CloudDrive.StorageProviders.Uploads.UploadEntry;
 import com.anant.CloudDrive.StorageProviders.Uploads.UploadSession;
 import com.anant.CloudDrive.StorageProviders.Uploads.UploadSessionsHolder;

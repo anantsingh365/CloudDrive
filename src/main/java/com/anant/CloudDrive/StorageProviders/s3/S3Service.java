@@ -102,6 +102,7 @@ public class S3Service extends StorageProvider {
         return s3Operations.renameFile(originalFileName, newFileName);
     }
 
+
     @Override
     public long getStorageUsedByUser() {
         var userObjectListing = getUserObjectsMetaData();
@@ -109,7 +110,6 @@ public class S3Service extends StorageProvider {
         long sum=0;
         for(UserFileMetaData file: userObjectListing){
             sum += file.getSize();
-
         }
         return sum;
     }
