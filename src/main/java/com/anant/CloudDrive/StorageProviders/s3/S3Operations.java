@@ -3,7 +3,7 @@ package com.anant.CloudDrive.StorageProviders.s3;
 import com.amazonaws.AmazonServiceException;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.*;
-import com.anant.CloudDrive.StorageProviders.s3.UserUploads.S3UploadEntry;
+import com.anant.CloudDrive.StorageProviders.s3.S3UploadEntry;
 
 import com.anant.CloudDrive.StorageProviders.Uploads.requests.UploadPartRequest;
 import com.anant.CloudDrive.StorageProviders.UserFileMetaData;

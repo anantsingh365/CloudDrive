@@ -1,4 +1,4 @@
-package com.anant.CloudDrive.StorageProviders.LocalFileSystem.UserUploads;
+package com.anant.CloudDrive.StorageProviders.LocalFileSystem;
 
 import com.anant.CloudDrive.StorageProviders.Uploads.UploadEntry;
 import com.anant.CloudDrive.StorageProviders.Uploads.requests.*;

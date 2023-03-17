@@ -1,4 +1,4 @@
-package com.anant.CloudDrive.StorageProviders.s3.UserUploads;
+package com.anant.CloudDrive.StorageProviders.s3;
 
 import com.amazonaws.SdkClientException;
 import com.amazonaws.services.s3.AmazonS3;
