@@ -1,6 +1,6 @@
 package com.anant.CloudDrive.StorageProviders.Uploads;
 
-import com.anant.CloudDrive.StorageProviders.Uploads.requests.*;
+import com.anant.CloudDrive.StorageProviders.requests.*;
 
 public interface UploadEntry {
 

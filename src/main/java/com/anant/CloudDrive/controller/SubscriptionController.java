@@ -18,7 +18,7 @@ public class SubscriptionController {
     @ResponseBody
     public String subscribeToPremium(@RequestParam Map<String, String> body){
         String currentUser = CommonUtils.getUserData(CommonUtils.signedInUser.GET_USERNAME);
-        var tierPurchased = subscriptionService.setTier(currentUser, body.get("Tier"));
+        String tierPurchased = subscriptionService.setTier(currentUser, body.get("Tier"));
         System.out.println(currentUser+ tierPurchased + " subscription");
         return tierPurchased +" purchased!!";
     }
@@ -27,5 +27,4 @@ public class SubscriptionController {
     public String SubscriptionPage(){
         return "SubscribePage";
     }
-
 }

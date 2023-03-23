@@ -1,7 +1,8 @@
 package com.anant.CloudDrive.StorageProviders.LocalFileSystem;
 
 import com.anant.CloudDrive.StorageProviders.Uploads.UploadEntry;
-import com.anant.CloudDrive.StorageProviders.Uploads.requests.*;
+import com.anant.CloudDrive.StorageProviders.requests.*;
+
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Profile;
 import org.springframework.context.annotation.Scope;

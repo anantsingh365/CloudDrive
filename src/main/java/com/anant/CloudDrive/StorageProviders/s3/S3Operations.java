@@ -3,14 +3,15 @@ package com.anant.CloudDrive.StorageProviders.s3;
 import com.amazonaws.AmazonServiceException;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.*;
-import com.anant.CloudDrive.StorageProviders.s3.S3UploadEntry;
 
-import com.anant.CloudDrive.StorageProviders.Uploads.requests.UploadPartRequest;
+import com.anant.CloudDrive.StorageProviders.requests.UploadPartRequest;
 import com.anant.CloudDrive.StorageProviders.UserFileMetaData;
+import org.apache.catalina.security.SecurityConfig;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Profile;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
@@ -24,7 +25,7 @@ public class S3Operations {
     private final Logger logger;
     private final String bucketName;
 
-    public S3Operations(@Autowired AmazonS3 s3Client,
+    protected S3Operations(@Autowired AmazonS3 s3Client,
                           @Autowired Logger logger,
                           @Value("${s3.bucketName}") String bucketName)
     {
@@ -62,6 +63,7 @@ public class S3Operations {
 
     protected S3ObjectInputStream getS3ObjectInputStream(String keyName, long start, long end){
         GetObjectRequest getObjectRequest = new GetObjectRequest(bucketName, keyName).withRange(start,end);
+       // SecurityContextHolder
         S3Object object = s3Client.getObject(getObjectRequest);
         return object.getObjectContent();
     }
@@ -79,6 +81,14 @@ public class S3Operations {
             System.err.println(e.getErrorMessage());
             return false;
         }
+    }
+
+    protected void s3Objects(){
+        var filteredList = s3Client.listObjectsV2(null,null).getObjectSummaries().stream().filter( x -> {
+            var key = x.getKey();
+            var metaData = s3Client.getObjectMetadata(bucketName, key);
+            return metaData.getContentType().equals("media");
+        }).toList();
     }
 
     protected boolean completeUserUpload(S3UploadEntry entry){

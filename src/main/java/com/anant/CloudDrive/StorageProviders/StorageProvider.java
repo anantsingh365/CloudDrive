@@ -4,7 +4,7 @@ import com.anant.CloudDrive.Utils.CommonUtils;
 import com.anant.CloudDrive.StorageProviders.Uploads.UploadEntry;
 import com.anant.CloudDrive.StorageProviders.Uploads.UploadSession;
 import com.anant.CloudDrive.StorageProviders.Uploads.UploadSessionsHolder;
-import com.anant.CloudDrive.StorageProviders.Uploads.requests.*;
+import com.anant.CloudDrive.StorageProviders.requests.*;
 
 import com.anant.CloudDrive.service.SubscriptionService;
 import org.springframework.core.io.Resource;

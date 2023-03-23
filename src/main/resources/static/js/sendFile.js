@@ -26,7 +26,7 @@ var pauseButtonEventListener = function (){
         pauseButton.innerHTML = "Resume Upload";
         pauseUploadFlag = true;
     }
-}
+}   
 
 document.getElementById("pauseResumeButton")?.addEventListener("click", pauseButtonEventListener);
 
@@ -61,6 +61,7 @@ async function uploadSequence(){
                     document.getElementById('submitButton').disabled = false;
 
                 }else{
+                    fileInputReset();
                     console.log("##### Upload Completetion Failed #####");
                 }
                }else{
@@ -68,6 +69,7 @@ async function uploadSequence(){
                     console.log("Upload Paused")
                }
         }catch(err){
+            fileInputReset();
             uploadFailed(err);
         }
     }catch(err){

@@ -16,6 +16,8 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Profile;
 import org.springframework.context.annotation.Scope;
+import org.springframework.context.annotation.ScopedProxyMode;
+import org.springframework.web.context.WebApplicationContext;
 
 @SpringBootApplication
 public class CloudDriveApplication{
@@ -39,5 +41,17 @@ public class CloudDriveApplication{
 	public Logger getLogger(InjectionPoint injectionPoint) {
 		Class<?> classOnWired = injectionPoint.getMember().getDeclaringClass();
 		return LoggerFactory.getLogger(classOnWired);
+	}
+
+	@Bean
+	@Scope(value= WebApplicationContext.SCOPE_REQUEST, proxyMode = ScopedProxyMode.TARGET_CLASS)
+	@Qualifier("randomString")
+	public requestScopeTest randomString(){
+		return new requestScopeTest();
+	}
+	public static class requestScopeTest{
+		public String getMethod(){
+			return String.valueOf(Math.random());
+		}
 	}
 }

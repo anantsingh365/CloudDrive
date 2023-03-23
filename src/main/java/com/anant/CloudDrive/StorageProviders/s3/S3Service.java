@@ -6,8 +6,7 @@ import com.anant.CloudDrive.StorageProviders.StorageProvider;
 import com.anant.CloudDrive.StorageProviders.UserFileMetaData;
 import com.anant.CloudDrive.Utils.CommonUtils;
 
-import com.anant.CloudDrive.StorageProviders.s3.*;
-import com.anant.CloudDrive.StorageProviders.Uploads.requests.*;
+import com.anant.CloudDrive.StorageProviders.requests.*;
 import com.anant.CloudDrive.service.*;
 import com.anant.CloudDrive.StorageProviders.Uploads.UploadSessionsHolder;
 import org.slf4j.Logger;
@@ -106,7 +105,6 @@ public class S3Service extends StorageProvider {
     @Override
     public long getStorageUsedByUser() {
         var userObjectListing = getUserObjectsMetaData();
-        String hello = "hello__ My name is anant singh";
         long sum=0;
         for(UserFileMetaData file: userObjectListing){
             sum += file.getSize();
@@ -117,6 +115,7 @@ public class S3Service extends StorageProvider {
     @Override
     public ResponseEntity<byte[]> getFileBytes(String key_name, String range, String contentType){
         return videoStreamService.prepareContent(key_name, range, contentType);
+       // String temp = "this is Hello  accidentally  ";
 //        try {
 //            return s3Operations.getRangedS3ObjectInputStream(key_name,start,end).readAllBytes();
 //        } catch (IOException e) {

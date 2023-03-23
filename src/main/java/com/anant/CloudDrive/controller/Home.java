@@ -1,6 +1,7 @@
 package com.anant.CloudDrive.controller;
 
-import com.anant.CloudDrive.StorageProviders.Uploads.requests.*;
+import com.anant.CloudDrive.CloudDriveApplication;
+import com.anant.CloudDrive.StorageProviders.requests.*;
 import com.anant.CloudDrive.StorageProviders.StorageProvider;
 import com.anant.CloudDrive.StorageProviders.UserFileMetaData;
 
@@ -12,6 +13,7 @@ import jakarta.servlet.http.HttpSession;
 import org.slf4j.Logger;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.io.*;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
@@ -34,7 +36,8 @@ public class Home {
     StorageProvider storageProvider;
 
     @GetMapping("/user/home")
-    public String UserHome(Model model, HttpSession session){
+    public String UserHome(@Autowired @Qualifier("randomString") CloudDriveApplication.requestScopeTest requestScopeTest, Model model, HttpSession session){
+        System.out.println("Random Request Scoped bean is " + requestScopeTest.getMethod());
         this.addHomePageAttributes(model);
         System.out.println(session.getId());
         return "UserHome";
@@ -147,7 +150,6 @@ public class Home {
         return fileListIdMapping;
     }
     private double addUserStorageQuota(){
-        //System.out.println(storageService.getUserStorageQuota());
         long userQuota = storageProvider.getStorageUsedByUser();
         return (double) (userQuota/1048576);
     }
