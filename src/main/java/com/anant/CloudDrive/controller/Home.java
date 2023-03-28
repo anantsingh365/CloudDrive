@@ -8,6 +8,7 @@ import com.anant.CloudDrive.StorageProviders.UserFileMetaData;
 import static com.anant.CloudDrive.Constants.CONTENT_TYPE;
 import static com.anant.CloudDrive.Utils.CommonUtils.*;
 
+import com.anant.CloudDrive.StorageProviders.s3.S3Service;
 import jakarta.servlet.http.HttpSession;
 
 import org.slf4j.Logger;
@@ -92,6 +93,11 @@ public class Home {
         UserFileMetaData fileMetaData = fileList.get(id);
         String contentType = fileMetaData.getContentType();
         String fileToStream = fileList.get(id).getName();
+        if(true){
+            {
+                String name = "hello world";
+            }
+        }
 
         if(fileToStream == null){
             return ResponseEntity.badRequest().body(null);
@@ -118,6 +124,7 @@ public class Home {
             return returnBadResponse("UploadId Missing");
         }
         boolean completeUploadResult = storageProvider.completeUpload(uploadId);
+
         if(completeUploadResult){
             logger.info("Upload Complete for User " + getUserData(signedInUser.GET_USERNAME) +" upload id " + uploadId);
             return  returnOkResponse("uploadComplete for uploadId " + uploadId);

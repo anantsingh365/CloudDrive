@@ -36,11 +36,13 @@ public class UploadSessionsHolder {
     public UploadSession getExistingSession(String sessionId){
         return sessions.get(sessionId);
     }
+
     private UploadSession createNewSession(String userName){
         var uploadSession = context.getBean(UploadSession.class);
         sessions.put(userName, uploadSession);
         return uploadSession;
     }
+
     public void removeUploadSession(String sessionId){
         sessions.remove(sessionId);
     }

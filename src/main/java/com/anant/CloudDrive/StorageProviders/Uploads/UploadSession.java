@@ -39,18 +39,22 @@ public class UploadSession{
         logger.info("Created Upload Entry for User - {}, Upload Id - {}", getLoggedInUserName(), freshUploadId);
         return freshUploadId;
      }
+
      public UploadEntry getEntry(String uploadId){
          return uploadEntries.get(uploadId);
      }
+
      private String getLoggedInUserName(){
         return SecurityContextHolder.getContext().getAuthentication().getName();
      }
+
      private UploadEntry createEntry(String uploadId){
-        var s3MultiPartUpload = context.getBean(UploadEntry.class);
+        var uploadEntry = context.getBean(UploadEntry.class);
         //context.getBean(UploadEntry.class);
-        this.uploadEntries.put(uploadId, s3MultiPartUpload);
-        return s3MultiPartUpload;
+        this.uploadEntries.put(uploadId, uploadEntry);
+        return uploadEntry;
      }
+
      private boolean uploadIdAlreadyExists(String uploadId){
         return uploadEntries.containsKey(uploadId);
      }

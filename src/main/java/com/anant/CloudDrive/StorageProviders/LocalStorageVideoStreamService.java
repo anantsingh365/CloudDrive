@@ -46,7 +46,11 @@ public class LocalStorageVideoStreamService {
             long rangeEnd = CHUNK_SIZE;
             String rangeEndString = String.valueOf(rangeEnd);
             final long fileSize = getFileSize(fileKey);
-            if (range == null) {
+            if (range == null || fileType.equals("application/pdf")) {
+                if(fileSize < CHUNK_SIZE || fileType.equals("application/pdf")){
+                    rangeEnd = fileSize;
+                    rangeEndString = String.valueOf(rangeEnd);
+                }
                 byte[] data = readByteRangeNew(fileKey, rangeStart, rangeEnd);
                 HttpStatus status = HttpStatus.PARTIAL_CONTENT;
                 return getResponse(status, fileType, rangeEndString, rangeStart, rangeEnd, fileSize, data);
