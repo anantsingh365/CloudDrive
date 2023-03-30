@@ -98,7 +98,7 @@ public class S3Service extends StorageProvider {
 
     @Override
     public boolean renameFile(String originalFileName, String newFileName){
-        return s3Operations.renameFile(originalFileName, newFileName);
+        return s3Operations.renameFile(originalFileName, CommonUtils.getUserData(CommonUtils.signedInUser.GET_USERNAME) +"/" + newFileName);
     }
 
 

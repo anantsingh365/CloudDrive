@@ -8,7 +8,7 @@ import com.anant.CloudDrive.StorageProviders.UserFileMetaData;
 import static com.anant.CloudDrive.Constants.CONTENT_TYPE;
 import static com.anant.CloudDrive.Utils.CommonUtils.*;
 
-import com.anant.CloudDrive.StorageProviders.s3.S3Service;
+import jakarta.servlet.ServletContext;
 import jakarta.servlet.http.HttpSession;
 
 import org.slf4j.Logger;
@@ -37,7 +37,12 @@ public class Home {
     StorageProvider storageProvider;
 
     @GetMapping("/user/home")
-    public String UserHome(@Autowired @Qualifier("randomString") CloudDriveApplication.requestScopeTest requestScopeTest, Model model, HttpSession session){
+    public String UserHome(@Autowired @Qualifier("randomString") CloudDriveApplication.requestScopeTest requestScopeTest,
+                           Model model,
+                           HttpSession session,
+                           @Autowired ServletContext servletContext
+                           ){
+        System.out.println(servletContext.getContextPath());
         System.out.println("Random Request Scoped bean is " + requestScopeTest.getMethod());
         this.addHomePageAttributes(model);
         System.out.println(session.getId());
@@ -69,7 +74,7 @@ public class Home {
     public ResponseEntity<Resource> download(@RequestParam("id") int id,
                                            Model model) throws IOException {
 
-        Map<Integer, UserFileMetaData> fileList = (HashMap<Integer, UserFileMetaData>) model.getAttribute("fileList");
+        Map<String, UserFileMetaData> fileList = (HashMap<String, UserFileMetaData>) model.getAttribute("fileList");
         UserFileMetaData fileMetaData = fileList.get(id);
         String fileToDownload = fileList.get(id).getName();
         String fileContentType = fileMetaData.getContentType();
@@ -86,6 +91,16 @@ public class Home {
                 .body(res);
     }
 
+    @PostMapping("/user/renameFile")
+    @ResponseBody
+    public ResponseEntity<String> renameFile(Model model, @RequestBody Map<String, String> renameRequestPayLoad){
+        String id = renameRequestPayLoad.get("id");
+        String newFileName = renameRequestPayLoad.get("newFileName");
+        String originalFileName = resolveFileNameFromId(id, model);
+        boolean result = storageProvider.renameFile(originalFileName, newFileName);
+
+        return result ? returnOkResponse("renameDone") : returnBadResponse("rename failed");
+    }
     @GetMapping("/user/video{id}")
     @ResponseBody
     public ResponseEntity<byte[]> videoStream(@RequestParam("id") int id, Model model, @RequestHeader(value = "Range", required = false) String httpRangeList){
@@ -93,11 +108,6 @@ public class Home {
         UserFileMetaData fileMetaData = fileList.get(id);
         String contentType = fileMetaData.getContentType();
         String fileToStream = fileList.get(id).getName();
-        if(true){
-            {
-                String name = "hello world";
-            }
-        }
 
         if(fileToStream == null){
             return ResponseEntity.badRequest().body(null);
@@ -106,12 +116,11 @@ public class Home {
     }
 
     @GetMapping("/user/delete{id}")
-    public ResponseEntity<String> delete(@RequestParam("id") int id, Model model){
-        String fileToDelete = this.resolveFileToDelete(id, model);
+    public ResponseEntity<String> delete(@RequestParam("id") String id, Model model){
+        String fileToDelete = this.resolveFileNameFromId(id, model);
         if(fileToDelete == null){
             return returnBadResponse("there was no file with that id");
         }
-
         boolean result =  storageProvider.deleteUserFile(fileToDelete);
         return result ? returnOkResponse("file deleted") : returnInternalServerError();
     }
@@ -135,34 +144,32 @@ public class Home {
     private ResponseEntity<String> returnBadResponse(String reason){
         return ResponseEntity.badRequest().body(reason);
     }
+
     private ResponseEntity<String> returnOkResponse(String message){
         return ResponseEntity.ok().body(message);
     }
+
     private ResponseEntity<String> returnInternalServerError(){
         return ResponseEntity.internalServerError().body("Something went wrong while processing the request");
     }
-    private void addHomePageAttributes(Model model){
-        model.addAttribute("fileList", addUserFileListing());
-        model.addAttribute("loggedInUser", SecurityContextHolder.getContext().getAuthentication().getName());
-        model.addAttribute("userQuota", addUserStorageQuota());
-    }
-    private Map<Integer, UserFileMetaData> addUserFileListing(){
-        List<UserFileMetaData> fileList =  storageProvider.getUserObjectsMetaData();
-        HashMap<Integer, UserFileMetaData> fileListIdMapping = new HashMap<>();
 
-        for(int i =0; i < fileList.size() ; i++){
-            fileListIdMapping.put(i, fileList.get(i));
-            System.out.println(fileListIdMapping.get(i));
+    private void addHomePageAttributes(Model model){
+        model.addAttribute("fileList", userFileListingMap(storageProvider.getUserObjectsMetaData()));
+        model.addAttribute("loggedInUser", SecurityContextHolder.getContext().getAuthentication().getName());
+        model.addAttribute("userQuota", storageProvider.getStorageUsedByUser() / (1024 * 1024));
+    }
+
+    private Map<String, UserFileMetaData> userFileListingMap(List<UserFileMetaData> fileList) {
+        Map<String, UserFileMetaData> fileListIdMapping = new HashMap<>();
+        for (int i = 0; i < fileList.size(); i++) {
+            fileListIdMapping.put(String.valueOf(i), fileList.get(i));
         }
         return fileListIdMapping;
     }
-    private double addUserStorageQuota(){
-        long userQuota = storageProvider.getStorageUsedByUser();
-        return (double) (userQuota/1048576);
-    }
-    private String resolveFileToDelete(int id, Model model){
-        Map<Integer, UserFileMetaData> fileList = (HashMap<Integer, UserFileMetaData>) model.getAttribute("fileList");
-        var removedElem = fileList.remove(id);
+
+    private String resolveFileNameFromId(String id, Model model){
+        HashMap<String, UserFileMetaData> fileList = (HashMap<String, UserFileMetaData>) model.getAttribute("fileList");
+        var removedElem = fileList.get(id);
         if(removedElem == null){
             return null;
         }

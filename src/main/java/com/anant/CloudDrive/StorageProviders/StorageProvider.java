@@ -19,7 +19,7 @@ public abstract class StorageProvider {
      private final UploadSessionsHolder uploadSessionsHolder;
      private final SubscriptionService subscriptionService;
 
-     protected StorageProvider(UploadSessionsHolder uploadSessionsHolder, SubscriptionService subscriptionService) {
+     public  StorageProvider(UploadSessionsHolder uploadSessionsHolder, SubscriptionService subscriptionService) {
           this.uploadSessionsHolder = uploadSessionsHolder;
           this.subscriptionService = subscriptionService;
      }

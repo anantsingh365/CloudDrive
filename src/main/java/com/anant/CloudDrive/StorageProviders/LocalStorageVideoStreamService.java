@@ -100,7 +100,6 @@ public class LocalStorageVideoStreamService {
         GetObjectRequest rangeObjectRequest = new GetObjectRequest(bucketName, filename).withRange(start, end);
         S3Object objectPortion = s3Client.getObject(rangeObjectRequest);
         S3ObjectInputStream objectData = objectPortion.getObjectContent();
-        // for some reason read method was not reading all the bytes and only reading partial, readAllBytes() read all
         byte[] result = objectData.readAllBytes();
         objectData.close();
         System.out.println("Total number of bytes read for keyName " + filename + " - " + result.length);
