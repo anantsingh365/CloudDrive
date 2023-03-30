@@ -93,9 +93,9 @@ public class Home {
 
     @PostMapping("/user/renameFile")
     @ResponseBody
-    public ResponseEntity<String> renameFile(Model model, @RequestBody Map<String, String> renameRequestPayLoad){
-        String id = renameRequestPayLoad.get("id");
-        String newFileName = renameRequestPayLoad.get("newFileName");
+    public ResponseEntity<String> renameFile(Model model, @RequestParam(name = "newFileName") String newFileName, @RequestParam(name = "id") String id ){
+        //String id = renameRequestPayLoad.get("id");
+       // String newFileName = renameRequestPayLoad.get("newFileName");
         String originalFileName = resolveFileNameFromId(id, model);
         boolean result = storageProvider.renameFile(originalFileName, newFileName);
 
@@ -103,8 +103,8 @@ public class Home {
     }
     @GetMapping("/user/video{id}")
     @ResponseBody
-    public ResponseEntity<byte[]> videoStream(@RequestParam("id") int id, Model model, @RequestHeader(value = "Range", required = false) String httpRangeList){
-        Map<Integer, UserFileMetaData> fileList = (HashMap<Integer, UserFileMetaData>) model.getAttribute("fileList");
+    public ResponseEntity<byte[]> videoStream(@RequestParam("id") String id, Model model, @RequestHeader(value = "Range", required = false) String httpRangeList){
+        Map<String, UserFileMetaData> fileList = (HashMap<String, UserFileMetaData>) model.getAttribute("fileList");
         UserFileMetaData fileMetaData = fileList.get(id);
         String contentType = fileMetaData.getContentType();
         String fileToStream = fileList.get(id).getName();
