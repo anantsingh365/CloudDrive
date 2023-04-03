@@ -9,6 +9,8 @@ import static com.anant.CloudDrive.Constants.CONTENT_TYPE;
 import static com.anant.CloudDrive.Utils.CommonUtils.*;
 
 import jakarta.servlet.ServletContext;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 
 import org.slf4j.Logger;
@@ -24,9 +26,13 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.*;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
 
 @Controller
 @SessionAttributes("fileList")
@@ -40,8 +46,10 @@ public class Home {
     public String UserHome(@Autowired @Qualifier("randomString") CloudDriveApplication.requestScopeTest requestScopeTest,
                            Model model,
                            HttpSession session,
-                           @Autowired ServletContext servletContext
+                           @Autowired ServletContext servletContext,
+                           @Autowired HttpServletRequest httpServletRequest
                            ){
+        System.out.println(httpServletRequest.getRequestURL());
         System.out.println(servletContext.getContextPath());
         System.out.println("Random Request Scoped bean is " + requestScopeTest.getMethod());
         this.addHomePageAttributes(model);
@@ -52,6 +60,7 @@ public class Home {
     @PostMapping("/user/uploadId")
     @ResponseBody
     public ResponseEntity<String> uploadId(@RequestBody Map<String, String> uploadIdPayLoad){
+
         var uploadIdRequest = new UploadIdRequest(uploadIdPayLoad.get("filename"), uploadIdPayLoad.get("contenttype"));
         return uploadIdRequest.isRequestValid() ? returnOkResponse(storageProvider.getUploadId(uploadIdRequest)) : returnBadResponse("filname or content type missing");
     }
@@ -63,15 +72,15 @@ public class Home {
                                               @RequestHeader ("content-length") String contentLength)
     {
         if( uploadId == null || contentLength == null ){
-            return  returnBadResponse("Headers missing");
+            return  returnBadResponse("required Headers missing");
         }
-        var req = new UploadPartRequest(ins, uploadId, Long.parseLong(contentLength));
-        return  storageProvider.uploadPart(req) ? returnOkResponse("dataReceived") : returnInternalServerError();
+        var uploadPartRequest = new UploadPartRequest(ins, uploadId, Long.parseLong(contentLength));
+        return  storageProvider.uploadPart(uploadPartRequest) ? returnOkResponse("dataReceived") : returnInternalServerError();
     }
 
     @GetMapping("/user/download{id}")
     @ResponseBody
-    public ResponseEntity<Resource> download(@RequestParam("id") int id,
+    public ResponseEntity<Resource> download(@RequestParam("id") String id,
                                            Model model) throws IOException {
 
         Map<String, UserFileMetaData> fileList = (HashMap<String, UserFileMetaData>) model.getAttribute("fileList");

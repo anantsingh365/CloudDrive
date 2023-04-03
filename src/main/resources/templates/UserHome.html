@@ -4,16 +4,12 @@
         <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.3/jquery.min.js"></script>
         <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
         <link rel="stylesheet" href="/css/userHome.css">
-
-        <!--        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.1/jquery.min.js"></script>-->
-<!--        <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>-->
-
         <script>
-    function modalMethod(id){
-      console.log("Modal button clicked")
-      document.getElementById("renameIdInput").setAttribute("value", id);
-    }
-  </script>
+            function setRenameElemId(id){
+                  console.log("Modal button clicked")
+                  document.getElementById("renameIdInput").setAttribute("value", id);
+                }
+            </script>
     </head>
 <body>
 
@@ -42,7 +38,13 @@
         <h1>File handling</h1>
         <p th:inline = "text">[[${userQuota}]] / 10GB</p>
         <h2 id = "loggedInUser" th:inline = "text">Hi, [[${loggedInUser}]]</h2>
-        <input type="file" id="file"/>
+        <input type="file" style="display: inline;" id="file"/> 
+        
+        <!-- progress box -->
+        <div id = "progressText" style = "display: none;">
+            <span id = "uploadDoneText">hello anant </span><span id = "totalUploadSizeText"> total anant </span>
+        </div>
+
         <button type = "button" id = "pauseResumeButton" style="visibility: hidden;">Pause Upload</button>
         <br> 
         <button id ="submitButton">send file Data</button>
@@ -68,28 +70,23 @@
                     <button type = "submit" th:formaction="@{/user/delete}" method = "GET" class="btn btn-danger btn-sm">
                         <span class="glyphicon glyphicon-trash">Trash</span>
                     </button>
-                    <button th:attr = "id = @{${list.key}}" type="button" class="btn btn-info btn-sm text-dark" data-toggle="modal" data-target="#myModal" onclick="modalMethod(this.id)"><span class="glyphicon glyphicon-edit">Rename</span></button>
+                    <button th:attr = "id = @{${list.key}}" type="button" class="btn btn-info btn-sm text-dark" data-toggle="modal" data-target="#myModal" onclick="setRenameElemId(this.id)"><span class="glyphicon glyphicon-edit">Rename</span></button>
                 </form>
         </div>
     </div>
 
 <!-- Modal -->
-<div id = "modalWrapper">
     <div class="modal fade" id="myModal" role="dialog">
-        <div class="modal-dialog">
-
+        <div class="modal-dialog modal-dialog-centered modal-sm">
             <!-- Modal content-->
             <div class="modal-content">
                 <div class="modal-header">
                     <button type="button" class="close" data-dismiss="modal">&times;</button>
-                    <h4 class="modal-title">Modal Header</h4>
+                    <h4 class="modal-title">Rename File:</h4>
                 </div>
                 <div class="modal-body">
-                    <p>Some text in the modal.</p>
                     <form th:action="@{/user/renameFile}" method="POST">
-                        <label for="newFileName">First name:</label>
                         <input type="text" id="newFileName" name="newFileName"><br><br>
-
                         <div class="modal-footer">
                             <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
                             <input id = "renameIdInput" type = "hidden" name = "id">
@@ -100,7 +97,6 @@
             </div>
         </div>
     </div>
-</div>
 
 
 </body> 

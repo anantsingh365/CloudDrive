@@ -9,6 +9,7 @@ const uploadfileLink = "/user/uploadFile";
 const uploadIdLink = "/user/uploadId"
 var isUploadCompleted = false;
 var fileType;
+var fileText;
 
 var pauseButtonEventListener = function (){
     // upload underway, pause it  
@@ -111,6 +112,12 @@ async function startTransferOfFile(isResuming, uploadId){
 async function sendFileInPartsToUrl(fileObj, partSize, url, uploadId, isResuming){
 
     //file smaller than default part size, send it directly
+
+    var totalFileSizeProgressText = " / " + fileObj.size + " bytes)";
+    var totalUploadSizeText = document.getElementById('totalUploadSizeText');
+    totalUploadSizeText.innerText = totalFileSizeProgressText;
+    var uploadDoneText = document.getElementById('uploadDoneText');
+
     if(fileObj.size < (partSize)){
         await sendPart(fileObj, url, uploadId)
         return true;
@@ -121,6 +128,7 @@ async function sendFileInPartsToUrl(fileObj, partSize, url, uploadId, isResuming
     var filePart;
 
     if(!isResuming){
+        uploadDoneText.innerText = ' (0';
         if(partSize === null){
         //set part size to default size
         partSize =  defaultPartSize;
@@ -139,11 +147,19 @@ async function sendFileInPartsToUrl(fileObj, partSize, url, uploadId, isResuming
     var pauseButton = document.getElementById("pauseResumeButton");
     pauseButton.style.visibility = 'visible';
 
+    // show progress text
+    var progressText = document.getElementById("progressText");
+    progressText.style.display = 'inline';
+
     while(true && !pauseUploadFlag){
         if ( ((fileObj.size - start) >= partSize) ) {
              filePart = fileObj.slice(start, endIndx)
              console.log("sending a part")
              let result = await sendPart(filePart, url, uploadId)
+
+             //uploadDoneText size 
+             uploadDoneText.innerText = " (" + endIndx;
+
              endIndx += partSize;
 
         }else if( ((fileObj.size - start) < partSize) && ((fileObj.size - start) !== 0)  ){
@@ -151,10 +167,18 @@ async function sendFileInPartsToUrl(fileObj, partSize, url, uploadId, isResuming
             pauseButton.style.visibility = 'hidden';
             endIndx = fileObj.size
             filePart = fileObj.slice(start, endIndx)
+
+            //uploadDoneTextUpdate
+            uploadDoneText.innerText = " (" + fileObj.size;
+
             console.log("sending last part")
             let result2 = await sendPart(filePart, url, uploadId);
             console.log("all parts sent")
             isUploadCompleted = true;
+
+            // hide progress text 
+            var progressText = document.getElementById("progressText");
+            progressText.style.display = 'none';
 
             //this is temporary
             const uploadCompletionResult = await sendUploadCompleteConfirmation(uploadId);

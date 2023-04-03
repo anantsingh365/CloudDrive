@@ -95,6 +95,18 @@ public class S3Service extends StorageProvider {
         //}
         return result;
     }
+    public boolean deleteAllUserFile(){
+        String userName = "tempUser";
+        var userFilesMetaData = getUserObjectsMetaData();
+        boolean res;
+        for (UserFileMetaData userFileMetaData : userFilesMetaData) {
+            res = this.deleteUserFile(userFileMetaData.getName());
+            if(!res){
+                System.out.println("couldn't delete some or all files");
+            }
+        }
+        return true;
+    }
 
     @Override
     public boolean renameFile(String originalFileName, String newFileName){
