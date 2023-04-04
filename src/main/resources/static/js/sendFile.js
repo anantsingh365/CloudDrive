@@ -1,6 +1,6 @@
 //@ts-check
 
-import { UploadModule } from "./moduleTest.js";
+import { Upload } from "./UploadLogic.js";
 
 
 const defaultPartSize = 5 * 1024 * 1024;
@@ -40,7 +40,7 @@ var pauseButtonEventListener = function (){
 document.getElementById("pauseResumeButton")?.addEventListener("click", pauseButtonEventListener);
 
 var submitButtonEventListener = ()=>{   
-     uploadObj = new UploadModule(fileObj, uploadfileLink, uploadIdLink);
+     uploadObj = new Upload(fileObj, uploadfileLink, uploadIdLink);
     uploadObj.uploadSequence();
 
     // document.getElementById('submitButton').disabled = true;
