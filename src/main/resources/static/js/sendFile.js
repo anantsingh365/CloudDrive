@@ -1,4 +1,8 @@
 //@ts-check
+
+import { UploadModule } from "./moduleTest.js";
+
+
 const defaultPartSize = 5 * 1024 * 1024;
 var fileObj;
 var uploadCompleteDoneMessage;
@@ -6,34 +10,41 @@ const resumeState = {};
 var pauseUploadFlag = false;
 var uploadID;
 const uploadfileLink = "/user/uploadFile";
-const uploadIdLink = "/user/uploadId"
+const uploadIdLink = "/user/uploadId";
 var isUploadCompleted = false;
-var fileType;
-var fileText;
+
+
+var uploadObj;
 
 var pauseButtonEventListener = function (){
+        //temp
+        uploadObj.pauseUpload();
+
     // upload underway, pause it  
-    if(pauseUploadFlag == true && !isUploadCompleted){
-        pauseUploadFlag = false;
-        const pauseButton = document.getElementById("pauseResumeButton");
-        pauseButton.innerHTML = "Pause Upload";
-        startTransferOfFile(true, uploadID);
-    }else if(isUploadCompleted){
-        console.log("upload completed, can't pause or resume")
-    }
-    // upload is paused, resume it
-    else{
-        const pauseButton = document.getElementById("pauseResumeButton");
-        pauseButton.innerHTML = "Resume Upload";
-        pauseUploadFlag = true;
-    }
+    // if(pauseUploadFlag == true && !isUploadCompleted){
+    //     pauseUploadFlag = false;
+    //     const pauseButton = document.getElementById("pauseResumeButton");
+    //     pauseButton.innerHTML = "Pause Upload";
+    //     startTransferOfFile(true, uploadID);
+    // }else if(isUploadCompleted){
+    //     console.log("upload completed, can't pause or resume")
+    // }
+    // // upload is paused, resume it
+    // else{
+    //     const pauseButton = document.getElementById("pauseResumeButton");
+    //     pauseButton.innerHTML = "Resume Upload";
+    //     pauseUploadFlag = true;
+    // }
 }   
 
 document.getElementById("pauseResumeButton")?.addEventListener("click", pauseButtonEventListener);
 
-var submitButtonEventListener = ()=>{
-    document.getElementById('submitButton').disabled = true;
-    uploadSequence();
+var submitButtonEventListener = ()=>{   
+     uploadObj = new UploadModule(fileObj, uploadfileLink, uploadIdLink);
+    uploadObj.uploadSequence();
+
+    // document.getElementById('submitButton').disabled = true;
+    // uploadSequence();
 }
 document.getElementById('submitButton').addEventListener("click", submitButtonEventListener);
 
@@ -240,7 +251,7 @@ async function getUploadId(url, file){
     //Fetch upload Id from server
     //return uploadID
     return new Promise((resolve, reject) => {
-        const UploadIdRequestBody = '{ "filename": "'+file.name+'","mimetype":"'+file.name+'", "contenttype":"'+fileType+'" }';
+        const UploadIdRequestBody = '{ "filename": "'+file.name+'","mimetype":"'+file.name+'", "contenttype":"'+fileObj.type+'" }';
         let xhr = new XMLHttpRequest();
         xhr.open("POST", url, true);
       //  xhr.setRequestHeader("FileName", file.name);
@@ -333,7 +344,6 @@ function sendPart(filePart, url, uploadId){
 document.getElementById('file').addEventListener('change', async (event) => {
   resetUploadState();
   fileObj = await event.target.files[0];
-  fileType = fileObj.type;
 }, false)
 
 function resetUploadState(){
@@ -341,3 +351,7 @@ function resetUploadState(){
     pauseUploadFlag = false;
     resumeState.startIndex = 0;
 }
+
+//
+//const uploadModule = new UploadModule(null, null, null);
+//uploadModule.uploadSequence();
