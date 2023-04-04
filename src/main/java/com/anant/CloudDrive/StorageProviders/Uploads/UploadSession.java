@@ -12,6 +12,7 @@ import com.anant.CloudDrive.StorageProviders.requests.*;
 
 import java.util.HashMap;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 
 @Component
 @Qualifier("userUploadSession")
@@ -26,8 +27,8 @@ public class UploadSession{
         this.logger = logger;
     }
 
-    //represents multiple upload entries from a user
-    private final HashMap<String, UploadEntry> uploadEntries= new HashMap<>();
+    //represents multiple upload entries from a session
+    private final ConcurrentHashMap<String, UploadEntry> uploadEntries= new ConcurrentHashMap<>();
 
     public String registerUploadId(UploadIdRequest uploadIdRequest){
         String freshUploadId = UUID.randomUUID().toString();

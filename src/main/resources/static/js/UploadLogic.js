@@ -3,13 +3,13 @@ class Upload{
     defaultPartSize = 5 * 1024 * 1024;
     fileObj;
     resumeState = {};
-    #uploadIdFailedHandler;
     uploadCompleteDoneMessage = "";
     pauseUploadFlag = false;
     uploadID = "";
     uploadfileLink = "/user/uploadFile";
     uploadIdLink = "/user/uploadId"
     isUploadCompleted = false;
+    pauseUploadFlag = false;
 
     constructor( fileObj, uploadfileLink, uploadIdLink){
         this.fileObj = fileObj;
@@ -18,23 +18,23 @@ class Upload{
     }
 
     setUploadIdFailedHandler(uploadIdFailedHandler){
-        this.#uploadIdFailedHandler = uploadIdFailedHandler;
+      //  this.#uploadIdFailedHandler = uploadIdFailedHandler;
     }
 
     pauseUpload(){
-        if(pauseUploadFlag == true && !isUploadCompleted){
-            pauseUploadFlag = false;
+        if(this.pauseUploadFlag == true && !this.isUploadCompleted){
+            this.pauseUploadFlag = false;
             const pauseButton = document.getElementById("pauseResumeButton");
             pauseButton.innerHTML = "Pause Upload";
-            startTransferOfFile(true, uploadID);
-        }else if(isUploadCompleted){
+            this.startTransferOfFile(true, this.uploadID);
+        }else if(this.isUploadCompleted){
             console.log("upload completed, can't pause or resume")
         }
         // upload is paused, resume it
         else{
             const pauseButton = document.getElementById("pauseResumeButton");
             pauseButton.innerHTML = "Resume Upload";
-            pauseUploadFlag = true;
+            this.pauseUploadFlag = true;
         }
     }
 
@@ -43,7 +43,7 @@ class Upload{
         try{
             const uploadId = await this.getUploadId(this.uploadIdLink, this.fileObj);
             this.uploadID = uploadId;
-            console.log("starting file transfer for upload id -" + uploadId);
+            console.log("starting file transfer for upload with upload id - " + this.uploadID);
             try{
                 //2nd step
                 const wasCompleted = await this.startTransferOfFile(false, uploadId);
@@ -55,23 +55,30 @@ class Upload{
                     const uploadCompletionResult = await this.sendUploadCompleteConfirmation(uploadId);
                     if(uploadCompletionResult){
                         console.log("###### Upload Completion Successfull ######");
+                        //to do
+                        // uploadCompleteHandler();
                          this.showUploadCompleteMessage();
                          this.fileInputReset();
                          document.getElementById('submitButton').disabled = false;
     
                     }else{
-                       // fileInputReset();
+                        // to do
+                        // uploadFailedHandler();
+                         this.fileInputReset();
                         console.log("##### Upload Completetion Failed #####");
                     }
                    }else{
                        // false promise resolve means upload was paused
+                       //to do
+                       // uploadPausedHandler();
                         console.log("Upload Paused")
                    }
             }catch(err){
-              //  fileInputReset();
+              this.fileInputReset();
                 uploadFailed(err);
             }
         }catch(err){
+            // to do fetchingUploadIdFailedHandler(err);
             this.fetchingUploadIdFailedHandler(err);
         }
     }
@@ -90,7 +97,7 @@ class Upload{
     
                 //removing success message after 3 seconds
                 const elem = document.getElementById('AccountUpgradeMessage');
-                removeDomElement(elem, 3000);
+                this.removeDomElement(elem, 3000);
     
                 //re enable submit button
                 document.getElementById('submitButton').disabled = false;
@@ -119,7 +126,7 @@ class Upload{
     
         //removing success message after 3 seconds
         const elem = document.getElementById('uploadCompleteMessage');
-        removeDomElement(elem, 3000);
+        this.removeDomElement(elem, 3000);
     }
 
     async getUploadId(url, file){
@@ -190,10 +197,10 @@ class Upload{
             }
             else{
                 start = this.resumeState.startIndex;
-                partSize = defaultPartSize;
+                partSize = this.defaultPartSize;
                 endIndx = start + partSize;
             }
-        
+
             var pauseButton = document.getElementById("pauseResumeButton");
             pauseButton.style.visibility = 'visible';
             
@@ -201,7 +208,7 @@ class Upload{
             var progressText = document.getElementById("progressText");
             progressText.style.display = 'inline';
         
-            while(true && !this.pauseUploadFlag){
+            while(!this.pauseUploadFlag){
                 if ( ((fileObj.size - start) >= partSize) ) {
                      filePart = fileObj.slice(start, endIndx)
                      console.log("sending a part")
@@ -250,7 +257,7 @@ class Upload{
                 start += filePart.size;
             }
 
-            if(pauseUploadFlag){
+            if(this.pauseUploadFlag){
                 console.log("Upload Paused");
                 this.resumeState.startIndex = start;
             }
@@ -321,9 +328,18 @@ class Upload{
         }
 
         resetUploadState(){
-            isUploadCompleted = false;
-            pauseUploadFlag = false;
-            resumeState.startIndex = 0;
+            this.isUploadCompleted = false;
+            this.pauseUploadFlag = false;
+            this.resumeState.startIndex = 0;
         }
+
+        
+     removeDomElement(elem, inSeconds){
+        setTimeout(()=> elem.remove(), inSeconds);
+    }
+
+    fileInputReset(){
+        document.getElementById("file").value = "";
+    }
 }
 export {Upload};
