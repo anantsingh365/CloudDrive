@@ -11,10 +11,25 @@ class Upload{
     isUploadCompleted = false;
     pauseUploadFlag = false;
 
-    constructor( fileObj, uploadfileLink, uploadIdLink){
+
+    //events handlers associated with various upload events.
+    handlersContainer;
+
+    uploadPausedHandler;
+    uploadResumeHandler;
+    fetchingUploadIdSuccessHandler;
+    fileTransferSuccessHandler;
+    uploadCompleteConfirmationSuccessHandler;
+    gettingUploadIdFailedHandler;
+    fileTransferFailedHandler;
+    uploadCompleteConfirmationFailedHandler;
+
+
+    constructor( fileObj, uploadfileLink, uploadIdLink, handlersContainer){
         this.fileObj = fileObj;
         this.uploadfileLink = uploadfileLink;
         this.uploadIdLink = uploadIdLink;
+        this.handlersContainer = handlersContainer;
     }
 
     setUploadIdFailedHandler(uploadIdFailedHandler){
@@ -23,26 +38,43 @@ class Upload{
 
     pauseUpload(){
         if(this.pauseUploadFlag == true && !this.isUploadCompleted){
-            this.pauseUploadFlag = false;
-            const pauseButton = document.getElementById("pauseResumeButton");
-            pauseButton.innerHTML = "Pause Upload";
+            // this.pauseUploadFlag = false;
+            // const pauseButton = document.getElementById("pauseResumeButton");
+            // pauseButton.innerHTML = "Pause Upload";
+
+
             this.startTransferOfFile(true, this.uploadID);
+            const uploadResumeHandler = this.handlersContainer.uploadResumeHandler;
+            if(uploadResumeHandler === undefined){
+                console.log("No handler for upload Resume Event");
+            }
+            uploadResumeHandler();
+
         }else if(this.isUploadCompleted){
             console.log("upload completed, can't pause or resume")
         }
         // upload is paused, resume it
         else{
-            const pauseButton = document.getElementById("pauseResumeButton");
-            pauseButton.innerHTML = "Resume Upload";
+            // const pauseButton = document.getElementById("pauseResumeButton");
+            // pauseButton.innerHTML = "Resume Upload";
+
+            // pause upload handler is placed in uploadSequence because 
+            // that's where we are sure if upload was successfully paused.
             this.pauseUploadFlag = true;
         }
     }
 
-     async uploadSequence(){
+     async startUpload(){
         //1st step
         try{
             const uploadId = await this.getUploadId(this.uploadIdLink, this.fileObj);
             this.uploadID = uploadId;
+            const f = this.handlersContainer.fetchingUploadIdSuccessHandler;
+            if(f ==  undefined){
+                console.log("No handler associated with upload transfer success event...");
+            }else{
+                f();
+            }
             console.log("starting file transfer for upload with upload id - " + this.uploadID);
             try{
                 //2nd step
@@ -50,10 +82,24 @@ class Upload{
                 if(wasCompleted){
                     console.log("Transmission successfull of all parts for upload id -" + uploadId);
                     console.log("attempting upload completion.....");
+
+                    const f = this.handlersContainer.fileTransferSuccessHandler;
+                    if(f == undefined){
+                        console.log("No handler associated with upload transfer success event...");
+                    }else{
+                        f();
+                    }
     
                     //3rd step
                     const uploadCompletionResult = await this.sendUploadCompleteConfirmation(uploadId);
                     if(uploadCompletionResult){
+                        const f = this.handlersContainer.uploadCompleteConfirmationSuccessHandler;
+                            if(f == undefined){
+                                console.log("No handler associated with upload complete confirmation event...");
+                            }else{
+                                f();
+                            }
+
                         console.log("###### Upload Completion Successfull ######");
                         //to do
                         // uploadCompleteHandler();
@@ -62,24 +108,50 @@ class Upload{
                          document.getElementById('submitButton').disabled = false;
     
                     }else{
+                        const f = this.handlersContainer.uploadCompleteConfirmationFailedHandler;
+                    if(f == undefined){
+                        console.log("No handler associated with upload complete confirmation failed event...");
+                    }else{
+                        f();
+                    }
                         // to do
                         // uploadFailedHandler();
-                         this.fileInputReset();
-                        console.log("##### Upload Completetion Failed #####");
+                       
+                        //  this.fileInputReset();
+                        // console.log("##### Upload Completetion Failed #####");
                     }
                    }else{
                        // false promise resolve means upload was paused
                        //to do
                        // uploadPausedHandler();
-                        console.log("Upload Paused")
+                       const f = this.handlersContainer.uploadPausedHandler;
+                    if(f == undefined){
+                        console.log("No handler associated with upload paused event...");
+                    }else{
+                        f();
+                    }
+                    console.log("Upload Paused")
                    }
             }catch(err){
-              this.fileInputReset();
-                uploadFailed(err);
+                const f = this.handlersContainer.gettingUploadIdFailedHandler;
+                if(f == undefined){
+                    console.log("No handler associated with upload transfer failed event...");
+                }else{
+                    f();
+                }
+            //   this.fileInputReset();
+            //     uploadFailed(err);
             }
         }catch(err){
             // to do fetchingUploadIdFailedHandler(err);
-            this.fetchingUploadIdFailedHandler(err);
+            const f = this.handlersContainer.gettingUploadIdFailedHandler;
+            if(f === undefined){
+                console.log("No handler associated with fetching upload id failed event...");
+            }else{
+                f();
+            }
+            // this.handlersContainer.uploadPausedHandler();
+            // this.fetchingUploadIdFailedHandler(err);
         }
     }
 
@@ -167,9 +239,7 @@ class Upload{
         }
 
         async sendFileInPartsToUrl(fileObj, partSize, url, uploadId, isResuming){
-
             //file smaller than default part size, send it directly
-        
             var totalFileSizeProgressText = " / " + fileObj.size + " bytes)";
             var totalUploadSizeText = document.getElementById('totalUploadSizeText');
             totalUploadSizeText.innerText = totalFileSizeProgressText;
@@ -185,7 +255,7 @@ class Upload{
             var filePart;
         
             if(!isResuming){
-                uploadDoneText.innerText = ' (0';
+               // uploadDoneText.innerText = ' (0';
                 if(partSize === null){
                 //set part size to default size
                 partSize =  defaultPartSize;
@@ -202,11 +272,11 @@ class Upload{
             }
 
             var pauseButton = document.getElementById("pauseResumeButton");
-            pauseButton.style.visibility = 'visible';
+          //  pauseButton.style.visibility = 'visible';
             
             // show progress text
             var progressText = document.getElementById("progressText");
-            progressText.style.display = 'inline';
+           // progressText.style.display = 'inline';
         
             while(!this.pauseUploadFlag){
                 if ( ((fileObj.size - start) >= partSize) ) {
@@ -215,17 +285,17 @@ class Upload{
                      let result = await this.sendPart(filePart, url, uploadId)
         
                      //uploadDoneText size 
-                     uploadDoneText.innerText = " (" + endIndx;
+                    // uploadDoneText.innerText = " (" + endIndx;
                      endIndx += partSize;
         
                 }else if( ((fileObj.size - start) < partSize) && ((fileObj.size - start) !== 0)  ){
                     //this is the last part
-                    pauseButton.style.visibility = 'hidden';
+                  //  pauseButton.style.visibility = 'hidden';
                     endIndx = fileObj.size
                     filePart = fileObj.slice(start, endIndx)
         
                     //uploadDoneTextUpdate
-                    uploadDoneText.innerText = " (" + fileObj.size;
+                   // uploadDoneText.innerText = " (" + fileObj.size;
         
                     console.log("sending last part")
                     let result2 = await this.sendPart(filePart, url, uploadId);
@@ -234,15 +304,15 @@ class Upload{
         
                     // hide progress text 
                     var progressText = document.getElementById("progressText");
-                    progressText.style.display = 'none';
+                  //  progressText.style.display = 'none';
         
                     //this is temporary
                     const uploadCompletionResult = await this.sendUploadCompleteConfirmation(uploadId);
                         if(uploadCompletionResult){
                             console.log("###### Upload Completion Successfull ######");
-                            this.showUploadCompleteMessage();
-                            this.fileInputReset();
-                            document.getElementById('submitButton').disabled = false;
+                        //    this.showUploadCompleteMessage();
+                         //   this.fileInputReset();
+                         //   document.getElementById('submitButton').disabled = false;
         
                         }else{
                             console.log("##### Upload Completetion Failed #####");
@@ -251,7 +321,7 @@ class Upload{
                 }else {
                 // this is rare but if file size is perfectly divisible by partSize, then we will probably be here....I think?
                     this.isUploadCompleted = true;
-                    pauseButton.style.visibility = 'hidden';
+                   // pauseButton.style.visibility = 'hidden';
                     return true;
                 }   
                 start += filePart.size;
@@ -332,12 +402,9 @@ class Upload{
             this.pauseUploadFlag = false;
             this.resumeState.startIndex = 0;
         }
-
-        
      removeDomElement(elem, inSeconds){
         setTimeout(()=> elem.remove(), inSeconds);
     }
-
     fileInputReset(){
         document.getElementById("file").value = "";
     }

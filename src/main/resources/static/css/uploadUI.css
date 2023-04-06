@@ -1,0 +1,46 @@
+
+#onGoingUploadsContainer{
+    border: 5px solid black;
+    overflow:auto;
+    min-height: 4em;
+    padding: 1em;
+    /* max-height: 15em; */
+    max-width: 70%;
+    margin: 0 auto;
+    border-radius: 10px;
+    display: flex;
+    flex-direction: column;
+}
+
+#onGoingUploadsContainer p {
+    text-align: center;
+}
+
+div[uploadInstance]{
+    margin: 4px;
+    border: 2px solid black;
+    padding: 1em;
+}
+
+
+/* scroll bar style */
+
+/* width */
+::-webkit-scrollbar {
+    width: 10px;
+  }
+
+  /* Track */
+  ::-webkit-scrollbar-track {
+    background: #f1f1f1;
+  }
+
+  /* Handle */
+  ::-webkit-scrollbar-thumb {
+    background: #888;
+  }
+
+  /* Handle on hover */
+  ::-webkit-scrollbar-thumb:hover {
+    background: #555;
+  }
