@@ -61,7 +61,14 @@ class Upload{
             // pause upload handler is placed in uploadSequence because 
             // that's where we are sure if upload was successfully paused.
             this.pauseUploadFlag = true;
+            const uploadPausedHandler = this.handlersContainer.uploadPausedHandler;
+            if(uploadPausedHandler === undefined){
+                console.log("No handler for upload Resume Event");
+            }
+            else{
+                uploadPausedHandler();
         }
+    }
     }
 
      async startUpload(){

@@ -15,10 +15,10 @@ var numOfUploads = 0;
 
 var uploadInstance;
 
-var pauseButtonEventListener = function (){
-        //temp
-        uploadInstance.pauseUpload();
-}
+// var pauseButtonEventListener = function (){
+//         //temp
+//         uploadInstance.pauseUpload();
+// }
 
 function addUploadProgressListener(handlersObj){
     const func = (howMuchUploaded) =>{
@@ -51,7 +51,7 @@ function addUploadResumeHandler(handlersObj){
             // const uploadInstance = document.querySelector(querySelectorString);
             const pauseButtonId=  `uploadPauseButton${uploadInstanceId}`;
             const pauseButton = document.getElementById(pauseButtonId);
-            pauseResumeButton.innerText = "Pause";
+            pauseButton.innerText = "PauseUpload";
         };
     handlersObj.uploadResumeHandler = func;
 }
@@ -112,6 +112,8 @@ function addUploadInstanceToOnGoingUploadsContainer(uploadInstanceId, fileObj){
     <button id = "uploadPauseButton${uploadInstanceId}">Pause Upload</button>\n\
     </p>\n\
 </div>`;
+ //
+
     onGoingUploadsContainer.innerHTML = onGoingUploadsContainer.innerHTML + uploadInstanceHtml;
     const querySelectorString=  `[uploadPauseButton = "${uploadInstanceId}"]`;
     const pauseButtonId=  `uploadPauseButton${uploadInstanceId}`;
@@ -120,9 +122,21 @@ function addUploadInstanceToOnGoingUploadsContainer(uploadInstanceId, fileObj){
     const uploadInstanceAttachedToButton = onGoingUploadInstances.find((uploadInstance) =>{
         return  uploadInstance.handlersContainer.uploadInstanceId === uploadInstanceId;
  });
-    const pauseButtonEventListener = () =>{uploadInstanceAttachedToButton.pauseUpload()};
+    const pauseButtonEventListener = () =>{
+        console.log("Pause event listener added and called");
+        uploadInstanceAttachedToButton.pauseUpload();
+    };
     pauseButton.addEventListener('click', pauseButtonEventListener);
 }
+
+// function pauseEventHandlder(e){
+//     e.target.getAttribute("id")
+//     const uploadInstanceAttachedToButton = onGoingUploadInstances.find((uploadInstance) =>{
+//         return  uploadInstance.handlersContainer.uploadInstanceId === uploadInstanceId;
+//  });
+
+//     const pauseButtonEventListener = () =>{uploadInstanceAttachedToButton.pauseUpload()};
+// }
 
 function removeUploadInstanceToOnGoingUploadsContainer(uploadInstanceId){
     const querySelectorString=  `[uploadInstance = "${uploadInstanceId}"]`;
@@ -130,7 +144,7 @@ function removeUploadInstanceToOnGoingUploadsContainer(uploadInstanceId){
 
     uploadInstanceElem.remove();
 }
-document.getElementById("pauseResumeButton").addEventListener("click", pauseButtonEventListener);
+//document.getElementById("pauseResumeButton").addEventListener("click", pauseButtonEventListener);
 
 var submitButtonEventListener = () => { 
     
