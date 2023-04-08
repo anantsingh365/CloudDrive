@@ -1,12 +1,8 @@
 //@ts-check
 import { Upload } from "./UploadLogic.js";
 
-const defaultPartSize = 5 * 1024 * 1024;
 var fileObj;
-var uploadCompleteDoneMessage;
 const resumeState = {};
-var pauseUploadFlag = false;
-var uploadID;
 const uploadfileLink = "/user/uploadFile";
 const uploadIdLink = "/user/uploadId";
 var onGoingUploadInstances = [];
@@ -78,13 +74,10 @@ function addUploadCompleteConfirmationSuccessHandler(handlersObj){
     const func = () => {
         // before removing the upload Instance from container show successful message for some time
         const uploadInstanceId = handlersObj.uploadInstanceId;
-
-        const totalFileSizeProgressText = " ( " + fileObj.size + " bytes )";
-        const totalUploadSizeText = document.getElementById('totalUploadSizeText');
-        totalUploadSizeText.innerText = "";
+        // const totalUploadSizeText = document.getElementById('totalUploadSizeText');
+        // totalUploadSizeText.innerText = "";
       //  totalFileSizeProgressText.innerText = "Upload Complete";
-        setTimeout(()=>{removeUploadInstanceToOnGoingUploadsContainer(uploadInstanceId);}, 3000);
-        
+        setTimeout(()=>{removeUploadInstanceToOnGoingUploadsContainer(uploadInstanceId);}, 3000);  
     };
     handlersObj.uploadCompleteConfirmationSuccessHandler = func;
 }
@@ -114,7 +107,8 @@ function addUploadInstanceToOnGoingUploadsContainer(uploadInstanceId, fileObj){
 </div>`;
  //
 
-    onGoingUploadsContainer.innerHTML = onGoingUploadsContainer.innerHTML + uploadInstanceHtml;
+    onGoingUploadsContainer.insertAdjacentHTML("beforeend", uploadInstanceHtml);
+   // onGoingUploadsContainer.innerHTML = onGoingUploadsContainer.innerHTML + uploadInstanceHtml;
     const querySelectorString=  `[uploadPauseButton = "${uploadInstanceId}"]`;
     const pauseButtonId=  `uploadPauseButton${uploadInstanceId}`;
     const pauseButton = document.getElementById(pauseButtonId);
