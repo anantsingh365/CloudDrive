@@ -19,6 +19,7 @@ class Upload{
     fetchingUploadIdSuccessHandler;
     fileTransferSuccessHandler;
     uploadCompleteConfirmationSuccessHandler;
+    //uploadProgressListener;
     gettingUploadIdFailedHandler;
     fileTransferFailedHandler;
     uploadCompleteConfirmationFailedHandler;
@@ -282,7 +283,14 @@ class Upload{
                      filePart = fileObj.slice(start, endIndx)
                      console.log("sending a part")
                      let result = await this.sendPart(filePart, url, uploadId)
-        
+                    const uploadProgressListenerHandler = this.handlersContainer.uploadProgressListener;
+
+                    if(uploadProgressListenerHandler === undefined){
+                        console.log("no progress listener associated");
+                    }else{
+                        const howMuchUploaded = endIndx;
+                        uploadProgressListenerHandler(howMuchUploaded);
+                    }
                      //uploadDoneText size 
                     // uploadDoneText.innerText = " (" + endIndx;
                      endIndx += partSize;
@@ -292,7 +300,14 @@ class Upload{
                   //  pauseButton.style.visibility = 'hidden';
                     endIndx = fileObj.size
                     filePart = fileObj.slice(start, endIndx)
-        
+                    const uploadProgressListenerHandler = this.handlersContainer.uploadProgressListener;
+
+                    if(uploadProgressListenerHandler === undefined){
+                        console.log("no progress listener associated");
+                    }else{
+                        const howMuchUploaded = endIndx;
+                        uploadProgressListenerHandler(howMuchUploaded);
+                    }
                     //uploadDoneTextUpdate
                    // uploadDoneText.innerText = " (" + fileObj.size;
         

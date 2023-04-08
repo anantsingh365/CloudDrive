@@ -12,11 +12,21 @@ const uploadIdLink = "/user/uploadId";
 var onGoingUploadInstances = [];
 var numOfUploads = 0;
 
+
 var uploadInstance;
 
 var pauseButtonEventListener = function (){
         //temp
         uploadInstance.pauseUpload();
+}
+
+function addUploadProgressListener(handlersObj){
+    const func = (howMuchUploaded) =>{
+        const uploadDoneForUploadInstanceSelector = "uploadDoneText" + handlersObj.uploadInstanceId;
+        const uploadDoneSpan = document.getElementById(uploadDoneForUploadInstanceSelector);
+        uploadDoneSpan.innerText = "( " + howMuchUploaded + " / ";
+    }
+    handlersObj.uploadProgressListener = func;
 }
 
 function addUploadPausedHandler(handlersObj){
@@ -98,7 +108,7 @@ function addUploadInstanceToOnGoingUploadsContainer(uploadInstanceId, fileObj){
     const onGoingUploadsContainer = document.getElementById('onGoingUploadsContainer');
     const uploadInstanceHtml = `<div uploadInstance = ${uploadInstanceId}>\n\
     <h2>Uploading ${fileObj.name}</h1>\n\
-    <p><span id = "uploadDoneText"> </span><span id = "totalUploadSizeText"> </span>\n\
+    <p><span id = "uploadDoneText${uploadInstanceId}"> </span><span id = "totalUploadSizeText${uploadInstanceId}">${fileObj.size} )</span>\n\
     <button id = "uploadPauseButton${uploadInstanceId}">Pause Upload</button>\n\
     </p>\n\
 </div>`;
@@ -136,7 +146,8 @@ var submitButtonEventListener = () => {
     addUploadCompleteConfirmationSuccessHandler(uploadHandlers)
     addGettingUploadIdFailedHandler(uploadHandlers)
     addFileTransferFailedHandler(uploadHandlers)
-    addUploadCompleteConfirmationFailedHandler(uploadHandlers); 
+    addUploadCompleteConfirmationFailedHandler(uploadHandlers);
+    addUploadProgressListener(uploadHandlers); 
        
     uploadInstance = new Upload(fileObj, uploadfileLink, uploadIdLink, uploadHandlers);
     onGoingUploadInstances.push(uploadInstance);
