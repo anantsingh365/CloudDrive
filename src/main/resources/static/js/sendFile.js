@@ -22,25 +22,27 @@ var pauseButtonEventListener = function (){
 function addUploadPausedHandler(handlersObj){
     //to do 
     const func = () => {
-        const uploadInstanceId = handlersObj.getUploadInstanceId;
+        const uploadInstanceId = handlersObj.uploadInstanceId;
         const querySelectorString=  `[uploadInstance = "${uploadInstanceId}"]`;
         const uploadInstanceElem = document.querySelector(querySelectorString);
-        const pauseResumeButton = uploadInstanceElem.getElementsByTagName('button');
-        pauseResumeButton.innerText("Resume");
+        //   `"uploadPauseButton${uploadInstanceId}"`;
+        const pauseButtonIdString =  "uploadPauseButton" + uploadInstanceId;
+        const pauseResumeButton = document.getElementById(pauseButtonIdString);
+        pauseResumeButton.innerText = "Resume Upload";
     };
     handlersObj.uploadPausedHandler = func;
    // return handlersObj;
 }
 function addUploadResumeHandler(handlersObj){
     //to do
-    const func = () => {
         const func = () => {
-            const uploadInstanceId = handlersObj.getUploadInstanceId;
-            const uploadInstance = document.getElementById(uploadInstanceId);
-            const pauseResumeButton = uploadInstance.getElementsByTagName('button');
-            pauseResumeButton.innerText("Pause");
+            const uploadInstanceId = handlersObj.uploadInstanceId;
+            // const querySelectorString=  `[uploadInstance = "${uploadInstanceId}"]`;
+            // const uploadInstance = document.querySelector(querySelectorString);
+            const pauseButtonId=  `uploadPauseButton${uploadInstanceId}`;
+            const pauseButton = document.getElementById(pauseButtonId);
+            pauseResumeButton.innerText = "Pause";
         };
-    };
     handlersObj.uploadResumeHandler = func;
 }
 function addFetchingUploadIdSuccessHandler(handlersObj){
@@ -97,10 +99,19 @@ function addUploadInstanceToOnGoingUploadsContainer(uploadInstanceId, fileObj){
     const uploadInstanceHtml = `<div uploadInstance = ${uploadInstanceId}>\n\
     <h2>Uploading ${fileObj.name}</h1>\n\
     <p><span id = "uploadDoneText"> </span><span id = "totalUploadSizeText"> </span>\n\
-    <button class = "uploadPauseButton" onclick="pauseHandler(this)">Pause Upload</button>\n\
+    <button id = "uploadPauseButton${uploadInstanceId}">Pause Upload</button>\n\
     </p>\n\
 </div>`;
     onGoingUploadsContainer.innerHTML = onGoingUploadsContainer.innerHTML + uploadInstanceHtml;
+    const querySelectorString=  `[uploadPauseButton = "${uploadInstanceId}"]`;
+    const pauseButtonId=  `uploadPauseButton${uploadInstanceId}`;
+    const pauseButton = document.getElementById(pauseButtonId);
+
+    const uploadInstanceAttachedToButton = onGoingUploadInstances.find((uploadInstance) =>{
+        return  uploadInstance.handlersContainer.uploadInstanceId === uploadInstanceId;
+ });
+    const pauseButtonEventListener = () =>{uploadInstanceAttachedToButton.pauseUpload()};
+    pauseButton.addEventListener('click', pauseButtonEventListener);
 }
 
 function removeUploadInstanceToOnGoingUploadsContainer(uploadInstanceId){

@@ -11,7 +11,6 @@ class Upload{
     isUploadCompleted = false;
     pauseUploadFlag = false;
 
-
     //events handlers associated with various upload events.
     handlersContainer;
 
@@ -38,7 +37,7 @@ class Upload{
 
     pauseUpload(){
         if(this.pauseUploadFlag == true && !this.isUploadCompleted){
-            // this.pauseUploadFlag = false;
+            this.pauseUploadFlag = false;
             // const pauseButton = document.getElementById("pauseResumeButton");
             // pauseButton.innerHTML = "Pause Upload";
 
