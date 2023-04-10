@@ -16,13 +16,10 @@ class Upload{
 
     uploadPausedHandler;
     uploadResumeHandler;
-    fetchingUploadIdSuccessHandler;
-    fileTransferSuccessHandler;
-    uploadCompleteConfirmationSuccessHandler;
-    //uploadProgressListener;
-    gettingUploadIdFailedHandler;
-    fileTransferFailedHandler;
-    uploadCompleteConfirmationFailedHandler;
+    StartingUploadHandler;
+    uploadCompleteHandler;
+    uploadProgressListener;
+    uploadFailedHandler;
 
 
     constructor( fileObj, uploadfileLink, uploadIdLink, handlersContainer){
@@ -41,8 +38,6 @@ class Upload{
             this.pauseUploadFlag = false;
             // const pauseButton = document.getElementById("pauseResumeButton");
             // pauseButton.innerHTML = "Pause Upload";
-
-
             this.startTransferOfFile(true, this.uploadID);
             const uploadResumeHandler = this.handlersContainer.uploadResumeHandler;
             if(uploadResumeHandler === undefined){
@@ -76,9 +71,9 @@ class Upload{
         try{
             const uploadId = await this.getUploadId(this.uploadIdLink, this.fileObj);
             this.uploadID = uploadId;
-            const f = this.handlersContainer.fetchingUploadIdSuccessHandler;
+            const f = this.handlersContainer.StartingUploadHandler;
             if(f ==  undefined){
-                console.log("No handler associated with upload transfer success event...");
+                console.log("No handler associated with starting upload Event...");
             }else{
                 f();
             }
@@ -90,17 +85,17 @@ class Upload{
                     console.log("Transmission successfull of all parts for upload id -" + uploadId);
                     console.log("attempting upload completion.....");
 
-                    const f = this.handlersContainer.fileTransferSuccessHandler;
-                    if(f == undefined){
-                        console.log("No handler associated with upload transfer success event...");
-                    }else{
-                        f();
-                    }
+                    // const f = this.handlersContainer.fileTransferSuccessHandler;
+                    // if(f == undefined){
+                    //     console.log("No handler associated with upload transfer success event...");
+                    // }else{
+                    //     f();
+                    // }
     
                     //3rd step
                     const uploadCompletionResult = await this.sendUploadCompleteConfirmation(uploadId);
                     if(uploadCompletionResult){
-                        const f = this.handlersContainer.uploadCompleteConfirmationSuccessHandler;
+                        const f = this.handlersContainer.uploadCompleteHandler;
                             if(f == undefined){
                                 console.log("No handler associated with upload complete confirmation event...");
                             }else{
@@ -110,34 +105,27 @@ class Upload{
                         console.log("###### Upload Completion Successfull ######");
                         //to do
                         // uploadCompleteHandler();
-                         this.showUploadCompleteMessage();
-                         this.fileInputReset();
-                         document.getElementById('submitButton').disabled = false;
+                        // this.showUploadCompleteMessage();
+                        // this.fileInputReset();
+                        // document.getElementById('submitButton').disabled = false;
     
                     }else{
-                        const f = this.handlersContainer.uploadCompleteConfirmationFailedHandler;
+                        const f = this.handlersContainer.uploadFailedHandler;
                     if(f == undefined){
-                        console.log("No handler associated with upload complete confirmation failed event...");
+                        console.log("No handler associated with upload failed event...");
                     }else{
                         f();
                     }
-                        // to do
-                        // uploadFailedHandler();
-                       
-                        //  this.fileInputReset();
-                        // console.log("##### Upload Completetion Failed #####");
                     }
                    }else{
-                       // false promise resolve means upload was paused
-                       //to do
-                       // uploadPausedHandler();
-                       const f = this.handlersContainer.uploadPausedHandler;
+                       // false promise resolve means upload was paused                        
+                    const f = this.handlersContainer.uploadPausedHandler;
                     if(f == undefined){
                         console.log("No handler associated with upload paused event...");
                     }else{
                         f();
                     }
-                    console.log("Upload Paused")
+                    console.log("Upload Paused");
                    }
             }catch(err){
                 const f = this.handlersContainer.gettingUploadIdFailedHandler;
@@ -162,51 +150,32 @@ class Upload{
         }
     }
 
-     fetchingUploadIdFailedHandler(error){
-        const rejectMessage = error;
-        console.log("Error fetching upload id");
-        switch(rejectMessage){
-            case "Account Upgrade":
-                console.log("Please Upgrade Your Account");
-                const fileInput = document.getElementById('file');
-                const para = document.createElement('span');
-                para.setAttribute('id', 'AccountUpgradeMessage');
-                para.textContent = "Please Upgrade Your Account to Upload More Files";
-                fileInput?.after(para);
+    //  fetchingUploadIdFailedHandler(error){
+    //     const rejectMessage = error;
+    //     console.log("Error fetching upload id");
+    //     switch(rejectMessage){
+    //         case "Account Upgrade":
+    //             console.log("Please Upgrade Your Account");
+    //             const fileInput = document.getElementById('file');
+    //             const para = document.createElement('span');
+    //             para.setAttribute('id', 'AccountUpgradeMessage');
+    //             para.textContent = "Please Upgrade Your Account to Upload More Files";
+    //             fileInput?.after(para);
     
-                //removing success message after 3 seconds
-                const elem = document.getElementById('AccountUpgradeMessage');
-                this.removeDomElement(elem, 3000);
+    //             //removing success message after 3 seconds
+    //             const elem = document.getElementById('AccountUpgradeMessage');
+    //             this.removeDomElement(elem, 3000);
     
-                //re enable submit button
-                document.getElementById('submitButton').disabled = false;
-                break;
+    //             //re enable submit button
+    //             document.getElementById('submitButton').disabled = false;
+    //             break;
     
-            default: 
-                console.log("Unknown Error Occured while getting uploadId");    
-                document.getElementById('submitButton').disabled = false;
-        }
-        return;
-    }
-
-     uploadFailed(error){
-        console.log("Transmission unsuccessful")
-        console.log(error.status)
-        console.log(error.statusText)
-        return false;
-    }
-
-    showUploadCompleteMessage(){
-        const fileInput = document.getElementById('file');
-        const para = document.createElement('span');
-        para.setAttribute('id', 'uploadCompleteMessage');
-        para.textContent = "Upload Complete";
-        fileInput?.after(para);
-    
-        //removing success message after 3 seconds
-        const elem = document.getElementById('uploadCompleteMessage');
-        this.removeDomElement(elem, 3000);
-    }
+    //         default: 
+    //             console.log("Unknown Error Occured while getting uploadId");    
+    //             document.getElementById('submitButton').disabled = false;
+    //     }
+    //     return;
+    // }
 
     async getUploadId(url, file){
         //Fetch upload Id from server
@@ -247,11 +216,6 @@ class Upload{
 
         async sendFileInPartsToUrl(fileObj, partSize, url, uploadId, isResuming){
             //file smaller than default part size, send it directly
-            var totalFileSizeProgressText = " / " + fileObj.size + " bytes)";
-            var totalUploadSizeText = document.getElementById('totalUploadSizeText');
-            totalUploadSizeText.innerText = totalFileSizeProgressText;
-            var uploadDoneText = document.getElementById('uploadDoneText');
-        
             if(fileObj.size < (partSize)){
                 await sendPart(fileObj, url, uploadId)
                 return true;
@@ -277,13 +241,6 @@ class Upload{
                 partSize = this.defaultPartSize;
                 endIndx = start + partSize;
             }
-
-            var pauseButton = document.getElementById("pauseResumeButton");
-          //  pauseButton.style.visibility = 'visible';
-            
-            // show progress text
-            var progressText = document.getElementById("progressText");
-           // progressText.style.display = 'inline';
         
             while(!this.pauseUploadFlag){
                 if ( ((fileObj.size - start) >= partSize) ) {
@@ -298,13 +255,9 @@ class Upload{
                         const howMuchUploaded = endIndx;
                         uploadProgressListenerHandler(howMuchUploaded);
                     }
-                     //uploadDoneText size 
-                    // uploadDoneText.innerText = " (" + endIndx;
                      endIndx += partSize;
         
                 }else if( ((fileObj.size - start) < partSize) && ((fileObj.size - start) !== 0)  ){
-                    //this is the last part
-                  //  pauseButton.style.visibility = 'hidden';
                     endIndx = fileObj.size
                     filePart = fileObj.slice(start, endIndx)
                     const uploadProgressListenerHandler = this.handlersContainer.uploadProgressListener;
@@ -315,26 +268,22 @@ class Upload{
                         const howMuchUploaded = endIndx;
                         uploadProgressListenerHandler(howMuchUploaded);
                     }
-                    //uploadDoneTextUpdate
-                   // uploadDoneText.innerText = " (" + fileObj.size;
         
                     console.log("sending last part")
                     let result2 = await this.sendPart(filePart, url, uploadId);
                     console.log("all parts sent")
                     this.isUploadCompleted = true;
-        
-                    // hide progress text 
-                    var progressText = document.getElementById("progressText");
-                  //  progressText.style.display = 'none';
-        
                     //this is temporary
                     const uploadCompletionResult = await this.sendUploadCompleteConfirmation(uploadId);
                         if(uploadCompletionResult){
                             console.log("###### Upload Completion Successfull ######");
-                        //    this.showUploadCompleteMessage();
-                         //   this.fileInputReset();
-                         //   document.getElementById('submitButton').disabled = false;
-        
+                            const f = this.handlersContainer.uploadCompleteHandler;
+                            if(f == undefined){
+                                console.log("No handler associated with upload complete confirmation event...");
+                            }else{
+                                f();
+                            }
+
                         }else{
                             console.log("##### Upload Completetion Failed #####");
                         }
@@ -418,16 +367,8 @@ class Upload{
             });
         }
 
-        resetUploadState(){
-            this.isUploadCompleted = false;
-            this.pauseUploadFlag = false;
-            this.resumeState.startIndex = 0;
-        }
      removeDomElement(elem, inSeconds){
         setTimeout(()=> elem.remove(), inSeconds);
-    }
-    fileInputReset(){
-        document.getElementById("file").value = "";
     }
 }
 export {Upload};

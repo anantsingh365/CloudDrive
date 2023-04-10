@@ -11,11 +11,6 @@ var numOfUploads = 0;
 
 var uploadInstance;
 
-// var pauseButtonEventListener = function (){
-//         //temp
-//         uploadInstance.pauseUpload();
-// }
-
 function addUploadProgressListener(handlersObj){
     const func = (howMuchUploaded) =>{
         const uploadDoneForUploadInstanceSelector = "uploadDoneText" + handlersObj.uploadInstanceId;
@@ -51,24 +46,17 @@ function addUploadResumeHandler(handlersObj){
         };
     handlersObj.uploadResumeHandler = func;
 }
-function addFetchingUploadIdSuccessHandler(handlersObj){
+function addUploadStartingHandler(handlersObj){
     //to do
     const func = () => {
-        //adding uploadInstance to uploadsContainer only when upload Id is fetched successfully
-        // because that means upload will be inititiated
+        // this will be called when upload is about to start
         const uploadInstanceId = handlersObj.uploadInstanceId;
         const fileObj = handlersObj.fileObj;
         addUploadInstanceToOnGoingUploadsContainer(uploadInstanceId, fileObj);
     };
-    handlersObj.fetchingUploadIdSuccessHandler = func;
+    handlersObj.StartingUploadHandler = func;
 }
-function addFileTransferSuccessHandler(handlersObj){
-    //to do
-    const func = () => {
-        console.log("transfer complete handler placeholder");
-    };
-    handlersObj.fileTransferSuccessHandler = func;
-}
+
 function addUploadCompleteConfirmationSuccessHandler(handlersObj){
     //to do
     const func = () => {
@@ -79,22 +67,7 @@ function addUploadCompleteConfirmationSuccessHandler(handlersObj){
       //  totalFileSizeProgressText.innerText = "Upload Complete";
         setTimeout(()=>{removeUploadInstanceToOnGoingUploadsContainer(uploadInstanceId);}, 3000);  
     };
-    handlersObj.uploadCompleteConfirmationSuccessHandler = func;
-}
-function addGettingUploadIdFailedHandler(handlersObj){
-    //to do
-    const func = () => {};
-    handlersObj.gettingUploadIdFailedHandler = func;
-}
-function addFileTransferFailedHandler(handlersObj){
-    //to do
-    const func = () => {};
-    handlersObj.fileTransferFailedHandler = func;
-}
-function addUploadCompleteConfirmationFailedHandler(handlersObj){
-    //to do
-    const func = () => {};
-    handlersObj.uploadCompleteConfirmationFailedHandler = func;
+    handlersObj.uploadCompleteHandler = func;
 }
 
 function addUploadInstanceToOnGoingUploadsContainer(uploadInstanceId, fileObj){
@@ -105,7 +78,6 @@ function addUploadInstanceToOnGoingUploadsContainer(uploadInstanceId, fileObj){
     <button id = "uploadPauseButton${uploadInstanceId}">Pause Upload</button>\n\
     </p>\n\
 </div>`;
- //
 
     onGoingUploadsContainer.insertAdjacentHTML("beforeend", uploadInstanceHtml);
    // onGoingUploadsContainer.innerHTML = onGoingUploadsContainer.innerHTML + uploadInstanceHtml;
@@ -117,20 +89,10 @@ function addUploadInstanceToOnGoingUploadsContainer(uploadInstanceId, fileObj){
         return  uploadInstance.handlersContainer.uploadInstanceId === uploadInstanceId;
  });
     const pauseButtonEventListener = () =>{
-        console.log("Pause event listener added and called");
         uploadInstanceAttachedToButton.pauseUpload();
     };
     pauseButton.addEventListener('click', pauseButtonEventListener);
 }
-
-// function pauseEventHandlder(e){
-//     e.target.getAttribute("id")
-//     const uploadInstanceAttachedToButton = onGoingUploadInstances.find((uploadInstance) =>{
-//         return  uploadInstance.handlersContainer.uploadInstanceId === uploadInstanceId;
-//  });
-
-//     const pauseButtonEventListener = () =>{uploadInstanceAttachedToButton.pauseUpload()};
-// }
 
 function removeUploadInstanceToOnGoingUploadsContainer(uploadInstanceId){
     const querySelectorString=  `[uploadInstance = "${uploadInstanceId}"]`;
@@ -149,12 +111,8 @@ var submitButtonEventListener = () => {
     //adding various handlers
     addUploadPausedHandler(uploadHandlers)
     addUploadResumeHandler(uploadHandlers)
-    addFetchingUploadIdSuccessHandler(uploadHandlers)
-    addFileTransferSuccessHandler(uploadHandlers)
+    addUploadStartingHandler(uploadHandlers)
     addUploadCompleteConfirmationSuccessHandler(uploadHandlers)
-    addGettingUploadIdFailedHandler(uploadHandlers)
-    addFileTransferFailedHandler(uploadHandlers)
-    addUploadCompleteConfirmationFailedHandler(uploadHandlers);
     addUploadProgressListener(uploadHandlers); 
        
     uploadInstance = new Upload(fileObj, uploadfileLink, uploadIdLink, uploadHandlers);
@@ -163,18 +121,6 @@ var submitButtonEventListener = () => {
     uploadInstance.startUpload();
     ++numOfUploads;
 }
-
-// const pauseButtonEventListener = (e) => {
-
-//     // to do
-//     const parentElem = e.parentNode;
-//     const idOfparentOfParentElem = parentElem.parentNode;
-//     const uploadInstanceId = idOfparentOfParentElem.getAttribute('uploadInstance');
-//     const uploadToPause = onGoingUploadInstances.filter((x) => {x.uploadInstanceId === uploadInstanceId});
-//    // uploadToPause.
-// }
-
-
     document.getElementById('submitButton').addEventListener("click", submitButtonEventListener);
 
 document.getElementById('file').addEventListener('change', async (event) => {
