@@ -62,9 +62,16 @@ function addUploadCompleteConfirmationSuccessHandler(handlersObj){
     const func = () => {
         // before removing the upload Instance from container show successful message for some time
         const uploadInstanceId = handlersObj.uploadInstanceId;
-        // const totalUploadSizeText = document.getElementById('totalUploadSizeText');
-        // totalUploadSizeText.innerText = "";
-      //  totalFileSizeProgressText.innerText = "Upload Complete";
+
+         const totalUploadSizeText = document.getElementById('totalUploadSizeText'+uploadInstanceId);
+         const uploadPauseResumeButton = document.getElementById('uploadPauseButton'+uploadInstanceId);
+         totalUploadSizeText?.remove();
+         uploadPauseResumeButton?.remove();
+
+         const uploadDoneText = document.getElementById('uploadDoneText'+uploadInstanceId);
+        uploadDoneText.innerText = "Upload Complete";
+       
+
         setTimeout(()=>{removeUploadInstanceToOnGoingUploadsContainer(uploadInstanceId);}, 3000);  
     };
     handlersObj.uploadCompleteHandler = func;

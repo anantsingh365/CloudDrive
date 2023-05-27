@@ -61,9 +61,8 @@ class Upload{
                 console.log("No handler for upload Resume Event");
             }
             else{
-                uploadPausedHandler();
-        }
-    }
+                uploadPausedHandler(); 
+        }}
     }
 
      async startUpload(){
@@ -84,13 +83,6 @@ class Upload{
                 if(wasCompleted){
                     console.log("Transmission successfull of all parts for upload id -" + uploadId);
                     console.log("attempting upload completion.....");
-
-                    // const f = this.handlersContainer.fileTransferSuccessHandler;
-                    // if(f == undefined){
-                    //     console.log("No handler associated with upload transfer success event...");
-                    // }else{
-                    //     f();
-                    // }
     
                     //3rd step
                     const uploadCompletionResult = await this.sendUploadCompleteConfirmation(uploadId);

@@ -53,11 +53,11 @@ public class S3Service extends StorageProvider {
 
     @Override
     public boolean uploadPart(UploadPartRequest req){
-        if(super.validateUploadRequestTier()){
+       // if(super.validateUploadRequestTier()){
             var entry = (S3UploadEntry) super.getExistingUserEntry(req.getUploadId());
             return entry != null && s3Operations.uploadFile(entry, req);
-        }
-        return false;
+      //  }
+       // return false;
     }
 
     @Override
