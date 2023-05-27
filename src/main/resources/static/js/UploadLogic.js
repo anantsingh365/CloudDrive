@@ -99,7 +99,7 @@ class Upload{
                         // uploadCompleteHandler();
                         // this.showUploadCompleteMessage();
                         // this.fileInputReset();
-                        // document.getElementById('submitButton').disabled = false;
+                        // document.getElementById('submitButton').disabled = false;transfer failed
     
                     }else{
                         const f = this.handlersContainer.uploadFailedHandler;

@@ -8,7 +8,6 @@ const uploadIdLink = "/user/uploadId";
 var onGoingUploadInstances = [];
 var numOfUploads = 0;
 
-
 var uploadInstance;
 
 function addUploadProgressListener(handlersObj){
@@ -65,8 +64,11 @@ function addUploadCompleteConfirmationSuccessHandler(handlersObj){
 
          const totalUploadSizeText = document.getElementById('totalUploadSizeText'+uploadInstanceId);
          const uploadPauseResumeButton = document.getElementById('uploadPauseButton'+uploadInstanceId);
-         totalUploadSizeText?.remove();
-         uploadPauseResumeButton?.remove();
+         totalUploadSizeText.remove();
+         uploadPauseResumeButton.remove();
+
+         --numOfUploads;
+        // removeUploadsContainerIfUploadsZero();
 
          const uploadDoneText = document.getElementById('uploadDoneText'+uploadInstanceId);
         uploadDoneText.innerText = "Upload Complete";
@@ -75,6 +77,15 @@ function addUploadCompleteConfirmationSuccessHandler(handlersObj){
         setTimeout(()=>{removeUploadInstanceToOnGoingUploadsContainer(uploadInstanceId);}, 3000);  
     };
     handlersObj.uploadCompleteHandler = func;
+}
+
+function removeUploadsContainerIfUploadsZero(){
+    if(numOfUploads === 0){
+        setTimeout(()=>{
+            const onGoingUploadsContainer = document.getElementById('onGoingUploadsContainer');
+            onGoingUploadsContainer?.remove();
+        },4500);
+    }
 }
 
 function addUploadInstanceToOnGoingUploadsContainer(uploadInstanceId, fileObj){
