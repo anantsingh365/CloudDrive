@@ -8,6 +8,7 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.NoOpPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
@@ -21,7 +22,8 @@ public class Config {
 
     @Bean
     public static PasswordEncoder passwordEncoder(){
-        return new BCryptPasswordEncoder();
+        return NoOpPasswordEncoder.getInstance();
+      //  return new BCryptPasswordEncoder();
     }
 
     @Bean
@@ -30,11 +32,11 @@ public class Config {
         http.cors().disable();
         http
                 .authorizeHttpRequests((authorize) ->
-                        authorize.requestMatchers("/register/**").permitAll()
-                                .requestMatchers("/register").permitAll()
-                                .requestMatchers("/user/**").hasRole("USER")
+                        authorize.requestMatchers("/user/**").hasRole("USER")
                                 .requestMatchers("/video/**").hasRole("USER")
                                 .requestMatchers("/subscriptions/**").hasRole("USER")
+                                .requestMatchers("/register").permitAll()
+                                .requestMatchers("/register/**").permitAll()
                                 .requestMatchers("/js/**").permitAll()
                                 .requestMatchers("/css/**").permitAll()
                 ).formLogin(
@@ -55,7 +57,8 @@ public class Config {
     @Autowired
     public void configureGlobal(AuthenticationManagerBuilder auth) throws Exception {
         auth
-                .userDetailsService(userDetailsService)
-                .passwordEncoder(passwordEncoder());
+                .userDetailsService(userDetailsService);
+                //.passwordEncoder(passwordEncoder());
+        ;
     }
 }
