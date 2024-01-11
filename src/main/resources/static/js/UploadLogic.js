@@ -142,33 +142,6 @@ class Upload{
         }
     }
 
-    //  fetchingUploadIdFailedHandler(error){
-    //     const rejectMessage = error;
-    //     console.log("Error fetching upload id");
-    //     switch(rejectMessage){
-    //         case "Account Upgrade":
-    //             console.log("Please Upgrade Your Account");
-    //             const fileInput = document.getElementById('file');
-    //             const para = document.createElement('span');
-    //             para.setAttribute('id', 'AccountUpgradeMessage');
-    //             para.textContent = "Please Upgrade Your Account to Upload More Files";
-    //             fileInput?.after(para);
-    
-    //             //removing success message after 3 seconds
-    //             const elem = document.getElementById('AccountUpgradeMessage');
-    //             this.removeDomElement(elem, 3000);
-    
-    //             //re enable submit button
-    //             document.getElementById('submitButton').disabled = false;
-    //             break;
-    
-    //         default: 
-    //             console.log("Unknown Error Occured while getting uploadId");    
-    //             document.getElementById('submitButton').disabled = false;
-    //     }
-    //     return;
-    // }
-
     async getUploadId(url, file){
         //Fetch upload Id from server
         //return uploadID
@@ -236,6 +209,7 @@ class Upload{
         
             while(!this.pauseUploadFlag){
                 if ( ((fileObj.size - start) >= partSize) ) {
+                     //slice out a part
                      filePart = fileObj.slice(start, endIndx)
                      console.log("sending a part")
                      let result = await this.sendPart(filePart, url, uploadId)
@@ -330,7 +304,7 @@ class Upload{
             });
         }
 
-        async  sendUploadCompleteConfirmation(uploadId){
+        async sendUploadCompleteConfirmation(uploadId){
             return new Promise((resolve, reject) => {
                 let xhr = new XMLHttpRequest();
             xhr.open("POST", "/user/CompleteUpload", true);

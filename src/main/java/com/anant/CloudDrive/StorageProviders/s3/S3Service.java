@@ -2,7 +2,7 @@ package com.anant.CloudDrive.StorageProviders.s3;
 
 import com.amazonaws.services.s3.model.S3ObjectInputStream;
 import com.anant.CloudDrive.StorageProviders.LocalStorageVideoStreamService;
-import com.anant.CloudDrive.StorageProviders.StorageProvider;
+import com.anant.CloudDrive.StorageProviders.StorageService;
 import com.anant.CloudDrive.StorageProviders.UserFileMetaData;
 import com.anant.CloudDrive.Utils.CommonUtils;
 
@@ -26,7 +26,7 @@ import static com.anant.CloudDrive.Utils.CommonUtils.getUserData;
 
 @Service
 @Profile("s3")
-public class S3Service extends StorageProvider {
+public class S3Service extends StorageService {
 
     private final Logger logger;
     private final String bucketName;

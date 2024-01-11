@@ -10,7 +10,6 @@ import java.util.concurrent.ConcurrentHashMap;
 
 @Component
 public class UploadSessionsHolder {
-
      private final ApplicationContext context;
      private final Logger logger;
 
@@ -43,11 +42,11 @@ public class UploadSessionsHolder {
         return uploadSession;
     }
 
-    public void removeUploadSession(String sessionId){
-        sessions.remove(sessionId);
-    }
+//    public void removeUploadSession(String sessionId){
+//        sessions.remove(sessionId);
+//    }
 
-    public Enumeration<String> getActiveSessionIds(){
-        return sessions.keys();
-    }
+//    public Enumeration<String> getActiveSessionIds(){
+//        return sessions.keys();
+//    }
 }

@@ -19,6 +19,8 @@ import java.util.concurrent.ConcurrentHashMap;
 @Scope(value = ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 public class UploadSession{
 
+    //represents multiple upload entries from a session
+     private final ConcurrentHashMap<String, UploadEntry> uploadEntries= new ConcurrentHashMap<>();
      private  final ApplicationContext context;
      private final Logger logger;
 
@@ -27,31 +29,23 @@ public class UploadSession{
         this.logger = logger;
     }
 
-    //represents multiple upload entries from a session
-    private final ConcurrentHashMap<String, UploadEntry> uploadEntries= new ConcurrentHashMap<>();
-
-    public String registerUploadId(UploadIdRequest uploadIdRequest){
+    public String registerUploadId(String userName, UploadIdRequest uploadIdRequest){
         String freshUploadId = UUID.randomUUID().toString();
         if(uploadIdAlreadyExists(freshUploadId)){
             throw new RuntimeException("Couldn't generate a unique uploadId");
         }
         //for every ask same entry will be used.
-        createEntry(freshUploadId).setUploadKeyName(getLoggedInUserName(), uploadIdRequest);
-        logger.info("Created Upload Entry for User - {}, Upload Id - {}", getLoggedInUserName(), freshUploadId);
+        createEntry(freshUploadId).setUploadKeyName(userName, uploadIdRequest);
+        logger.info("Created Upload Entry for User - {}, Upload Id - {}", userName, freshUploadId);
         return freshUploadId;
      }
 
      public UploadEntry getEntry(String uploadId){
-         return uploadEntries.get(uploadId);
-     }
-
-     private String getLoggedInUserName(){
-        return SecurityContextHolder.getContext().getAuthentication().getName();
+        return uploadEntries.get(uploadId);
      }
 
      private UploadEntry createEntry(String uploadId){
         var uploadEntry = context.getBean(UploadEntry.class);
-        //context.getBean(UploadEntry.class);
         this.uploadEntries.put(uploadId, uploadEntry);
         return uploadEntry;
      }

@@ -23,12 +23,12 @@ public class SessionListener implements HttpSessionListener {
     @Override
     public void sessionDestroyed(HttpSessionEvent se) {
         String sessionId = se.getSession().getId();
-        uploadSessionsHolder.removeUploadSession(sessionId);
+        //uploadSessionsHolder.removeUploadSession(sessionId);
         System.out.println("Upload Session - " + sessionId + " removed");
         System.out.println("Active Upload Sessions");
-        Iterator<String> iter = uploadSessionsHolder.getActiveSessionIds().asIterator();
-        while(iter.hasNext()){
-            System.out.println(iter.next());
-        }
+//        Iterator<String> iter = uploadSessionsHolder.getActiveSessionIds().asIterator();
+//        while(iter.hasNext()){
+//            System.out.println(iter.next());
+//        }
     }
 }

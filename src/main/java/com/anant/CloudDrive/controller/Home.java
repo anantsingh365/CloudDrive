@@ -2,7 +2,7 @@ package com.anant.CloudDrive.controller;
 
 import com.anant.CloudDrive.CloudDriveApplication;
 import com.anant.CloudDrive.StorageProviders.requests.*;
-import com.anant.CloudDrive.StorageProviders.StorageProvider;
+import com.anant.CloudDrive.StorageProviders.StorageService;
 import com.anant.CloudDrive.StorageProviders.UserFileMetaData;
 
 import static com.anant.CloudDrive.Constants.CONTENT_TYPE;
@@ -10,7 +10,6 @@ import static com.anant.CloudDrive.Utils.CommonUtils.*;
 
 import jakarta.servlet.ServletContext;
 import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 
 import org.slf4j.Logger;
@@ -26,12 +25,9 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.*;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 
 @Controller
@@ -40,7 +36,7 @@ public class Home {
 
     @Autowired private Logger logger;
     @Autowired
-    StorageProvider storageProvider;
+    StorageService storageService;
 
     @GetMapping("/user/home")
     public String UserHome(@Autowired @Qualifier("randomString") CloudDriveApplication.requestScopeTest requestScopeTest,
@@ -62,7 +58,7 @@ public class Home {
     public ResponseEntity<String> uploadId(@RequestBody Map<String, String> uploadIdPayLoad){
 
         var uploadIdRequest = new UploadIdRequest(uploadIdPayLoad.get("filename"), uploadIdPayLoad.get("contenttype"));
-        return uploadIdRequest.isRequestValid() ? returnOkResponse(storageProvider.getUploadId(uploadIdRequest)) : returnBadResponse("filname or content type missing");
+        return uploadIdRequest.isRequestValid() ? returnOkResponse(storageService.getUploadId(uploadIdRequest)) : returnBadResponse("filname or content type missing");
     }
 
     @PostMapping("/user/uploadFile")
@@ -75,7 +71,7 @@ public class Home {
             return  returnBadResponse("required Headers missing");
         }
         var uploadPartRequest = new UploadPartRequest(ins, uploadId, Long.parseLong(contentLength));
-        return  storageProvider.uploadPart(uploadPartRequest) ? returnOkResponse("dataReceived") : returnInternalServerError();
+        return  storageService.uploadPart(uploadPartRequest) ? returnOkResponse("dataReceived") : returnInternalServerError();
     }
 
     @GetMapping("/user/download{id}")
@@ -92,7 +88,7 @@ public class Home {
            // Resource res = new ByteArrayResource("no file to download".getBytes(StandardCharsets.UTF_8));
             return ResponseEntity.badRequest().body(null);
         }
-        Resource res = storageProvider.download(fileToDownload);
+        Resource res = storageService.download(fileToDownload);
         return ResponseEntity.ok()
                 .header(CONTENT_TYPE, fileContentType)
                 .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + fileToDownload.substring(fileToDownload.indexOf("/")) + "\"")
@@ -106,7 +102,7 @@ public class Home {
         //String id = renameRequestPayLoad.get("id");
        // String newFileName = renameRequestPayLoad.get("newFileName");
         String originalFileName = resolveFileNameFromId(id, model);
-        boolean result = storageProvider.renameFile(originalFileName, newFileName);
+        boolean result = storageService.renameFile(originalFileName, newFileName);
 
         return result ? returnOkResponse("renameDone") : returnBadResponse("rename failed");
     }
@@ -121,7 +117,7 @@ public class Home {
         if(fileToStream == null){
             return ResponseEntity.badRequest().body(null);
         }
-        return storageProvider.getFileBytes(fileToStream,httpRangeList, contentType);
+        return storageService.getFileBytes(fileToStream,httpRangeList, contentType);
     }
 
     @GetMapping("/user/delete{id}")
@@ -130,7 +126,7 @@ public class Home {
         if(fileToDelete == null){
             return returnBadResponse("there was no file with that id");
         }
-        boolean result =  storageProvider.deleteUserFile(fileToDelete);
+        boolean result =  storageService.deleteUserFile(fileToDelete);
         return result ? returnOkResponse("file deleted") : returnInternalServerError();
     }
 
@@ -141,7 +137,7 @@ public class Home {
             logger.info("complete upload failed for user " + getUserData(signedInUser.GET_USERNAME) + ", upload id missing");
             return returnBadResponse("UploadId Missing");
         }
-        boolean completeUploadResult = storageProvider.completeUpload(uploadId);
+        boolean completeUploadResult = storageService.completeUpload(uploadId);
 
         if(completeUploadResult){
             logger.info("Upload Complete for User " + getUserData(signedInUser.GET_USERNAME) +" upload id " + uploadId);
@@ -163,9 +159,9 @@ public class Home {
     }
 
     private void addHomePageAttributes(Model model){
-        model.addAttribute("fileList", userFileListingMap(storageProvider.getUserObjectsMetaData()));
+        model.addAttribute("fileList", userFileListingMap(storageService.getUserObjectsMetaData()));
         model.addAttribute("loggedInUser", SecurityContextHolder.getContext().getAuthentication().getName());
-        model.addAttribute("userQuota", storageProvider.getStorageUsedByUser() / (1024 * 1024));
+        model.addAttribute("userQuota", storageService.getStorageUsedByUser() / (1024 * 1024));
     }
 
     private Map<String, UserFileMetaData> userFileListingMap(List<UserFileMetaData> fileList) {

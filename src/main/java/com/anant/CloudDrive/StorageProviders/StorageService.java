@@ -14,12 +14,12 @@ import java.util.List;
 
 import static com.anant.CloudDrive.Utils.CommonUtils.getUserData;
 
-public abstract class StorageProvider {
+public abstract class StorageService {
 
      private final UploadSessionsHolder uploadSessionsHolder;
      private final SubscriptionService subscriptionService;
 
-     public  StorageProvider(UploadSessionsHolder uploadSessionsHolder, SubscriptionService subscriptionService) {
+     public StorageService(UploadSessionsHolder uploadSessionsHolder, SubscriptionService subscriptionService) {
           this.uploadSessionsHolder = uploadSessionsHolder;
           this.subscriptionService = subscriptionService;
      }
@@ -41,9 +41,9 @@ public abstract class StorageProvider {
 
      public String getUploadId(UploadIdRequest uploadIdRequest){
           if(validateUploadRequestTier()){
-               return this.getUploadSession().registerUploadId(uploadIdRequest);
+               return this.getUploadSession().registerUploadId(CommonUtils.getUserData(CommonUtils.signedInUser.GET_USERNAME), uploadIdRequest);
           }
-          return StorageProvider.AccountStates.ACCOUNT_UPGRADE.getValue();
+          return StorageService.AccountStates.ACCOUNT_UPGRADE.getValue();
      }
 
      public UploadEntry getExistingUserEntry(String uploadId){
@@ -59,7 +59,6 @@ public abstract class StorageProvider {
           String storageTier = subscriptionService.getTier(getUserData(CommonUtils.signedInUser.GET_USERNAME));
           int storageTierInMB = Integer.parseInt(storageTier);
 
-          // to get MB from bytes divide by 1024*1024 i.e, (1048576)
           long storageQuotaInMB = (int) getStorageUsedByUser()/1048576;
           if(storageQuotaInMB < storageTierInMB){
                System.out.println("User Upload has valid tier");
