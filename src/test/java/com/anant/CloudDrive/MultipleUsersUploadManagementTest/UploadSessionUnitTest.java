@@ -23,14 +23,12 @@ public class UploadSessionUnitTest {
             mock(UploadEntry.class)
             , mock(UploadEntry.class));
 
-    public Logger logger;
-    ApplicationContext context;
     UploadSession session;
 
     @BeforeEach
     public void setup() {
-        context = mock(ApplicationContext.class);
-        logger = mock(Logger.class);
+        ApplicationContext context = mock(ApplicationContext.class);
+        Logger logger = mock(Logger.class);
         session = new UploadSession(context, logger);
         when(context.getBean(UploadEntry.class)).thenReturn(UploadEntriesMocks.get(0), UploadEntriesMocks.get(1), UploadEntriesMocks.get(2));
     }
