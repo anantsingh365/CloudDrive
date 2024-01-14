@@ -1,6 +1,6 @@
 package com.anant.CloudDrive.StorageManager;
 
-import com.anant.CloudDrive.StorageManager.Uploads.UploadEntry;
+import com.anant.CloudDrive.StorageManager.Uploads.UploadRecord;
 import com.anant.CloudDrive.StorageManager.requests.UploadIdRequest;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,7 +19,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public class UploadSession{
 
     //represents multiple upload entries from a session
-     private final ConcurrentHashMap<String, UploadEntry> uploadEntries= new ConcurrentHashMap<>();
+     private final ConcurrentHashMap<String, UploadRecord> uploadRecords = new ConcurrentHashMap<>();
      private  final ApplicationContext context;
      private final Logger logger;
 
@@ -33,23 +33,23 @@ public class UploadSession{
         if(uploadIdAlreadyExists(freshUploadId)){
             throw new RuntimeException("Couldn't generate a unique uploadId");
         }
-        //for every ask same entry will be used.
-        createEntry(freshUploadId).setUploadKeyName(userName, uploadIdRequest);
-        logger.info("Created Upload Entry for User - {}, Upload Id - {}", userName, freshUploadId);
+        var uploadRecord = createRecord(freshUploadId);
+        uploadRecord.initUpload(userName, uploadIdRequest);
+        logger.info("Created Upload Record for User - {}, Upload Id - {}", userName, freshUploadId);
         return freshUploadId;
      }
 
-     public UploadEntry getPart(String uploadId){
-        return uploadEntries.get(uploadId);
+     public UploadRecord getRecord(String uploadId){
+        return uploadRecords.get(uploadId);
      }
 
-     private UploadEntry createEntry(String uploadId){
-        var uploadEntry = context.getBean(UploadEntry.class);
-        this.uploadEntries.put(uploadId, uploadEntry);
-        return uploadEntry;
+     private UploadRecord createRecord(String uploadId){
+        var uploadRecord = context.getBean(UploadRecord.class);
+        this.uploadRecords.put(uploadId, uploadRecord);
+        return uploadRecord;
      }
 
      private boolean uploadIdAlreadyExists(String uploadId){
-        return uploadEntries.containsKey(uploadId);
+        return uploadRecords.containsKey(uploadId);
      }
 }

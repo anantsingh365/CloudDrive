@@ -1,6 +1,6 @@
 package com.anant.CloudDrive.StorageManager.LocalFileSystem;
 
-import com.anant.CloudDrive.StorageManager.Uploads.UploadEntry;
+import com.anant.CloudDrive.StorageManager.Uploads.UploadRecord;
 
 import com.anant.CloudDrive.StorageManager.requests.UploadIdRequest;
 import com.anant.CloudDrive.StorageManager.requests.UploadPartRequest_;
@@ -12,9 +12,9 @@ import org.springframework.stereotype.Component;
 @Component
 @Scope(value = ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 @Profile("local")
-public class FileSystemUploadPartEntry implements UploadEntry {
+public class FileSystemUploadPartRecord implements UploadRecord {
     @Override
-    public void setUploadKeyName(String userName, UploadIdRequest uploadIdRequest) {
+    public void initUpload(String userName, UploadIdRequest uploadIdRequest) {
         return;
     }
 

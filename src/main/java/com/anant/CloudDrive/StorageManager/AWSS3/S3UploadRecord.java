@@ -5,7 +5,7 @@ import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.*;
 import  com.amazonaws.services.s3.model.UploadPartRequest;
 
-import com.anant.CloudDrive.StorageManager.Uploads.UploadEntry;
+import com.anant.CloudDrive.StorageManager.Uploads.UploadRecord;
 
 import com.anant.CloudDrive.StorageManager.requests.UploadIdRequest;
 import com.anant.CloudDrive.StorageManager.requests.UploadPartRequest_;
@@ -29,7 +29,7 @@ import java.util.List;
 @PropertySource("classpath:S3Credentials.properties")
 @Qualifier("S3UploadEntry")
 @Profile("s3")
-public class S3UploadEntry implements UploadEntry {
+public class S3UploadRecord implements UploadRecord {
 
     private final List<PartETag> partETags = new ArrayList<>();
     private final AmazonS3 s3Client;
@@ -43,16 +43,16 @@ public class S3UploadEntry implements UploadEntry {
     private String userUploadKeyName;
     private String contentType;
 
-    public S3UploadEntry(@Value("${s3.bucketName}") String bucketName,
-                         @Autowired AmazonS3 s3Client,
-                         @Autowired Logger logger)
+    public S3UploadRecord(@Value("${s3.bucketName}") String bucketName,
+                          @Autowired AmazonS3 s3Client,
+                          @Autowired Logger logger)
     {
         this.bucketName = bucketName;
         this.s3Client = s3Client;
         this.logger = logger;
     }
 
-    public void setUploadKeyName(String userName, UploadIdRequest uploadIdRequest) {
+    public void initUpload(String userName, UploadIdRequest uploadIdRequest) {
         this.userUploadKeyName = getUserNamePrefixForKeyName(userName, uploadIdRequest.getFileName());
         this.contentType = uploadIdRequest.getContentType();
     }

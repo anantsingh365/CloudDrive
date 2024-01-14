@@ -1,6 +1,6 @@
 package com.anant.CloudDrive.StorageManager;
 
-import com.anant.CloudDrive.StorageManager.Uploads.UploadEntry;
+import com.anant.CloudDrive.StorageManager.Uploads.UploadRecord;
 import com.anant.CloudDrive.StorageManager.requests.UploadIdRequest;
 import com.anant.CloudDrive.StorageManager.requests.UploadPartRequest_;
 import com.anant.CloudDrive.Utils.CommonUtils;
@@ -45,24 +45,24 @@ public class StorageManager {
     }
 
     public boolean uploadPart(final UploadPartRequest_ req){
-        UploadEntry entry = getExistingUserEntry(req.getUploadId());
-        if(entry == null){
+        UploadRecord record = getExistingUploadRecord(req.getUploadId());
+        if(record == null){
            return false;
         }
-        return this.storageProvider.uploadPart(entry, req);
+        return this.storageProvider.uploadPart(record, req);
     }
 
     public boolean completeUpload(final String uploadId){
-        UploadEntry entry = getExistingUserEntry(uploadId);
+        UploadRecord entry = getExistingUploadRecord(uploadId);
         return storageProvider.completeUpload(entry);
     }
 
-    private UploadEntry getExistingUserEntry(final String uploadId ){
+    private UploadRecord getExistingUploadRecord(final String uploadId ){
        UploadSession session = uploadSessionsHolder.getExistingSession(getUserData(CommonUtils.signedInUser.GET_SESSIONID));
        if(session == null){
            return null;
        }
-       return session.getPart(uploadId);
+       return session.getRecord(uploadId);
     }
 
     public Resource download(final String fileName){

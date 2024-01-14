@@ -1,6 +1,6 @@
 package com.anant.CloudDrive.StorageManager;
 
-import com.anant.CloudDrive.StorageManager.Uploads.UploadEntry;
+import com.anant.CloudDrive.StorageManager.Uploads.UploadRecord;
 import com.anant.CloudDrive.StorageManager.requests.UploadPartRequest_;
 import org.springframework.core.io.Resource;
 
@@ -11,7 +11,7 @@ public interface BaseStorageProvider{
     boolean deleteFile(String fileName);
     boolean renameFile(String oldFileName, String newFileName);
     long getStorageUsedByUser();
-    boolean uploadPart(UploadEntry entry, UploadPartRequest_ req);
-    boolean completeUpload(UploadEntry entry);
+    boolean uploadPart(UploadRecord entry, UploadPartRequest_ req);
+    boolean completeUpload(UploadRecord entry);
     List<UserFileMetaData> getUserObjectsMetaData(String userName);
 }

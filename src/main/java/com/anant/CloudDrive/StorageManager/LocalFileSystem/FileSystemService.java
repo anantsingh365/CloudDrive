@@ -1,7 +1,7 @@
 package com.anant.CloudDrive.StorageManager.LocalFileSystem;
 
 import com.anant.CloudDrive.StorageManager.BaseStorageProvider;
-import com.anant.CloudDrive.StorageManager.Uploads.UploadEntry;
+import com.anant.CloudDrive.StorageManager.Uploads.UploadRecord;
 import com.anant.CloudDrive.StorageManager.requests.UploadPartRequest_;
 import com.anant.CloudDrive.StorageManager.UserFileMetaData;
 
@@ -37,12 +37,12 @@ public class FileSystemService implements BaseStorageProvider {
     }
 
     @Override
-    public boolean uploadPart(UploadEntry entry, UploadPartRequest_ req) {
+    public boolean uploadPart(UploadRecord entry, UploadPartRequest_ req) {
         return false;
     }
 
     @Override
-    public boolean completeUpload(UploadEntry entry) {
+    public boolean completeUpload(UploadRecord entry) {
         return false;
     }
 

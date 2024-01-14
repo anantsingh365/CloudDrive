@@ -5,7 +5,7 @@ import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.CopyObjectRequest;
 import com.amazonaws.services.s3.model.DeleteObjectRequest;
 import com.anant.CloudDrive.StorageManager.BaseStorageProvider;
-import com.anant.CloudDrive.StorageManager.Uploads.UploadEntry;
+import com.anant.CloudDrive.StorageManager.Uploads.UploadRecord;
 import com.anant.CloudDrive.StorageManager.UserFileMetaData;
 import com.anant.CloudDrive.StorageManager.requests.UploadPartRequest_;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,6 +13,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.core.io.Resource;
+import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Repository;
 
 import java.util.ArrayList;
@@ -24,6 +25,7 @@ public class S3StorageProvider implements BaseStorageProvider {
 
     private final AmazonS3 s3Client;
     private final String bucketName;
+    private final PartUploader partUploader = new PartUploader();
 
     public S3StorageProvider(@Autowired AmazonS3 s3Client,@Value("${s3.bucketName}") String bucketName) {
         this.s3Client = s3Client;
@@ -39,7 +41,7 @@ public class S3StorageProvider implements BaseStorageProvider {
     }
 
     @Override
-    public boolean uploadPart(UploadEntry entry, UploadPartRequest_ req) {
+    public boolean uploadPart(UploadRecord entry, UploadPartRequest_ req) {
         boolean res = entry.uploadPart(req);
         return res;
     }
@@ -75,7 +77,7 @@ public class S3StorageProvider implements BaseStorageProvider {
     }
 
     @Override
-    public boolean completeUpload(UploadEntry entry) {
+    public boolean completeUpload(UploadRecord entry) {
        return entry.completeUserUpload();
     }
 
@@ -92,5 +94,10 @@ public class S3StorageProvider implements BaseStorageProvider {
                                 s3Client.getObjectMetadata(bucketName, x.getKey()).getContentType())
                 ));
         return list;
+    }
+
+    @Component
+    private static class PartUploader{
+
     }
 }
