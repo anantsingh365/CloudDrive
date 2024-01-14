@@ -1,7 +1,7 @@
 package com.anant.CloudDrive.MultipleUsersUploadManagementTest;
 
 import com.anant.CloudDrive.StorageProviders.Uploads.UploadEntry;
-import com.anant.CloudDrive.StorageProviders.Uploads.UploadSession;
+import com.anant.CloudDrive.UploadManager.UploadSession;
 import com.anant.CloudDrive.StorageProviders.requests.UploadIdRequest;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -41,20 +41,20 @@ public class UploadSessionUnitTest {
 
         //for every unique upload ID we have a corresponding upload Entry, this test is basically to make sure
         // that upload ID is getting generated and correct upload entry associated with upload ID is being returned;
-        var _entry1 = session.getEntry(uploadId1);
+        var _entry1 = session.getPart(uploadId1);
         Assertions.assertEquals(UploadEntriesMocks.get(0),_entry1);
 
-        var _entry2 = session.getEntry(uploadId2);
+        var _entry2 = session.getPart(uploadId2);
         Assertions.assertEquals(UploadEntriesMocks.get(1),_entry2);
 
-        var _entry3 = session.getEntry(uploadId3);
+        var _entry3 = session.getPart(uploadId3);
         Assertions.assertEquals(UploadEntriesMocks.get(2), _entry3);
     }
 
     @Test
     public void NullIsBeingReturnedForInvalidUploadId(){
         String invalidUploadId = UUID.randomUUID().toString();
-        var invalidEntry = session.getEntry(invalidUploadId);
+        var invalidEntry = session.getPart(invalidUploadId);
         Assertions.assertNull(invalidEntry);
     }
 }

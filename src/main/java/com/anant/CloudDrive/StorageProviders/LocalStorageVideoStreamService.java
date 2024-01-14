@@ -28,15 +28,7 @@ public class LocalStorageVideoStreamService {
 
     @Autowired private AmazonS3 s3Client;
     @Value("${s3.bucketName}") private String bucketName;
-    /**
-     * Prepare the content.
-     *
-     * @param fileName String.
-     * @param fileType String.
-     * @param range    String.
-     * @return ResponseEntity.
-     *
-     */
+
     public ResponseEntity<byte[]> prepareContent(final String fileName, final String range, final String fileType) {
 
         try {
@@ -87,15 +79,6 @@ public class LocalStorageVideoStreamService {
                 .body(data);
     }
 
-    /**
-     * ready file byte by byte.
-     *
-     * @param filename String.
-     * @param start    long.
-     * @param end      long.
-     * @return byte array.
-     * @throws IOException exception.
-     */
     public byte[] readByteRangeNew(String filename, long start, long end) throws IOException {
         GetObjectRequest rangeObjectRequest = new GetObjectRequest(bucketName, filename).withRange(start, end);
         S3Object objectPortion = s3Client.getObject(rangeObjectRequest);
@@ -106,12 +89,6 @@ public class LocalStorageVideoStreamService {
         return result;
     }
 
-    /**
-     * Content length.
-     *
-     * @param fileName String.
-     * @return Long.
-     */
     public Long getFileSize(String fileName) {
         var metaData = s3Client.getObjectMetadata(bucketName, fileName);
         return metaData.getContentLength();

@@ -3,10 +3,13 @@ package com.anant.CloudDrive.StorageProviders.s3;
 import com.amazonaws.SdkClientException;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.*;
-import com.anant.CloudDrive.StorageProviders.requests.*;
+
 import com.anant.CloudDrive.StorageProviders.Uploads.UploadEntry;
+import com.anant.CloudDrive.StorageProviders.requests.*;
+
 import com.anant.CloudDrive.StorageProviders.requests.UploadPartRequest;
 import org.slf4j.Logger;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
@@ -47,7 +50,6 @@ public class S3UploadEntry implements UploadEntry {
         this.s3Client = s3Client;
         this.logger = logger;
     }
-
 
     public void setUploadKeyName(String userName, UploadIdRequest uploadIdRequest) {
         this.userUploadKeyName = getUserNamePrefixForKeyName(userName, uploadIdRequest.getFileName());

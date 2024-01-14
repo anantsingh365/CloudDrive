@@ -1,13 +1,11 @@
 package com.anant.CloudDrive.controller;
 
 
-import com.anant.CloudDrive.StorageProviders.Uploads.UploadSessionsHolder;
+import com.anant.CloudDrive.UploadManager.UploadSessionsHolder;
 import jakarta.servlet.http.HttpSessionEvent;
 import jakarta.servlet.http.HttpSessionListener;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-
-import java.util.Iterator;
 
 @Component
 public class SessionListener implements HttpSessionListener {

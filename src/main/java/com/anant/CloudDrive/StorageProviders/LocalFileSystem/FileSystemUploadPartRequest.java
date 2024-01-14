@@ -11,14 +11,14 @@ import org.springframework.stereotype.Component;
 @Component
 @Scope(value = ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 @Profile("local")
-public class FileSystemUploadEntry implements UploadEntry {
+public class FileSystemUploadPartRequest implements UploadEntry {
     @Override
     public void setUploadKeyName(String userName, UploadIdRequest uploadIdRequest) {
         return;
     }
 
     @Override
-    public boolean uploadPart(UploadPartRequest uploadPartRequest) {
+    public boolean uploadPart(com.anant.CloudDrive.StorageProviders.requests.UploadPartRequest uploadPartRequest) {
         return true;
     }
 

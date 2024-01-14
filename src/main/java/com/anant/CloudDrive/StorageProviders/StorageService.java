@@ -1,9 +1,9 @@
 package com.anant.CloudDrive.StorageProviders;
 
-import com.anant.CloudDrive.Utils.CommonUtils;
 import com.anant.CloudDrive.StorageProviders.Uploads.UploadEntry;
-import com.anant.CloudDrive.StorageProviders.Uploads.UploadSession;
-import com.anant.CloudDrive.StorageProviders.Uploads.UploadSessionsHolder;
+import com.anant.CloudDrive.Utils.CommonUtils;
+import com.anant.CloudDrive.UploadManager.UploadSession;
+import com.anant.CloudDrive.UploadManager.UploadSessionsHolder;
 import com.anant.CloudDrive.StorageProviders.requests.*;
 
 import com.anant.CloudDrive.service.SubscriptionService;
@@ -23,7 +23,7 @@ public abstract class StorageService {
           this.uploadSessionsHolder = uploadSessionsHolder;
           this.subscriptionService = subscriptionService;
      }
-     abstract public boolean uploadPart(UploadPartRequest req);
+     abstract public boolean uploadPart(com.anant.CloudDrive.StorageProviders.requests.UploadPartRequest req);
 
      abstract public boolean completeUpload(String uploadId);
 
@@ -48,7 +48,7 @@ public abstract class StorageService {
 
      public UploadEntry getExistingUserEntry(String uploadId){
           var session = uploadSessionsHolder.getExistingSession(getUserData(CommonUtils.signedInUser.GET_SESSIONID));
-          return session != null ? session.getEntry(uploadId) : null;
+          return session != null ? session.getPart(uploadId) : null;
      }
 
      private  UploadSession getUploadSession(){

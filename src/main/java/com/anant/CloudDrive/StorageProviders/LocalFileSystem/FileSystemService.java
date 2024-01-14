@@ -2,7 +2,7 @@ package com.anant.CloudDrive.StorageProviders.LocalFileSystem;
 
 import com.anant.CloudDrive.StorageProviders.StorageService;
 import com.anant.CloudDrive.service.SubscriptionService;
-import com.anant.CloudDrive.StorageProviders.Uploads.UploadSessionsHolder;
+import com.anant.CloudDrive.UploadManager.UploadSessionsHolder;
 import com.anant.CloudDrive.StorageProviders.UserFileMetaData;
 import com.anant.CloudDrive.StorageProviders.requests.*;
 

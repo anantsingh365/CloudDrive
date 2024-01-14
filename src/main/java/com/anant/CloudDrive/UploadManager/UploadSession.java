@@ -1,16 +1,15 @@
-package com.anant.CloudDrive.StorageProviders.Uploads;
+package com.anant.CloudDrive.UploadManager;
 
+import com.anant.CloudDrive.StorageProviders.Uploads.UploadEntry;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Scope;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import com.anant.CloudDrive.StorageProviders.requests.*;
 
-import java.util.HashMap;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -40,7 +39,7 @@ public class UploadSession{
         return freshUploadId;
      }
 
-     public UploadEntry getEntry(String uploadId){
+     public UploadEntry getPart(String uploadId){
         return uploadEntries.get(uploadId);
      }
 

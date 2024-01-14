@@ -1,7 +1,7 @@
 package com.anant.CloudDrive.MultipleUsersUploadManagementTest;
 
-import com.anant.CloudDrive.StorageProviders.Uploads.UploadSession;
-import com.anant.CloudDrive.StorageProviders.Uploads.UploadSessionsHolder;
+import com.anant.CloudDrive.UploadManager.UploadSession;
+import com.anant.CloudDrive.UploadManager.UploadSessionsHolder;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

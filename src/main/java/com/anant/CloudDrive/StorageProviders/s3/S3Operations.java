@@ -6,12 +6,10 @@ import com.amazonaws.services.s3.model.*;
 
 import com.anant.CloudDrive.StorageProviders.requests.UploadPartRequest;
 import com.anant.CloudDrive.StorageProviders.UserFileMetaData;
-import org.apache.catalina.security.SecurityConfig;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Profile;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
@@ -47,25 +45,18 @@ public class S3Operations {
 
         s3Client.listObjectsV2(bucketName, key+"/")
                 .getObjectSummaries().forEach(x -> list.add(
-                                                            new UserFileMetaData(x.getKey(),
-                                                                x.getSize(),
-                                                                x.getLastModified(),
-                                                                s3Client.getObjectMetadata(bucketName, x.getKey()).getContentType())
-                                                                //getContentType(x.getKey()))
-                                                            ));
+                                    new UserFileMetaData(x.getKey(),
+                                        x.getSize(),
+                                        x.getLastModified(),
+                                        s3Client.getObjectMetadata(bucketName, x.getKey()).getContentType())
+                                        //getContentType(x.getKey()))
+                                    ));
           return list;
     }
     protected S3ObjectInputStream getS3ObjectInputStream(String keyName){
         return s3Client
                 .getObject(bucketName, keyName)
                 .getObjectContent();
-    }
-
-    protected S3ObjectInputStream getS3ObjectInputStream(String keyName, long start, long end){
-        GetObjectRequest getObjectRequest = new GetObjectRequest(bucketName, keyName).withRange(start,end);
-       // SecurityContextHolder
-        S3Object object = s3Client.getObject(getObjectRequest);
-        return object.getObjectContent();
     }
 
     protected boolean uploadFile(S3UploadEntry entry, UploadPartRequest req){

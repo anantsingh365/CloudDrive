@@ -8,7 +8,7 @@ import com.anant.CloudDrive.Utils.CommonUtils;
 
 import com.anant.CloudDrive.StorageProviders.requests.*;
 import com.anant.CloudDrive.service.*;
-import com.anant.CloudDrive.StorageProviders.Uploads.UploadSessionsHolder;
+import com.anant.CloudDrive.UploadManager.UploadSessionsHolder;
 import org.slf4j.Logger;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -82,7 +82,7 @@ public class S3Service extends StorageService {
            // savedFileListing.put(Objects.requireNonNull(userName), fileListing);
             return fileListing;
      //   }
-      //  System.out.println("Using Saved File Listing");jHello world my name is hnanant singh
+      //  System.out.println("Using Saved File Listing");
       //  return s3Operations.getUserObjectListing(userName);
     }
 
@@ -95,6 +95,7 @@ public class S3Service extends StorageService {
         //}
         return result;
     }
+
     public boolean deleteAllUserFile(){
         String userName = "tempUser";
         var userFilesMetaData = getUserObjectsMetaData();
@@ -112,7 +113,6 @@ public class S3Service extends StorageService {
     public boolean renameFile(String originalFileName, String newFileName){
         return s3Operations.renameFile(originalFileName, CommonUtils.getUserData(CommonUtils.signedInUser.GET_USERNAME) +"/" + newFileName);
     }
-
 
     @Override
     public long getStorageUsedByUser() {
