@@ -1,14 +1,14 @@
 package com.anant.CloudDrive.controller;
 
 import com.anant.CloudDrive.CloudDriveApplication;
-import com.anant.CloudDrive.StorageProviders.requests.*;
-import com.anant.CloudDrive.StorageProviders.StorageService;
-import com.anant.CloudDrive.StorageProviders.UserFileMetaData;
+import com.anant.CloudDrive.UploadManager.UserFileMetaData;
 
 import static com.anant.CloudDrive.Constants.CONTENT_TYPE;
 import static com.anant.CloudDrive.Utils.CommonUtils.*;
 
 import com.anant.CloudDrive.UploadManager.StorageManager;
+import com.anant.CloudDrive.UploadManager.requests.UploadIdRequest;
+import com.anant.CloudDrive.UploadManager.requests.UploadPartRequest_;
 import com.anant.CloudDrive.Utils.CommonUtils;
 import jakarta.servlet.ServletContext;
 import jakarta.servlet.http.HttpServletRequest;
@@ -37,8 +37,6 @@ import java.util.Map;
 public class Home {
 
     @Autowired private Logger logger;
-    @Autowired
-    StorageService storageService;
     @Autowired
     StorageManager storageManager;
 
@@ -164,10 +162,8 @@ public class Home {
     }
 
     private void addHomePageAttributes(Model model){
-        //model.addAttribute("fileList", userFileListingMap(storageService.getUserObjectsMetaData()));
         model.addAttribute("fileList", userFileListingMap(storageManager.getUserObjectsMetaData(CommonUtils.getUserData(signedInUser.GET_USERNAME))));
         model.addAttribute("loggedInUser", SecurityContextHolder.getContext().getAuthentication().getName());
-        //model.addAttribute("userQuota", storageService.getStorageUsedByUser() / (1024 * 1024));
         model.addAttribute("userQuota", storageManager.getStorageUsedByUser(CommonUtils.getUserData(signedInUser.GET_USERNAME)) / (1024 * 1024));
     }
 

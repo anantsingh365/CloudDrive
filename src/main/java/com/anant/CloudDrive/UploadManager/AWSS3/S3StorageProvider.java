@@ -4,10 +4,10 @@ import com.amazonaws.AmazonServiceException;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.CopyObjectRequest;
 import com.amazonaws.services.s3.model.DeleteObjectRequest;
-import com.anant.CloudDrive.StorageProviders.BaseStorageProvider;
-import com.anant.CloudDrive.StorageProviders.Uploads.UploadEntry;
-import com.anant.CloudDrive.StorageProviders.UserFileMetaData;
-import com.anant.CloudDrive.StorageProviders.requests.UploadPartRequest_;
+import com.anant.CloudDrive.UploadManager.BaseStorageProvider;
+import com.anant.CloudDrive.UploadManager.Uploads.UploadEntry;
+import com.anant.CloudDrive.UploadManager.UserFileMetaData;
+import com.anant.CloudDrive.UploadManager.requests.UploadPartRequest_;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
@@ -90,9 +90,7 @@ public class S3StorageProvider implements BaseStorageProvider {
                                 x.getSize(),
                                 x.getLastModified(),
                                 s3Client.getObjectMetadata(bucketName, x.getKey()).getContentType())
-                        //getContentType(x.getKey()))
                 ));
         return list;
-        //   }
     }
 }

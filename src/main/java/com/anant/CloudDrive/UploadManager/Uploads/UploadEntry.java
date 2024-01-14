@@ -1,7 +1,7 @@
-package com.anant.CloudDrive.StorageProviders.Uploads;
+package com.anant.CloudDrive.UploadManager.Uploads;
 
-import com.anant.CloudDrive.StorageProviders.requests.UploadIdRequest;
-import com.anant.CloudDrive.StorageProviders.requests.UploadPartRequest_;
+import com.anant.CloudDrive.UploadManager.requests.UploadIdRequest;
+import com.anant.CloudDrive.UploadManager.requests.UploadPartRequest_;
 
 public interface UploadEntry {
     void setUploadKeyName(String userName, UploadIdRequest uploadIdRequest);

@@ -1,14 +1,14 @@
-package com.anant.CloudDrive.StorageProviders.s3;
+package com.anant.CloudDrive.UploadManager.AWSS3;
 
 import com.amazonaws.SdkClientException;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.*;
 import  com.amazonaws.services.s3.model.UploadPartRequest;
 
-import com.anant.CloudDrive.StorageProviders.Uploads.UploadEntry;
-import com.anant.CloudDrive.StorageProviders.requests.*;
+import com.anant.CloudDrive.UploadManager.Uploads.UploadEntry;
 
-import com.anant.CloudDrive.StorageProviders.requests.UploadPartRequest_;
+import com.anant.CloudDrive.UploadManager.requests.UploadIdRequest;
+import com.anant.CloudDrive.UploadManager.requests.UploadPartRequest_;
 import org.slf4j.Logger;
 
 import org.springframework.beans.factory.annotation.Autowired;

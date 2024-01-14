@@ -1,6 +1,7 @@
 package com.anant.CloudDrive.UploadManager;
 
-import com.anant.CloudDrive.StorageProviders.Uploads.UploadEntry;
+import com.anant.CloudDrive.UploadManager.Uploads.UploadEntry;
+import com.anant.CloudDrive.UploadManager.requests.UploadIdRequest;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -8,7 +9,6 @@ import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
-import com.anant.CloudDrive.StorageProviders.requests.*;
 
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;

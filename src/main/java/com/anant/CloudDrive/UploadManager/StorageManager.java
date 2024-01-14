@@ -1,12 +1,8 @@
 package com.anant.CloudDrive.UploadManager;
 
-import com.anant.CloudDrive.StorageProviders.BaseStorageProvider;
-import com.anant.CloudDrive.StorageProviders.LocalStorageVideoStreamService;
-import com.anant.CloudDrive.StorageProviders.StorageService;
-import com.anant.CloudDrive.StorageProviders.Uploads.UploadEntry;
-import com.anant.CloudDrive.StorageProviders.UserFileMetaData;
-import com.anant.CloudDrive.StorageProviders.requests.UploadIdRequest;
-import com.anant.CloudDrive.StorageProviders.requests.UploadPartRequest_;
+import com.anant.CloudDrive.UploadManager.Uploads.UploadEntry;
+import com.anant.CloudDrive.UploadManager.requests.UploadIdRequest;
+import com.anant.CloudDrive.UploadManager.requests.UploadPartRequest_;
 import com.anant.CloudDrive.Utils.CommonUtils;
 import com.anant.CloudDrive.service.SubscriptionService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -46,7 +42,7 @@ public class StorageManager {
             //TO DO - refactor upload session to accept newUploadRequestClass
             return this.uploadSessionsHolder.getSession(sessionId).registerUploadId(userName, req);
         }
-        return StorageService.AccountStates.ACCOUNT_UPGRADE.getValue();
+        return AccountStates.ACCOUNT_UPGRADE.getValue();
     }
 
     public boolean uploadPart(final UploadPartRequest_ req){
@@ -96,7 +92,7 @@ public class StorageManager {
     }
 
     public ResponseEntity<byte[]> getBlob(String fileName, String range, String contentType){
-       return videoStreamService.prepareContent(fileName, range, contentType);
+       return videoStreamService.getBlob(fileName, range, contentType);
     }
 
     private boolean verifyUserHasSpaceQuotaLeft(){
@@ -110,5 +106,21 @@ public class StorageManager {
         }
         System.out.println("User Upload has invalid tier");
         return false;
+    }
+
+    public enum AccountStates{
+        ACCOUNT_UPGRADE("Account Upgrade"), ACCOUNT_BLOCKED("Account Blocked");
+        private final String value;
+
+        AccountStates(String value){
+            this.value = value;
+        }
+        public String getValue(){
+            return this.value;
+        }
+        @Override
+        public String toString() {
+            return this.getValue();
+        }
     }
 }

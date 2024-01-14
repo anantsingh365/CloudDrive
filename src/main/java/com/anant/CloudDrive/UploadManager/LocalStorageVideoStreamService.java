@@ -1,20 +1,15 @@
-package com.anant.CloudDrive.StorageProviders;
+package com.anant.CloudDrive.UploadManager;
 
 
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.GetObjectRequest;
 import com.amazonaws.services.s3.model.S3Object;
 import com.amazonaws.services.s3.model.S3ObjectInputStream;
-import com.anant.CloudDrive.Utils.CommonUtils;
-import jakarta.servlet.http.HttpServletResponse;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Profile;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 
 import java.io.*;
@@ -29,7 +24,7 @@ public class LocalStorageVideoStreamService {
     @Autowired private AmazonS3 s3Client;
     @Value("${s3.bucketName}") private String bucketName;
 
-    public ResponseEntity<byte[]> prepareContent(final String fileName, final String range, final String fileType) {
+    public ResponseEntity<byte[]> getBlob(final String fileName, final String range, final String fileType) {
 
         try {
              String fileKey = fileName ;
