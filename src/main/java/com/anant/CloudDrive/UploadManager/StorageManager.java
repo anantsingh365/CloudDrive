@@ -86,7 +86,7 @@ public class StorageManager {
         return storageProvider.renameFile(originalName, newName);
     }
 
-    public long getStorageUserByUser(String userName){
+    public long getStorageUsedByUser(String userName){
         var userObjectListing = getUserObjectsMetaData(userName);
         long sum=0;
         for(UserFileMetaData file: userObjectListing){

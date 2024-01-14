@@ -11,6 +11,7 @@ import com.anant.CloudDrive.StorageProviders.requests.UploadPartRequest;
 import com.anant.CloudDrive.Utils.CommonUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Component;
@@ -26,7 +27,7 @@ public class S3StorageProvider implements BaseStorageProvider {
     private final AmazonS3 s3Client;
     private final String bucketName;
 
-    public S3StorageProvider(@Autowired AmazonS3 s3Client,@Autowired String bucketName) {
+    public S3StorageProvider(@Autowired AmazonS3 s3Client,@Value("${s3.bucketName}") String bucketName) {
         this.s3Client = s3Client;
         this.bucketName = bucketName;
     }
