@@ -30,7 +30,7 @@ public class FileSystemService extends StorageService {
 
 
     @Override
-    public boolean uploadPart(UploadPartRequest req) {
+    public boolean uploadPart(UploadPartRequest_ req) {
         //testing
         var entry = super.getExistingUserEntry(req.getUploadId());
         return entry != null && fileSystemOperations.uploadFile(req);

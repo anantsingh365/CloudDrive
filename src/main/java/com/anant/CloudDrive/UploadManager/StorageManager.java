@@ -6,7 +6,7 @@ import com.anant.CloudDrive.StorageProviders.StorageService;
 import com.anant.CloudDrive.StorageProviders.Uploads.UploadEntry;
 import com.anant.CloudDrive.StorageProviders.UserFileMetaData;
 import com.anant.CloudDrive.StorageProviders.requests.UploadIdRequest;
-import com.anant.CloudDrive.StorageProviders.requests.UploadPartRequest;
+import com.anant.CloudDrive.StorageProviders.requests.UploadPartRequest_;
 import com.anant.CloudDrive.Utils.CommonUtils;
 import com.anant.CloudDrive.service.SubscriptionService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -49,7 +49,7 @@ public class StorageManager {
         return StorageService.AccountStates.ACCOUNT_UPGRADE.getValue();
     }
 
-    public boolean uploadPart(final UploadPartRequest req){
+    public boolean uploadPart(final UploadPartRequest_ req){
         UploadEntry entry = getExistingUserEntry(req.getUploadId());
         if(entry == null){
            return false;

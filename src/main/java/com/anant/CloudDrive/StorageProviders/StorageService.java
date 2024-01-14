@@ -23,7 +23,7 @@ public abstract class StorageService {
           this.uploadSessionsHolder = uploadSessionsHolder;
           this.subscriptionService = subscriptionService;
      }
-     abstract public boolean uploadPart(com.anant.CloudDrive.StorageProviders.requests.UploadPartRequest req);
+     abstract public boolean uploadPart(UploadPartRequest_ req);
 
      abstract public boolean completeUpload(String uploadId);
 

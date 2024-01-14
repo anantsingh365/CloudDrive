@@ -7,14 +7,12 @@ import com.amazonaws.services.s3.model.DeleteObjectRequest;
 import com.anant.CloudDrive.StorageProviders.BaseStorageProvider;
 import com.anant.CloudDrive.StorageProviders.Uploads.UploadEntry;
 import com.anant.CloudDrive.StorageProviders.UserFileMetaData;
-import com.anant.CloudDrive.StorageProviders.requests.UploadPartRequest;
-import com.anant.CloudDrive.Utils.CommonUtils;
+import com.anant.CloudDrive.StorageProviders.requests.UploadPartRequest_;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.core.io.Resource;
-import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Repository;
 
 import java.util.ArrayList;
@@ -41,7 +39,7 @@ public class S3StorageProvider implements BaseStorageProvider {
     }
 
     @Override
-    public boolean uploadPart(UploadEntry entry, UploadPartRequest req) {
+    public boolean uploadPart(UploadEntry entry, UploadPartRequest_ req) {
         boolean res = entry.uploadPart(req);
         return res;
     }

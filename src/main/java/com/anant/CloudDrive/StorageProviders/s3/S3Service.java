@@ -52,7 +52,7 @@ public class S3Service extends StorageService {
     }
 
     @Override
-    public boolean uploadPart(UploadPartRequest req){
+    public boolean uploadPart(UploadPartRequest_ req){
        // if(super.validateUploadRequestTier()){
             var entry = (S3UploadEntry) super.getExistingUserEntry(req.getUploadId());
             return entry != null && s3Operations.uploadFile(entry, req);

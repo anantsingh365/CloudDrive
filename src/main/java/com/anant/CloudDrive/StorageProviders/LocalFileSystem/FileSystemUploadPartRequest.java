@@ -18,7 +18,7 @@ public class FileSystemUploadPartRequest implements UploadEntry {
     }
 
     @Override
-    public boolean uploadPart(com.anant.CloudDrive.StorageProviders.requests.UploadPartRequest uploadPartRequest) {
+    public boolean uploadPart(UploadPartRequest_ uploadPartRequest) {
         return true;
     }
 

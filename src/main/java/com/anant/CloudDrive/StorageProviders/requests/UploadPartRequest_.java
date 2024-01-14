@@ -2,13 +2,13 @@ package com.anant.CloudDrive.StorageProviders.requests;
 
 import java.io.InputStream;
 
-public class UploadPartRequest {
+public class UploadPartRequest_ {
 
     private final InputStream ins;
     private final String uploadId;
     private final long contentLength;
 
-    public UploadPartRequest(InputStream ins, String uploadId, long contentLength) {
+    public UploadPartRequest_(InputStream ins, String uploadId, long contentLength) {
         this.ins = ins;
         this.uploadId = uploadId;
         this.contentLength = contentLength;

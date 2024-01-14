@@ -12,7 +12,7 @@ import java.io.FileOutputStream;
 @Profile("local")
 public class FileSystemOperations {
 
-    protected boolean uploadFile(UploadPartRequest req){
+    protected boolean uploadFile(UploadPartRequest_ req){
         var ins = req.getInputStream();
         File file = new File("tempUserData");
         try {

@@ -62,7 +62,10 @@ public class Home {
     public ResponseEntity<String> uploadId(@RequestBody Map<String, String> uploadIdPayLoad){
 
         var uploadIdRequest = new UploadIdRequest(uploadIdPayLoad.get("filename"), uploadIdPayLoad.get("contenttype"));
-        return uploadIdRequest.isRequestValid() ? returnOkResponse(storageService.getUploadId(uploadIdRequest)) : returnBadResponse("filname or content type missing");
+        //return uploadIdRequest.isRequestValid() ? returnOkResponse(storageService.getUploadId(uploadIdRequest)) : returnBadResponse("filname or content type missing");
+        return uploadIdRequest.isRequestValid() ? returnOkResponse(storageManager.getUploadId(uploadIdRequest,
+                CommonUtils.getUserData(signedInUser.GET_SESSIONID),
+                CommonUtils.getUserData(signedInUser.GET_USERNAME))) : returnBadResponse("filname or content type missing");
     }
 
     @PostMapping("/user/uploadFile")
@@ -74,7 +77,7 @@ public class Home {
         if( uploadId == null || contentLength == null ){
             return  returnBadResponse("required Headers missing");
         }
-        var uploadPartRequest = new UploadPartRequest(ins, uploadId, Long.parseLong(contentLength));
+        var uploadPartRequest = new UploadPartRequest_(ins, uploadId, Long.parseLong(contentLength));
         return  storageService.uploadPart(uploadPartRequest) ? returnOkResponse("dataReceived") : returnInternalServerError();
     }
 

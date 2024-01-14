@@ -4,7 +4,7 @@ import com.amazonaws.AmazonServiceException;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.*;
 
-import com.anant.CloudDrive.StorageProviders.requests.UploadPartRequest;
+import com.anant.CloudDrive.StorageProviders.requests.UploadPartRequest_;
 import com.anant.CloudDrive.StorageProviders.UserFileMetaData;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -59,7 +59,7 @@ public class S3Operations {
                 .getObjectContent();
     }
 
-    protected boolean uploadFile(S3UploadEntry entry, UploadPartRequest req){
+    protected boolean uploadFile(S3UploadEntry entry, UploadPartRequest_ req){
         return entry.uploadPart(req);
     }
 

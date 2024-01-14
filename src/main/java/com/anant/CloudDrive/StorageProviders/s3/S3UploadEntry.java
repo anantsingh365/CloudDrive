@@ -3,11 +3,12 @@ package com.anant.CloudDrive.StorageProviders.s3;
 import com.amazonaws.SdkClientException;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.*;
+import  com.amazonaws.services.s3.model.UploadPartRequest;
 
 import com.anant.CloudDrive.StorageProviders.Uploads.UploadEntry;
 import com.anant.CloudDrive.StorageProviders.requests.*;
 
-import com.anant.CloudDrive.StorageProviders.requests.UploadPartRequest;
+import com.anant.CloudDrive.StorageProviders.requests.UploadPartRequest_;
 import org.slf4j.Logger;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -70,7 +71,7 @@ public class S3UploadEntry implements UploadEntry {
         return userUploadKeyName = username + "/" + keyName;
     }
 
-    public boolean uploadPart(UploadPartRequest uploadPartRequest) {
+    public boolean uploadPart(UploadPartRequest_ uploadPartRequest) {
         InputStream ins = uploadPartRequest.getInputStream();
         long partSize = uploadPartRequest.getContentLength();
 
@@ -83,7 +84,7 @@ public class S3UploadEntry implements UploadEntry {
 
         try {
             //UploadPartRequest uploadRequest = new UploadPartRequest()
-            var S3uploadPartRequest = new com.amazonaws.services.s3.model.UploadPartRequest()
+            var S3uploadPartRequest = new UploadPartRequest()
                     .withBucketName(bucketName)
                     .withKey(userUploadKeyName)
                     .withUploadId(initResponse.getUploadId())
