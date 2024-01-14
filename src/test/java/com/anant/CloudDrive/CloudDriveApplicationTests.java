@@ -1,6 +1,6 @@
 package com.anant.CloudDrive;
 
-import com.anant.CloudDrive.UploadManager.UploadSession;
+import com.anant.CloudDrive.StorageManager.UploadSession;
 import com.anant.CloudDrive.controller.Home;
 
 import org.junit.jupiter.api.BeforeEach;

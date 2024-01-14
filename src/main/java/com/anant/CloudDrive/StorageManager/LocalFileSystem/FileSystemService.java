@@ -1,9 +1,9 @@
-package com.anant.CloudDrive.UploadManager.LocalFileSystem;
+package com.anant.CloudDrive.StorageManager.LocalFileSystem;
 
-import com.anant.CloudDrive.UploadManager.BaseStorageProvider;
-import com.anant.CloudDrive.UploadManager.Uploads.UploadEntry;
-import com.anant.CloudDrive.UploadManager.requests.UploadPartRequest_;
-import com.anant.CloudDrive.UploadManager.UserFileMetaData;
+import com.anant.CloudDrive.StorageManager.BaseStorageProvider;
+import com.anant.CloudDrive.StorageManager.Uploads.UploadEntry;
+import com.anant.CloudDrive.StorageManager.requests.UploadPartRequest_;
+import com.anant.CloudDrive.StorageManager.UserFileMetaData;
 
 import org.springframework.context.annotation.Profile;
 import org.springframework.core.io.Resource;

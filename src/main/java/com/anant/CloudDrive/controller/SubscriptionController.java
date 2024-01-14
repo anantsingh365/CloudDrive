@@ -1,7 +1,6 @@
 package com.anant.CloudDrive.controller;
 import com.anant.CloudDrive.Utils.CommonUtils;
-import com.anant.CloudDrive.repository.UserSubscriptionRepo;
-import com.anant.CloudDrive.service.SubscriptionService;
+import com.anant.CloudDrive.StorageManager.SubscriptionService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;

@@ -1,6 +1,5 @@
-package com.anant.CloudDrive.UploadManager;
+package com.anant.CloudDrive.StorageManager;
 
-import com.anant.CloudDrive.UploadManager.UploadSession;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;

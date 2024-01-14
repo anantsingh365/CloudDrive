@@ -1,14 +1,14 @@
 package com.anant.CloudDrive.controller;
 
 import com.anant.CloudDrive.CloudDriveApplication;
-import com.anant.CloudDrive.UploadManager.UserFileMetaData;
+import com.anant.CloudDrive.StorageManager.UserFileMetaData;
 
 import static com.anant.CloudDrive.Constants.CONTENT_TYPE;
 import static com.anant.CloudDrive.Utils.CommonUtils.*;
 
-import com.anant.CloudDrive.UploadManager.StorageManager;
-import com.anant.CloudDrive.UploadManager.requests.UploadIdRequest;
-import com.anant.CloudDrive.UploadManager.requests.UploadPartRequest_;
+import com.anant.CloudDrive.StorageManager.StorageManager;
+import com.anant.CloudDrive.StorageManager.requests.UploadIdRequest;
+import com.anant.CloudDrive.StorageManager.requests.UploadPartRequest_;
 import com.anant.CloudDrive.Utils.CommonUtils;
 import jakarta.servlet.ServletContext;
 import jakarta.servlet.http.HttpServletRequest;

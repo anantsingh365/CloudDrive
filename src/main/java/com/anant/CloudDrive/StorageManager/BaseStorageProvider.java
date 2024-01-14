@@ -1,7 +1,7 @@
-package com.anant.CloudDrive.UploadManager;
+package com.anant.CloudDrive.StorageManager;
 
-import com.anant.CloudDrive.UploadManager.Uploads.UploadEntry;
-import com.anant.CloudDrive.UploadManager.requests.UploadPartRequest_;
+import com.anant.CloudDrive.StorageManager.Uploads.UploadEntry;
+import com.anant.CloudDrive.StorageManager.requests.UploadPartRequest_;
 import org.springframework.core.io.Resource;
 
 import java.util.List;
