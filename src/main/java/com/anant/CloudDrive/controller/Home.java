@@ -62,7 +62,6 @@ public class Home {
     public ResponseEntity<String> uploadId(@RequestBody Map<String, String> uploadIdPayLoad){
 
         var uploadIdRequest = new UploadIdRequest(uploadIdPayLoad.get("filename"), uploadIdPayLoad.get("contenttype"));
-        //return uploadIdRequest.isRequestValid() ? returnOkResponse(storageService.getUploadId(uploadIdRequest)) : returnBadResponse("filname or content type missing");
         return uploadIdRequest.isRequestValid() ? returnOkResponse(storageManager.getUploadId(uploadIdRequest,
                 CommonUtils.getUserData(signedInUser.GET_SESSIONID),
                 CommonUtils.getUserData(signedInUser.GET_USERNAME))) : returnBadResponse("filname or content type missing");
@@ -78,7 +77,7 @@ public class Home {
             return  returnBadResponse("required Headers missing");
         }
         var uploadPartRequest = new UploadPartRequest_(ins, uploadId, Long.parseLong(contentLength));
-        return  storageService.uploadPart(uploadPartRequest) ? returnOkResponse("dataReceived") : returnInternalServerError();
+        return  storageManager.uploadPart(uploadPartRequest) ? returnOkResponse("dataReceived") : returnInternalServerError();
     }
 
     @GetMapping("/user/download{id}")
@@ -95,8 +94,7 @@ public class Home {
            // Resource res = new ByteArrayResource("no file to download".getBytes(StandardCharsets.UTF_8));
             return ResponseEntity.badRequest().body(null);
         }
-        Resource res = storageService.download(fileToDownload);
-        //Resource res = storageManager.download(fileToDownload);
+        Resource res = storageManager.download(fileToDownload);
         return ResponseEntity.ok()
                 .header(CONTENT_TYPE, fileContentType)
                 .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + fileToDownload.substring(fileToDownload.indexOf("/")) + "\"")
@@ -110,8 +108,7 @@ public class Home {
         //String id = renameRequestPayLoad.get("id");
        // String newFileName = renameRequestPayLoad.get("newFileName");
         String originalFileName = resolveFileNameFromId(id, model);
-        boolean result = storageService.renameFile(originalFileName, newFileName);
-
+        boolean result = storageManager.renameFile(originalFileName, CommonUtils.getUserData(CommonUtils.signedInUser.GET_USERNAME) +"/" + newFileName);
         return result ? returnOkResponse("renameDone") : returnBadResponse("rename failed");
     }
     @GetMapping("/user/video{id}")
@@ -125,7 +122,7 @@ public class Home {
         if(fileToStream == null){
             return ResponseEntity.badRequest().body(null);
         }
-        return storageService.getFileBytes(fileToStream,httpRangeList, contentType);
+        return storageManager.getBlob(fileToStream,httpRangeList, contentType);
     }
 
     @GetMapping("/user/delete{id}")
@@ -134,7 +131,7 @@ public class Home {
         if(fileToDelete == null){
             return returnBadResponse("there was no file with that id");
         }
-        boolean result =  storageService.deleteUserFile(fileToDelete);
+        boolean result =  storageManager.deleteUserFile(fileToDelete);
         return result ? returnOkResponse("file deleted") : returnInternalServerError();
     }
 
@@ -145,7 +142,7 @@ public class Home {
             logger.info("complete upload failed for user " + getUserData(signedInUser.GET_USERNAME) + ", upload id missing");
             return returnBadResponse("UploadId Missing");
         }
-        boolean completeUploadResult = storageService.completeUpload(uploadId);
+        boolean completeUploadResult = storageManager.completeUpload(uploadId);
 
         if(completeUploadResult){
             logger.info("Upload Complete for User " + getUserData(signedInUser.GET_USERNAME) +" upload id " + uploadId);
