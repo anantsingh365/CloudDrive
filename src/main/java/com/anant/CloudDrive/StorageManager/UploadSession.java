@@ -1,7 +1,6 @@
 package com.anant.CloudDrive.StorageManager;
 
-import com.anant.CloudDrive.StorageManager.Uploads.UploadRecord;
-import com.anant.CloudDrive.StorageManager.requests.UploadIdRequest;
+import com.anant.CloudDrive.StorageManager.Models.UploadIdRequest;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -20,7 +19,7 @@ public class UploadSession{
 
     //represents multiple upload entries from a session
      private final ConcurrentHashMap<String, UploadRecord> uploadRecords = new ConcurrentHashMap<>();
-     private  final ApplicationContext context;
+     private final ApplicationContext context;
      private final Logger logger;
 
     public UploadSession(@Autowired ApplicationContext context, @Autowired Logger logger){
@@ -28,13 +27,13 @@ public class UploadSession{
         this.logger = logger;
     }
 
-    public String registerUploadId(String userName, UploadIdRequest uploadIdRequest){
+    public String createRecord(String userName, UploadIdRequest uploadIdRequest){
         String freshUploadId = UUID.randomUUID().toString();
         if(uploadIdAlreadyExists(freshUploadId)){
             throw new RuntimeException("Couldn't generate a unique uploadId");
         }
-        var uploadRecord = createRecord(freshUploadId);
-        uploadRecord.initUpload(userName, uploadIdRequest);
+        createRecord(freshUploadId);
+        //uploadRecord.initUpload(userName, uploadIdRequest);
         logger.info("Created Upload Record for User - {}, Upload Id - {}", userName, freshUploadId);
         return freshUploadId;
      }
@@ -43,10 +42,9 @@ public class UploadSession{
         return uploadRecords.get(uploadId);
      }
 
-     private UploadRecord createRecord(String uploadId){
+     private void createRecord(String uploadId){
         var uploadRecord = context.getBean(UploadRecord.class);
         this.uploadRecords.put(uploadId, uploadRecord);
-        return uploadRecord;
      }
 
      private boolean uploadIdAlreadyExists(String uploadId){

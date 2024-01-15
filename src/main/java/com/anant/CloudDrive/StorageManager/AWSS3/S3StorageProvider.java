@@ -1,33 +1,35 @@
 package com.anant.CloudDrive.StorageManager.AWSS3;
 
 import com.amazonaws.AmazonServiceException;
+import com.amazonaws.SdkClientException;
 import com.amazonaws.services.s3.AmazonS3;
-import com.amazonaws.services.s3.model.CopyObjectRequest;
-import com.amazonaws.services.s3.model.DeleteObjectRequest;
-import com.anant.CloudDrive.StorageManager.BaseStorageProvider;
-import com.anant.CloudDrive.StorageManager.Uploads.UploadRecord;
-import com.anant.CloudDrive.StorageManager.UserFileMetaData;
-import com.anant.CloudDrive.StorageManager.requests.UploadPartRequest_;
+import com.amazonaws.services.s3.model.*;
+
+import com.anant.CloudDrive.StorageManager.StorageProvider;
+import com.anant.CloudDrive.StorageManager.UploadRecord;
+import com.anant.CloudDrive.StorageManager.Models.UserFileMetaData;
+import com.anant.CloudDrive.StorageManager.Models.UploadIdRequest;
+import com.anant.CloudDrive.StorageManager.Models.UploadPartRequest_;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.core.io.Resource;
-import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Repository;
 
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 
 @Repository
 @Qualifier("s3")
-public class S3StorageProvider implements BaseStorageProvider {
+public class S3StorageProvider implements StorageProvider {
 
     private final AmazonS3 s3Client;
     private final String bucketName;
-    private final PartUploader partUploader = new PartUploader();
 
-    public S3StorageProvider(@Autowired AmazonS3 s3Client,@Value("${s3.bucketName}") String bucketName) {
+    public S3StorageProvider(@Autowired AmazonS3 s3Client, @Value("${s3.bucketName}") String bucketName) {
         this.s3Client = s3Client;
         this.bucketName = bucketName;
     }
@@ -41,9 +43,9 @@ public class S3StorageProvider implements BaseStorageProvider {
     }
 
     @Override
-    public boolean uploadPart(UploadRecord entry, UploadPartRequest_ req) {
-        boolean res = entry.uploadPart(req);
-        return res;
+    public boolean uploadPart(UploadRecord record, UploadPartRequest_ req) {
+        //boolean res = entry.uploadPart(req);
+        return this.processPartUploadPriv((S3UploadRecord) record, req);
     }
 
     @Override
@@ -77,8 +79,14 @@ public class S3StorageProvider implements BaseStorageProvider {
     }
 
     @Override
-    public boolean completeUpload(UploadRecord entry) {
-       return entry.completeUserUpload();
+    public boolean initializeUpload(String userName, UploadRecord record, UploadIdRequest req) {
+        return this.initializeUploadPriv(userName, (S3UploadRecord) record, req);
+        //record.initUpload(userName, req);
+    }
+
+    @Override
+    public boolean completeUpload(UploadRecord record) {
+        return completeUploadPriv((S3UploadRecord) record);
     }
 
     @Override
@@ -96,8 +104,83 @@ public class S3StorageProvider implements BaseStorageProvider {
         return list;
     }
 
-    @Component
-    private static class PartUploader{
+    private boolean initializeUploadPriv(String userName, S3UploadRecord record, UploadIdRequest req){
+        return initiateUploadForKeyName(userName + "/" + req.getFileName(), req.getContentType(), record);
+    }
 
+    private boolean processPartUploadPriv(S3UploadRecord record, UploadPartRequest_ uploadPartRequest){
+        InputStream ins = uploadPartRequest.getInputStream();
+        long partSize = uploadPartRequest.getContentLength();
+        List<PartETag> partETags = record.partETags;
+
+        if (record.isUploadCompleted) {
+            throw new IllegalStateException("Upload has already been completed");
+        }
+
+        try {
+            //UploadPartRequest uploadRequest = new UploadPartRequest()
+            var S3uploadPartRequest = new UploadPartRequest()
+                    .withBucketName(bucketName)
+                    .withKey(record.userUploadKeyName)
+                    .withUploadId(record.initResponse.getUploadId())
+                    .withLastPart(true)
+                    .withPartNumber(record.partNumber)
+                    .withInputStream(ins)
+                    .withPartSize(partSize);
+
+            // Upload the part and add the response's ETag to our list.
+            int a = 10;
+            var uploadResult = s3Client.uploadPart(S3uploadPartRequest);
+            partETags.add(uploadResult.getPartETag());
+            //logger.info("Uploading a part for key {} ", USER_UPLOAD_KEYNAME);
+            System.out.println("Uploading a part for key userName -  " +  record.userUploadKeyName);
+            ++record.partNumber;
+            return true;
+
+        } catch (SdkClientException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+    private boolean initiateUploadForKeyName(final String userSpecificKeyName, final String contentType, final S3UploadRecord record) {
+        final var initRequest = new InitiateMultipartUploadRequest(bucketName, userSpecificKeyName);
+        final ObjectMetadata metadata = new ObjectMetadata();
+        record.contentType = contentType;
+        metadata.setContentType(contentType);
+        initRequest.setObjectMetadata(metadata);
+        try{
+            record.initResponse = s3Client.initiateMultipartUpload(initRequest);
+            record.isUploadInitiated = true;
+            record.userUploadKeyName = userSpecificKeyName;
+            return true;
+        }catch(Exception e){
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    private boolean completeUploadPriv(S3UploadRecord record){
+        if(!record.isUploadInitiated){
+            throw new IllegalStateException("upload for keyname "
+                    + record.userUploadKeyName + " hasn't initiated.");
+        }
+        if(record.isUploadCompleted){
+            System.out.println("Upload for keyName {} already completed" + record.userUploadKeyName);
+            return true;
+        }
+        var compRequest = new CompleteMultipartUploadRequest(bucketName, record.userUploadKeyName,
+          record.initResponse.getUploadId(), record.partETags);
+
+        CompleteMultipartUploadResult result;
+        try {
+            result = s3Client.completeMultipartUpload(compRequest);
+        } catch (Exception e) {
+            System.out.println("upload for keyName {} failed" + record.userUploadKeyName);
+            e.printStackTrace();
+            return false;
+        }
+        System.out.println("upload for keyName {} complete" + result.getKey());
+        record.isUploadCompleted = true;
+        return true;
     }
 }

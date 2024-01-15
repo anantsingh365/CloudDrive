@@ -1,9 +1,9 @@
 package com.anant.CloudDrive.StorageManager;
 
-import com.anant.CloudDrive.StorageManager.Uploads.UploadRecord;
-import com.anant.CloudDrive.StorageManager.requests.UploadIdRequest;
-import com.anant.CloudDrive.StorageManager.requests.UploadPartRequest_;
-import com.anant.CloudDrive.Utils.CommonUtils;
+import com.anant.CloudDrive.StorageManager.Models.UserFileMetaData;
+import com.anant.CloudDrive.StorageManager.Models.UploadIdRequest;
+import com.anant.CloudDrive.StorageManager.Models.UploadPartRequest_;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.core.io.Resource;
@@ -12,20 +12,18 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 
-import static com.anant.CloudDrive.Utils.CommonUtils.getUserData;
-
 @Service
 public class StorageManager {
 
-    final ApplicationContext context;
+    private final ApplicationContext context;
 
-    private final BaseStorageProvider storageProvider;
+    private final StorageProvider storageProvider;
     private final SubscriptionService subscriptionService;
     private final UploadSessionsHolder uploadSessionsHolder;
     private final LocalStorageVideoStreamService videoStreamService;
 
     StorageManager(@Autowired ApplicationContext context,
-                   @Autowired BaseStorageProvider storageProvider,
+                   @Autowired StorageProvider storageProvider,
                    @Autowired SubscriptionService subscriptionService,
                    @Autowired UploadSessionsHolder uploadSessionsHolder, LocalStorageVideoStreamService videoStreamService)
     {
@@ -37,28 +35,33 @@ public class StorageManager {
     }
 
     public String getUploadId(final UploadIdRequest req, final String sessionId, final String userName){
-        if(verifyUserHasSpaceQuotaLeft()){
-            //TO DO - refactor upload session to accept newUploadRequestClass
-            return this.uploadSessionsHolder.getSession(sessionId).registerUploadId(userName, req);
+        if(verifyUserHasSpaceQuotaLeft(userName)){
+            var session = uploadSessionsHolder.getSession(sessionId);
+            String newUploadId = session.createRecord(userName, req);
+            boolean res = storageProvider.initializeUpload(userName, session.getRecord(newUploadId), req);
+            if(!res){
+                throw new RuntimeException("Couldn't initalize the upload");
+            }
+            return newUploadId;
         }
         return AccountStates.ACCOUNT_UPGRADE.getValue();
     }
 
-    public boolean uploadPart(final UploadPartRequest_ req){
-        UploadRecord record = getExistingUploadRecord(req.getUploadId());
+    public boolean uploadPart(final UploadPartRequest_ req, final String sessionId){
+        UploadRecord record = getExistingUploadRecord(req.getUploadId(), sessionId);
         if(record == null){
            return false;
         }
         return this.storageProvider.uploadPart(record, req);
     }
 
-    public boolean completeUpload(final String uploadId){
-        UploadRecord entry = getExistingUploadRecord(uploadId);
+    public boolean completeUpload(final String uploadId, final String sessionId){
+        UploadRecord entry = getExistingUploadRecord(uploadId, sessionId);
         return storageProvider.completeUpload(entry);
     }
 
-    private UploadRecord getExistingUploadRecord(final String uploadId ){
-       UploadSession session = uploadSessionsHolder.getExistingSession(getUserData(CommonUtils.signedInUser.GET_SESSIONID));
+    private UploadRecord getExistingUploadRecord(final String uploadId, final String sessionId ){
+       UploadSession session = uploadSessionsHolder.getExistingSession(sessionId);
        if(session == null){
            return null;
        }
@@ -94,8 +97,8 @@ public class StorageManager {
        return videoStreamService.getBlob(fileName, range, contentType);
     }
 
-    private boolean verifyUserHasSpaceQuotaLeft(){
-        String storageTier = subscriptionService.getTier(getUserData(CommonUtils.signedInUser.GET_USERNAME));
+    private boolean verifyUserHasSpaceQuotaLeft(String userName){
+        String storageTier = subscriptionService.getTier(userName);
         int storageTierInMB = Integer.parseInt(storageTier);
 
         long storageQuotaInMB = (int) storageProvider.getStorageUsedByUser()/1048576;

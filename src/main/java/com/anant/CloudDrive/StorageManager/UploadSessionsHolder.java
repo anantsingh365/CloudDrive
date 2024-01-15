@@ -11,23 +11,19 @@ import java.util.concurrent.ConcurrentHashMap;
 public class UploadSessionsHolder {
      private final ApplicationContext context;
      private final Logger logger;
+     private final ConcurrentHashMap<String, UploadSession> sessions = new ConcurrentHashMap<>();
 
+     // one session ID --has---> one upload Session --has---> multiple Upload Records
     public UploadSessionsHolder(@Autowired ApplicationContext context, @Autowired Logger logger){
         this.context = context;
         this.logger = logger;
     }
 
-    //stores current upload sessions for users
-    private final ConcurrentHashMap<String, UploadSession> sessions = new ConcurrentHashMap<>();
-
     public UploadSession getSession(String sessionId){
         var userSession = getExistingSession(sessionId);
-        //if there is no active user session present, create new
-        //this will be created only once per sessionId
         if(userSession == null){
             return createNewSession(sessionId);
         }
-        //each time a new upload id has to be generated
         return userSession;
     }
 
@@ -40,12 +36,4 @@ public class UploadSessionsHolder {
         sessions.put(userName, uploadSession);
         return uploadSession;
     }
-
-//    public void removeUploadSession(String sessionId){
-//        sessions.remove(sessionId);
-//    }
-
-//    public Enumeration<String> getActiveSessionIds(){
-//        return sessions.keys();
-//    }
 }

@@ -1,14 +1,14 @@
 package com.anant.CloudDrive.controller;
 
 import com.anant.CloudDrive.CloudDriveApplication;
-import com.anant.CloudDrive.StorageManager.UserFileMetaData;
+import com.anant.CloudDrive.StorageManager.Models.UserFileMetaData;
 
 import static com.anant.CloudDrive.Constants.CONTENT_TYPE;
 import static com.anant.CloudDrive.Utils.CommonUtils.*;
 
 import com.anant.CloudDrive.StorageManager.StorageManager;
-import com.anant.CloudDrive.StorageManager.requests.UploadIdRequest;
-import com.anant.CloudDrive.StorageManager.requests.UploadPartRequest_;
+import com.anant.CloudDrive.StorageManager.Models.UploadIdRequest;
+import com.anant.CloudDrive.StorageManager.Models.UploadPartRequest_;
 import com.anant.CloudDrive.Utils.CommonUtils;
 import jakarta.servlet.ServletContext;
 import jakarta.servlet.http.HttpServletRequest;
@@ -75,7 +75,9 @@ public class Home {
             return  returnBadResponse("required Headers missing");
         }
         var uploadPartRequest = new UploadPartRequest_(ins, uploadId, Long.parseLong(contentLength));
-        return  storageManager.uploadPart(uploadPartRequest) ? returnOkResponse("dataReceived") : returnInternalServerError();
+        return  storageManager.uploadPart(uploadPartRequest, CommonUtils.getUserData(signedInUser.GET_SESSIONID))?
+                returnOkResponse("dataReceived"):
+                returnInternalServerError();
     }
 
     @GetMapping("/user/download{id}")
@@ -140,7 +142,8 @@ public class Home {
             logger.info("complete upload failed for user " + getUserData(signedInUser.GET_USERNAME) + ", upload id missing");
             return returnBadResponse("UploadId Missing");
         }
-        boolean completeUploadResult = storageManager.completeUpload(uploadId);
+        boolean completeUploadResult = storageManager.completeUpload(uploadId,
+                CommonUtils.getUserData(signedInUser.GET_SESSIONID));
 
         if(completeUploadResult){
             logger.info("Upload Complete for User " + getUserData(signedInUser.GET_USERNAME) +" upload id " + uploadId);

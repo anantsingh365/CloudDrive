@@ -1,4 +1,4 @@
-package com.anant.CloudDrive.StorageManager;
+package com.anant.CloudDrive.StorageManager.Models;
 
 import java.util.Date;
 

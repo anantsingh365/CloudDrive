@@ -1,4 +1,4 @@
-package com.anant.CloudDrive.StorageManager.requests;
+package com.anant.CloudDrive.StorageManager.Models;
 
 public class UploadIdRequest {
 

@@ -1,9 +1,10 @@
 package com.anant.CloudDrive.StorageManager.LocalFileSystem;
 
-import com.anant.CloudDrive.StorageManager.BaseStorageProvider;
-import com.anant.CloudDrive.StorageManager.Uploads.UploadRecord;
-import com.anant.CloudDrive.StorageManager.requests.UploadPartRequest_;
-import com.anant.CloudDrive.StorageManager.UserFileMetaData;
+import com.anant.CloudDrive.StorageManager.StorageProvider;
+import com.anant.CloudDrive.StorageManager.UploadRecord;
+import com.anant.CloudDrive.StorageManager.Models.UploadIdRequest;
+import com.anant.CloudDrive.StorageManager.Models.UploadPartRequest_;
+import com.anant.CloudDrive.StorageManager.Models.UserFileMetaData;
 
 import org.springframework.context.annotation.Profile;
 import org.springframework.core.io.Resource;
@@ -14,7 +15,7 @@ import java.util.List;
 
 @Service
 @Profile("local")
-public class FileSystemService implements BaseStorageProvider {
+public class FileSystemService implements StorageProvider {
 
     @Override
     public Resource download(String fileName) {
@@ -34,6 +35,11 @@ public class FileSystemService implements BaseStorageProvider {
     @Override
     public long getStorageUsedByUser() {
         return 0;
+    }
+
+    @Override
+    public boolean initializeUpload(String userName, UploadRecord record, UploadIdRequest req) {
+        return false;
     }
 
     @Override
