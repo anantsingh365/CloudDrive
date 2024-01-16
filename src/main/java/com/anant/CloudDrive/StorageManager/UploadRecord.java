@@ -1,12 +1,12 @@
 package com.anant.CloudDrive.StorageManager;
 
 
-//abstract class to encapsulate the state of a individual upload lifecycle
+//abstract class to encapsulate the state of an individual upload lifecycle
 // state will be updated from
 // -----> "NOT INITIALIZED (no uploadID)"
 // -----> "INITIALIZED (uploadID generated)"
 // -----> "IN PROGRESS (after first part has been uploaded)"
-// -----> "COMPLETED (all parts have been uploaded)"
+// -----> "COMPLETED (all parts have been uploaded and upload complete call has been triggered on storage Providers)"
 public abstract class UploadRecord {
 
     private UploadRecordState state = UploadRecordState.NOT_INITIALISED;

@@ -62,6 +62,7 @@ public class StorageManagerTest2 {
     public void completeUploadTest(){
         when(subscriptionService.getTier(anyString())).thenReturn("200"); // 200 mb
         when(storageProvider.initializeUpload(anyString(), any(UploadRecord.class), any(UploadIdRequest.class))).thenReturn(true);
+        when(storageProvider.uploadPart(any(UploadRecord.class), any(UploadPartRequest_.class))).thenReturn(true);
         when(storageProvider.completeUpload(any(UploadRecord.class))).thenReturn(true);
         String uploadId = manager.getUploadId(new UploadIdRequest("testFile", "audio/Flac"), "0987654321", "AnantSingh");
 
@@ -84,14 +85,6 @@ public class StorageManagerTest2 {
         when(storageProvider.initializeUpload(anyString(), any(UploadRecord.class), any(UploadIdRequest.class))).thenReturn(true);
         when(storageProvider.completeUpload(any(UploadRecord.class))).thenReturn(true);
         String uploadId = manager.getUploadId(new UploadIdRequest("testFile", "audio/Flac"), "0987654321", "AnantSingh");
-
-        // doing multipart upload
-//        UploadPartRequest_ req = new UploadPartRequest_(null, uploadId, 0L);
-//        manager.uploadPart(req, "0987654321");
-//        UploadPartRequest_ req2 = new UploadPartRequest_(null, uploadId, 0L);
-//        manager.uploadPart(req, "0987654321");
-//        UploadPartRequest_ req3 = new UploadPartRequest_(null, uploadId, 0L);
-//        manager.uploadPart(req, "0987654321");
 
         boolean completeUploadResult = manager.completeUpload(uploadId, "0987654321");
         Assertions.assertFalse(completeUploadResult);
