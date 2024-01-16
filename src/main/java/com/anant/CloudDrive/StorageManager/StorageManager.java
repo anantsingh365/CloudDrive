@@ -4,13 +4,20 @@ import com.anant.CloudDrive.StorageManager.Models.UserFileMetaData;
 import com.anant.CloudDrive.StorageManager.Models.UploadIdRequest;
 import com.anant.CloudDrive.StorageManager.Models.UploadPartRequest_;
 
+import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.ApplicationContext;
+import org.springframework.context.annotation.Scope;
 import org.springframework.core.io.Resource;
 import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 
 @Service
 public class StorageManager {
@@ -19,13 +26,13 @@ public class StorageManager {
 
     private final StorageProvider storageProvider;
     private final SubscriptionService subscriptionService;
-    private final UploadSessionsHolder uploadSessionsHolder;
+    private final UploadSessionsHolder2 uploadSessionsHolder;
     private final LocalStorageVideoStreamService videoStreamService;
 
     public StorageManager(@Autowired ApplicationContext context,
                           @Autowired StorageProvider storageProvider,
                           @Autowired SubscriptionService subscriptionService,
-                          @Autowired UploadSessionsHolder uploadSessionsHolder, @Autowired LocalStorageVideoStreamService videoStreamService) {
+                          @Autowired UploadSessionsHolder2 uploadSessionsHolder, @Autowired LocalStorageVideoStreamService videoStreamService) {
         this.context = context;
         this.storageProvider = storageProvider;
         this.subscriptionService = subscriptionService;
@@ -51,16 +58,36 @@ public class StorageManager {
 
     public boolean uploadPart(final UploadPartRequest_ req, final String sessionId) {
         UploadRecord record = getExistingUploadRecord(req.getUploadId(), sessionId);
+        // we don't have any record for the given uploadID
         if (record == null) {
             return false;
         }
-        if(record.getState() == UploadRecordState.INITIALISED && record.getState() != UploadRecordState.COMPLETED){
+
+        if(record.getState() == UploadRecordState.COMPLETED){
+            return false;
+        }
+
+        // below condition means that uploadId has been generated, and we are now receiving the first chunk/part
+        // after the first part we will change the record state to be "IN_PROGRESS"
+        if(record.getState() == UploadRecordState.INITIALISED && record.getPartsUploaded() == 0){
             boolean res = this.storageProvider.uploadPart(record, req);
             if(res){
                 record.setState(UploadRecordState.IN_PROGRESS);
+                record.incrementPartsUploaded();
                 return true;
             }
         }
+
+        // below condition means upload record has been initialized and at least first part has been uploaded
+        // record state to be "IN_PROGRESS"
+        if(record.getState() == UploadRecordState.IN_PROGRESS && record.getPartsUploaded() != 0){
+            boolean res = this.storageProvider.uploadPart(record, req);
+            if(res){
+                record.incrementPartsUploaded();
+                return true;
+            }
+        }
+
         return false;
     }
 
@@ -73,7 +100,7 @@ public class StorageManager {
     }
 
     private UploadRecord getExistingUploadRecord(final String uploadId, final String sessionId) {
-        UploadSession session = uploadSessionsHolder.getExistingSession(sessionId);
+        var session = uploadSessionsHolder.getExistingSession(sessionId);
         if (session == null) {
             return null;
         }
@@ -137,6 +164,81 @@ public class StorageManager {
         @Override
         public String toString() {
             return this.getValue();
+        }
+    }
+
+    @Component
+    private static class UploadSessionsHolder2{
+        private final ApplicationContext context;
+        private final Logger logger;
+        private final ConcurrentHashMap<String, UploadSession2> sessions = new ConcurrentHashMap<>();
+
+        // one session ID --has---> one upload Session --has---> multiple Upload Records
+        public UploadSessionsHolder2(@Autowired ApplicationContext context,@Autowired Logger logger) {
+            this.context = context;
+            this.logger = logger;
+        }
+
+        public UploadSession2 getSession(String sessionId){
+            var userSession = getExistingSession(sessionId);
+            if(userSession == null){
+                return createNewSession(sessionId);
+            }
+            return userSession;
+        }
+
+        public UploadSession2 getExistingSession(String sessionId){
+            return sessions.get(sessionId);
+        }
+
+        private UploadSession2 createNewSession(String userName){
+            var uploadSession = context.getBean(UploadSession2.class);
+            sessions.put(userName, uploadSession);
+            return uploadSession;
+        }
+    }
+
+    @Component
+    @Qualifier("userUploadSession")
+    @Scope(value = ConfigurableBeanFactory.SCOPE_PROTOTYPE)
+    private static class UploadSession2{
+
+        //represents multiple upload entries from a session
+        private final ConcurrentHashMap<String, UploadRecord> uploadRecords = new ConcurrentHashMap<>();
+        private final ApplicationContext context;
+        private final Logger logger;
+
+        public UploadSession2(@Autowired ApplicationContext context, @Autowired Logger logger){
+            this.context = context;
+            this.logger = logger;
+        }
+
+        public String createRecord(String userName, UploadIdRequest uploadIdRequest){
+            String freshUploadId = UUID.randomUUID().toString();
+            if(uploadIdAlreadyExists(freshUploadId)){
+                throw new RuntimeException("Couldn't generate a unique uploadId");
+            }
+            createRecord(freshUploadId);
+            //uploadRecord.initUpload(userName, uploadIdRequest);
+            logger.info("Created Upload Record for User - {}, Upload Id - {}", userName, freshUploadId);
+            return freshUploadId;
+        }
+
+        public UploadRecord getRecord(String uploadId){
+            return uploadRecords.get(uploadId);
+        }
+
+        private void createRecord(String uploadId){
+            var uploadRecord = context.getBean(UploadRecord.class);
+            this.uploadRecords.put(uploadId, uploadRecord);
+        }
+
+        public void removeRecord(String uploadId){
+            this.uploadRecords.remove(uploadId);
+        }
+
+        private boolean uploadIdAlreadyExists(String uploadId){
+            return uploadRecords.containsKey(uploadId);
         }
     }
 }
