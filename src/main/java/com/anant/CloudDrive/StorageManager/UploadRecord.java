@@ -1,6 +1,17 @@
 package com.anant.CloudDrive.StorageManager;
 
-/*
- Marker interface for records of different implementation, could have used Object type but perhaps this would be more descriptive....?
-  */
-public interface UploadRecord {}
+
+public abstract class UploadRecord {
+
+    private UploadRecordState state = UploadRecordState.NOT_INITIALISED;
+
+    public void setState(UploadRecordState state){
+       this.state = state;
+    }
+    public UploadRecordState getState(){
+       return this.state;
+    }
+}
+enum UploadRecordState {
+    NOT_INITIALISED, INITIALISED, IN_PROGRESS, COMPLETED
+}

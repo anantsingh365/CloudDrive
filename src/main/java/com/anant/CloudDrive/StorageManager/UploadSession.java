@@ -47,6 +47,10 @@ public class UploadSession{
         this.uploadRecords.put(uploadId, uploadRecord);
      }
 
+     public void removeRecord(String uploadId){
+        this.uploadRecords.remove(uploadId);
+     }
+
      private boolean uploadIdAlreadyExists(String uploadId){
         return uploadRecords.containsKey(uploadId);
      }

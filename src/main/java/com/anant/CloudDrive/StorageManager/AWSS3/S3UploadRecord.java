@@ -18,7 +18,8 @@ import java.util.List;
 @PropertySource("classpath:S3Credentials.properties")
 @Qualifier("S3UploadEntry")
 @Profile("s3")
-public class S3UploadRecord implements UploadRecord {
+public class S3UploadRecord extends UploadRecord {
+
     protected final List<PartETag> partETags = new ArrayList<>();
     protected int partNumber = 1;
     protected InitiateMultipartUploadResult initResponse;
@@ -26,4 +27,5 @@ public class S3UploadRecord implements UploadRecord {
     protected boolean isUploadCompleted = false;
     protected String userUploadKeyName;
     protected String contentType;
+
 }

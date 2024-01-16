@@ -10,6 +10,6 @@ import org.springframework.stereotype.Component;
 @Component
 @Scope(value = ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 @Profile("local")
-public class FileSystemUploadPartRecord implements UploadRecord {
+public class FileSystemUploadPartRecord extends UploadRecord {
 
 }

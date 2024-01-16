@@ -39,8 +39,11 @@ public class StorageManager {
             String newUploadId = session.createRecord(userName, req);
             boolean res = storageProvider.initializeUpload(userName, session.getRecord(newUploadId), req);
             if (!res) {
+                //cleanup
+                session.removeRecord(newUploadId);
                 throw new RuntimeException("Couldn't initalize the upload");
             }
+            session.getRecord(newUploadId).setState(UploadRecordState.INITIALISED);
             return newUploadId;
         }
         return AccountStates.ACCOUNT_UPGRADE.getValue();
@@ -51,12 +54,22 @@ public class StorageManager {
         if (record == null) {
             return false;
         }
-        return this.storageProvider.uploadPart(record, req);
+        if(record.getState() == UploadRecordState.INITIALISED && record.getState() != UploadRecordState.COMPLETED){
+            boolean res = this.storageProvider.uploadPart(record, req);
+            if(res){
+                record.setState(UploadRecordState.IN_PROGRESS);
+                return true;
+            }
+        }
+        return false;
     }
 
     public boolean completeUpload(final String uploadId, final String sessionId) {
-        UploadRecord entry = getExistingUploadRecord(uploadId, sessionId);
-        return storageProvider.completeUpload(entry);
+        UploadRecord record = getExistingUploadRecord(uploadId, sessionId);
+        if(record !=null){
+
+        }
+        return storageProvider.completeUpload(record);
     }
 
     private UploadRecord getExistingUploadRecord(final String uploadId, final String sessionId) {

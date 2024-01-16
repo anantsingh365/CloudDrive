@@ -14,6 +14,7 @@ import com.anant.CloudDrive.StorageManager.Models.UploadPartRequest_;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Profile;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Repository;
@@ -24,6 +25,7 @@ import java.util.List;
 
 @Repository
 @Qualifier("s3")
+@Profile("s3")
 public class S3StorageProvider implements StorageProvider {
 
     private final AmazonS3 s3Client;
