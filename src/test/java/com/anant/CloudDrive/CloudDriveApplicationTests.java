@@ -1,6 +1,5 @@
 package com.anant.CloudDrive;
 
-import com.anant.CloudDrive.StorageManager.UploadSession;
 import com.anant.CloudDrive.controller.Home;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -35,7 +34,7 @@ public class CloudDriveApplicationTests {
 	public Logger logger;
 
 	@Autowired
-	UploadSession session;
+	//UploadSession session;
 
 	@MockBean
 	public Home home;
