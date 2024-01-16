@@ -50,7 +50,7 @@ public class StorageManager {
                 session.removeRecord(newUploadId);
                 throw new RuntimeException("Couldn't initalize the upload");
             }
-            session.getRecord(newUploadId).setState(UploadRecordState.INITIALISED);
+            session.getRecord(newUploadId).setState(UploadRecordState.INITIALIZED);
             return newUploadId;
         }
         return AccountStates.ACCOUNT_UPGRADE.getValue();
@@ -62,14 +62,12 @@ public class StorageManager {
         if (record == null) {
             return false;
         }
-
         if(record.getState() == UploadRecordState.COMPLETED){
             return false;
         }
-
         // below condition means that uploadId has been generated, and we are now receiving the first chunk/part
         // after the first part we will change the record state to be "IN_PROGRESS"
-        if(record.getState() == UploadRecordState.INITIALISED && record.getPartsUploaded() == 0){
+        if(record.getState() == UploadRecordState.INITIALIZED && record.getPartsUploaded() == 0){
             boolean res = this.storageProvider.uploadPart(record, req);
             if(res){
                 record.setState(UploadRecordState.IN_PROGRESS);
@@ -77,7 +75,6 @@ public class StorageManager {
                 return true;
             }
         }
-
         // below condition means upload record has been initialized and at least first part has been uploaded
         // record state to be "IN_PROGRESS"
         if(record.getState() == UploadRecordState.IN_PROGRESS && record.getPartsUploaded() != 0){
@@ -87,7 +84,6 @@ public class StorageManager {
                 return true;
             }
         }
-
         return false;
     }
 
@@ -96,7 +92,7 @@ public class StorageManager {
         if(record == null){
             return false;
         }
-        if(record.getState() == UploadRecordState.INITIALISED || record.getState() == UploadRecordState.NOT_INITIALISED){
+        if(record.getState() == UploadRecordState.INITIALIZED){
             System.out.println("Invalid Upload Record State, state either Not initialised or initialised" +
                     " but needs to be in In_Progress only to be eligible for completion");
             return false;
@@ -106,7 +102,12 @@ public class StorageManager {
                     "StorageProvider implementation");
             return true;
         }
-        return storageProvider.completeUpload(record);
+        boolean res =  storageProvider.completeUpload(record);
+        if(res){
+            record.setState(UploadRecordState.COMPLETED);
+            return true;
+        }
+        return false;
     }
 
     private UploadRecord getExistingUploadRecord(final String uploadId, final String sessionId) {
@@ -178,7 +179,7 @@ public class StorageManager {
     }
 
     @Component
-    private static class UploadSessionsHolder2{
+    public static class UploadSessionsHolder2{
         private final ApplicationContext context;
         private final Logger logger;
         private final ConcurrentHashMap<String, UploadSession2> sessions = new ConcurrentHashMap<>();
@@ -208,10 +209,22 @@ public class StorageManager {
         }
     }
 
+//    @Component
+//    public static class UploadLifeCycleEventNotifier{
+//        private Map<UploadRecord,List<UploadLifeCycleEventListener>> recordListeners = new ConcurrentHashMap<>();
+//
+//    }
+
+    public static interface UploadLifeCycleEventListener {
+        void UploadInitialised(UploadRecord record);
+        void PartUpload(UploadRecord record);
+        void UploadCompleted(UploadRecord record);
+    }
+
     @Component
     @Qualifier("userUploadSession")
     @Scope(value = ConfigurableBeanFactory.SCOPE_PROTOTYPE)
-    private static class UploadSession2{
+    public static class UploadSession2{
 
         //represents multiple upload entries from a session
         private final ConcurrentHashMap<String, UploadRecord> uploadRecords = new ConcurrentHashMap<>();
