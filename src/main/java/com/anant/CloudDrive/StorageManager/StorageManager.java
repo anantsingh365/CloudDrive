@@ -93,8 +93,18 @@ public class StorageManager {
 
     public boolean completeUpload(final String uploadId, final String sessionId) {
         UploadRecord record = getExistingUploadRecord(uploadId, sessionId);
-        if(record !=null){
-
+        if(record == null){
+            return false;
+        }
+        if(record.getState() == UploadRecordState.INITIALISED || record.getState() == UploadRecordState.NOT_INITIALISED){
+            System.out.println("Invalid Upload Record State, state either Not initialised or initialised" +
+                    " but needs to be in In_Progress only to be eligible for completion");
+            return false;
+        }
+        if(record.getState() == UploadRecordState.COMPLETED){
+            System.out.println("Upload Has already been completed, Not calling underlying " +
+                    "StorageProvider implementation");
+            return true;
         }
         return storageProvider.completeUpload(record);
     }
