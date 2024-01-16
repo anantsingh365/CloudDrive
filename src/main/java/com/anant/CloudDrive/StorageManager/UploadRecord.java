@@ -6,7 +6,7 @@ package com.anant.CloudDrive.StorageManager;
 // -----> "INITIALIZED (uploadID generated, first part not yet uploaded)"
 // -----> "IN PROGRESS (after first part has been uploaded)"
 // -----> "COMPLETED (all parts have been uploaded and upload complete call has been triggered on storage Providers)"
-public abstract class UploadRecord {
+public abstract class UploadRecord{
 
     private UploadRecordState state = null;
 

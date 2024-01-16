@@ -15,7 +15,7 @@ import java.util.List;
 
 @Service
 @Profile("local")
-public class FileSystemService implements StorageProvider {
+public class FileSystemService implements StorageProvider<FileSystemUploadPartRecord> {
 
     @Override
     public Resource download(String fileName) {
@@ -38,17 +38,17 @@ public class FileSystemService implements StorageProvider {
     }
 
     @Override
-    public boolean initializeUpload(String userName, UploadRecord record, UploadIdRequest req) {
+    public boolean initializeUpload(String userName, FileSystemUploadPartRecord record, UploadIdRequest req) {
         return false;
     }
 
     @Override
-    public boolean uploadPart(UploadRecord entry, UploadPartRequest_ req) {
+    public boolean uploadPart(FileSystemUploadPartRecord entry, UploadPartRequest_ req) {
         return false;
     }
 
     @Override
-    public boolean completeUpload(UploadRecord entry) {
+    public boolean completeUpload(FileSystemUploadPartRecord entry) {
         return false;
     }
 

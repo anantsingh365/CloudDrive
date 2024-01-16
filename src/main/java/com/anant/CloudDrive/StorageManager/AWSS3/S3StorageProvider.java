@@ -26,7 +26,7 @@ import java.util.List;
 @Repository
 @Qualifier("s3")
 @Profile("s3")
-public class S3StorageProvider implements StorageProvider {
+public class S3StorageProvider implements StorageProvider<S3UploadRecord> {
 
     private final AmazonS3 s3Client;
     private final String bucketName;
@@ -45,9 +45,9 @@ public class S3StorageProvider implements StorageProvider {
     }
 
     @Override
-    public boolean uploadPart(UploadRecord record, UploadPartRequest_ req) {
+    public boolean uploadPart(S3UploadRecord record, UploadPartRequest_ req) {
         //boolean res = entry.uploadPart(req);
-        return this.processPartUploadPriv((S3UploadRecord) record, req);
+        return this.processPartUploadPriv(record, req);
     }
 
     @Override
@@ -81,14 +81,14 @@ public class S3StorageProvider implements StorageProvider {
     }
 
     @Override
-    public boolean initializeUpload(String userName, UploadRecord record, UploadIdRequest req) {
-        return this.initializeUploadPriv(userName, (S3UploadRecord) record, req);
+    public boolean initializeUpload(String userName, S3UploadRecord record, UploadIdRequest req) {
+        return this.initializeUploadPriv(userName, record, req);
         //record.initUpload(userName, req);
     }
 
     @Override
-    public boolean completeUpload(UploadRecord record) {
-        return completeUploadPriv((S3UploadRecord) record);
+    public boolean completeUpload(S3UploadRecord record) {
+        return completeUploadPriv(record);
     }
 
     @Override

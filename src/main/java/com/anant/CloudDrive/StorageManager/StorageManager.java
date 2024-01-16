@@ -20,7 +20,7 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Service
-public class StorageManager {
+public class StorageManager{
 
     private final ApplicationContext context;
 
@@ -252,7 +252,7 @@ public class StorageManager {
         }
 
         private void createRecord(String uploadId){
-            var uploadRecord = context.getBean(UploadRecord.class);
+            UploadRecord uploadRecord =  context.getBean(UploadRecord.class);
             this.uploadRecords.put(uploadId, uploadRecord);
         }
 
