@@ -48,6 +48,11 @@ public class FileSystemService implements StorageProvider<FileSystemUploadPartRe
     }
 
     @Override
+    public boolean abortUpload(FileSystemUploadPartRecord record) {
+        return false;
+    }
+
+    @Override
     public boolean completeUpload(FileSystemUploadPartRecord entry) {
         return false;
     }

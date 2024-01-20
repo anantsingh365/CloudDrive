@@ -1,5 +1,5 @@
 package com.anant.CloudDrive.StorageManager;
 
 public enum UploadRecordState {
-    NOT_INITIALISED, INITIALIZED, IN_PROGRESS, COMPLETED
+   INITIALIZED, IN_PROGRESS, ABORTED, COMPLETED
 }

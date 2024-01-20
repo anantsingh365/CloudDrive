@@ -80,6 +80,23 @@ public class Home {
                 returnInternalServerError();
     }
 
+    @PostMapping
+    @ResponseBody
+    public String cancelUpload(@RequestBody Map<String, String> cancelUploadReq){
+       String uploadID = cancelUploadReq.get("upload-id");
+       String sessionID = CommonUtils.getUserData(signedInUser.GET_SESSIONID);
+       String userName = CommonUtils.getUserData(signedInUser.GET_USERNAME);
+
+       if(uploadID != null){
+          boolean uploadCancelled =  storageManager.cancelUpload(uploadID, userName, sessionID);
+          if(uploadCancelled){
+              return "cancelled";
+          }
+       }
+
+       return "error cancelling the upload";
+    }
+
     @GetMapping("/user/download{id}")
     @ResponseBody
     public ResponseEntity<Resource> download(@RequestParam("id") String id,
@@ -108,6 +125,7 @@ public class Home {
         //String id = renameRequestPayLoad.get("id");
        // String newFileName = renameRequestPayLoad.get("newFileName");
         String originalFileName = resolveFileNameFromId(id, model);
+        //boolean result = storageManager.renameFile(originalFileName, CommonUtils.getUserData(CommonUtils.signedInUser.GET_USERNAME) +"/" + newFileName);
         boolean result = storageManager.renameFile(originalFileName, CommonUtils.getUserData(CommonUtils.signedInUser.GET_USERNAME) +"/" + newFileName);
         return result ? returnOkResponse("renameDone") : returnBadResponse("rename failed");
     }

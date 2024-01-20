@@ -41,50 +41,95 @@ public class StorageManager{
     }
 
     public String getUploadId(final UploadIdRequest req, final String sessionId, final String userName) {
+        String generatedUploadID = null;
         if (verifyUserHasSpaceQuotaLeft(userName)) {
             var session = uploadSessionsHolder.getSession(sessionId);
-            String newUploadId = session.createRecord(userName, req);
-            boolean res = storageProvider.initializeUpload(userName, session.getRecord(newUploadId), req);
+            generatedUploadID = session.createRecord(userName, req);
+            boolean res = storageProvider.initializeUpload(userName, session.getRecord(generatedUploadID), req);
             if (!res) {
                 //cleanup
-                session.removeRecord(newUploadId);
+                session.removeRecord(generatedUploadID);
                 throw new RuntimeException("Couldn't initalize the upload");
             }
-            session.getRecord(newUploadId).setState(UploadRecordState.INITIALIZED);
-            return newUploadId;
+            if(session.getRecord(generatedUploadID).getState() == UploadRecordState.ABORTED){
+                // client has aborted the upload
+                session.removeRecord(generatedUploadID);
+                return "Upload Aborted";
+            }
+            session.getRecord(generatedUploadID).setState(UploadRecordState.INITIALIZED);
+            return generatedUploadID;
         }
         return AccountStates.ACCOUNT_UPGRADE.getValue();
     }
 
     public boolean uploadPart(final UploadPartRequest_ req, final String sessionId) {
+        boolean wasUploadPartSuccess = false;
         UploadRecord record = getExistingUploadRecord(req.getUploadId(), sessionId);
         // we don't have any record for the given uploadID
         if (record == null) {
             return false;
         }
-        if(record.getState() == UploadRecordState.COMPLETED){
+        if(record.getState() == UploadRecordState.COMPLETED
+               || record.getState() == UploadRecordState.ABORTED){
             return false;
         }
         // below condition means that uploadId has been generated, and we are now receiving the first chunk/part
-        // after the first part we will change the record state to be "IN_PROGRESS"
-        if(record.getState() == UploadRecordState.INITIALIZED && record.getPartsUploaded() == 0){
-            boolean res = this.storageProvider.uploadPart(record, req);
-            if(res){
+        // after the first part we will change the record state to be "IN_PROGRESS", and upload
+        // hasn't been aborted by user
+        if(record.getState() == UploadRecordState.INITIALIZED
+              && record.getPartsUploaded() == 0)
+        {
+            wasUploadPartSuccess = this.storageProvider.uploadPart(record, req);
+            if(wasUploadPartSuccess){
                 record.setState(UploadRecordState.IN_PROGRESS);
                 record.incrementPartsUploaded();
-                return true;
+                return wasUploadPartSuccess;
             }
         }
         // below condition means upload record has been initialized and at least first part has been uploaded
         // record state to be "IN_PROGRESS"
-        if(record.getState() == UploadRecordState.IN_PROGRESS && record.getPartsUploaded() != 0){
-            boolean res = this.storageProvider.uploadPart(record, req);
-            if(res){
+        if(record.getState() == UploadRecordState.IN_PROGRESS
+             && record.getPartsUploaded() != 0)
+        {
+            wasUploadPartSuccess = this.storageProvider.uploadPart(record, req);
+            if(wasUploadPartSuccess){
                 record.incrementPartsUploaded();
-                return true;
+                return wasUploadPartSuccess;
             }
         }
         return false;
+    }
+
+    public boolean cancelUpload(final String uploadID, final String userName, final String sessionID){
+            boolean isCancelled = false;
+            var record = getExistingRecord(sessionID, uploadID);
+
+            //completed upload can't be cancelled dummy
+            if(record.getState() == UploadRecordState.COMPLETED){
+                return false;
+            }
+            if(record.getState() == UploadRecordState.ABORTED){
+                //doing nothing when aborting already aborted record
+                return true;
+            }
+            isCancelled = this.storageProvider.abortUpload(record);
+            if(isCancelled){
+                record.setState(UploadRecordState.ABORTED);
+                return isCancelled;
+            }
+        return false;
+    }
+
+    private UploadRecord getExistingRecord(String sessionID, String uploadID){
+        final var session = this.uploadSessionsHolder.getExistingSession(sessionID);
+        if(session == null){
+            throw new RuntimeException("No session Associated with the session ID - " + sessionID);
+        }
+        final var record = session.getRecord(uploadID);
+        if(record == null) {
+            throw new RuntimeException("No Upload Record Associated with the Upload ID - " + uploadID);
+        }
+        return record;
     }
 
     public boolean completeUpload(final String uploadId, final String sessionId) {
@@ -93,8 +138,7 @@ public class StorageManager{
             return false;
         }
         if(record.getState() == UploadRecordState.INITIALIZED){
-            System.out.println("Invalid Upload Record State, state either Not initialised or initialised" +
-                    " but needs to be in In_Progress only to be eligible for completion");
+            System.out.println("Invalid Record State, needs to be in progress to be completed");
             return false;
         }
         if(record.getState() == UploadRecordState.COMPLETED){
@@ -110,6 +154,10 @@ public class StorageManager{
         return false;
     }
 
+    private void removeExistingRecord(String uploadId, String sessionId){
+       var session = uploadSessionsHolder.getExistingSession(sessionId);
+       session.removeRecord(uploadId);
+    }
     private UploadRecord getExistingUploadRecord(final String uploadId, final String sessionId) {
         var session = uploadSessionsHolder.getExistingSession(sessionId);
         if (session == null) {

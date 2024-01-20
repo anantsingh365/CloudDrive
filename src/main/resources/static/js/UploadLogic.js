@@ -10,6 +10,8 @@ class Upload{
     uploadIdLink = "/user/uploadId"
     isUploadCompleted = false;
     pauseUploadFlag = false;
+    cancelUploadFlag = false;
+    wasUploadCancelled = false;
 
     //events handlers associated with various upload events.
     handlersContainer;
@@ -65,6 +67,10 @@ class Upload{
         }}
     }
 
+    cancelUploadFunc(){
+        this.cancelUploadFlag = true;
+    }
+
      async startUpload(){
         //1st step
         try{
@@ -111,6 +117,17 @@ class Upload{
                     }
                    }else{
                        // false promise resolve means upload was paused                        
+                   if(this.wasUploadCancelled){
+                        //console.log("Upload Cancelled register")
+                    //     console.log("Upload cancelled");
+                    //     const f = this.handlersContainer.uploadCompleteHandler;
+                    // if(f == undefined){
+                    //     console.log("No handler associated with upload paused event...");
+                    // }else{
+                    //     f();
+                    // }
+                   }
+                   else{
                     const f = this.handlersContainer.uploadPausedHandler;
                     if(f == undefined){
                         console.log("No handler associated with upload paused event...");
@@ -118,6 +135,7 @@ class Upload{
                         f();
                     }
                     console.log("Upload Paused");
+                   } 
                    }
             }catch(err){
                 const f = this.handlersContainer.gettingUploadIdFailedHandler;
@@ -207,10 +225,10 @@ class Upload{
                 endIndx = start + partSize;
             }
         
-            while(!this.pauseUploadFlag){
+            while(!this.pauseUploadFlag && !this.cancelUploadFlag){
                 if ( ((fileObj.size - start) >= partSize) ) {
-                     //slice out a part
                      filePart = fileObj.slice(start, endIndx)
+                     
                      console.log("sending a part")
                      let result = await this.sendPart(filePart, url, uploadId)
                     const uploadProgressListenerHandler = this.handlersContainer.uploadProgressListener;
@@ -267,6 +285,18 @@ class Upload{
                 console.log("Upload Paused");
                 this.resumeState.startIndex = start;
             }
+            if(this.cancelUploadFlag){
+              console.log("cancelling the upload in the while loop");
+              this.wasUploadCancelled=true;
+                console.log("Upload cancelled");
+                        const f = this.handlersContainer.uploadCompleteHandler;
+                    if(f == undefined){
+                        console.log("No handler associated with upload paused event...");
+                    }else{
+                        f();
+                    }
+              return false;  
+            }
             //returning false indicates that upload was paused
             //for failure an exception will be thrown by sendPart() and should be handled by uploadSequence().
             return false;
@@ -304,6 +334,36 @@ class Upload{
             });
         }
 
+        async cancelUpload(url, uploadId){
+            return new Promise((resolve, reject)=>{
+                let xhr = new XMLHttpRequest();
+                xhr.open("POST", url, true);
+                xhr.setRequestHeader("upload-id" ,uploadId);
+                xhr.onload = ()=> {
+                    console.log(xhr.responeText);
+                    if(xhr.responseText === "cancelled"){
+                        console.log("upload cancelled");
+                        resolve(true);
+                       // return true;
+                    }
+                    if (this.status >= 200 && this.status < 300) {
+        
+                    }else {
+                        reject({
+                            status: this.status,
+                            statusText: xhr.statusText
+                        });
+                    }
+                };
+                xhr.onerror = ()=> {
+                    reject({
+                        status: this.status,
+                        statusText: xhr.statusText
+                    });
+                };
+            });
+        }
+
         async sendUploadCompleteConfirmation(uploadId){
             return new Promise((resolve, reject) => {
                 let xhr = new XMLHttpRequest();
@@ -329,7 +389,6 @@ class Upload{
                 reject(false);
             };
             xhr.send(null);
-        
             });
         }
 

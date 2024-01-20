@@ -22,6 +22,7 @@ import org.springframework.stereotype.Repository;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Supplier;
 
 @Repository
 @Qualifier("s3")
@@ -48,6 +49,12 @@ public class S3StorageProvider implements StorageProvider<S3UploadRecord> {
     public boolean uploadPart(S3UploadRecord record, UploadPartRequest_ req) {
         //boolean res = entry.uploadPart(req);
         return this.processPartUploadPriv(record, req);
+    }
+
+    @Override
+    public boolean abortUpload(S3UploadRecord record) {
+
+        return false;
     }
 
     @Override

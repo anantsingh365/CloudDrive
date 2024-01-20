@@ -19,6 +19,27 @@ function addUploadProgressListener(handlersObj){
     handlersObj.uploadProgressListener = func;
 }
 
+function addUploadCancelHandler(handlersObj){
+      const func = () => {
+        // before removing the upload Instance from container show successful message for some time
+        const uploadInstanceId = handlersObj.uploadInstanceId;
+
+         const totalUploadSizeText = document.getElementById('totalUploadSizeText'+uploadInstanceId);
+         const uploadPauseResumeButton = document.getElementById('uploadPauseButton'+uploadInstanceId);
+         totalUploadSizeText.remove();
+         uploadPauseResumeButton.remove();
+
+         --numOfUploads;
+        // removeUploadsContainerIfUploadsZero();
+
+         const uploadDoneText = document.getElementById('uploadDoneText'+uploadInstanceId);
+        uploadDoneText.innerText = "Upload Cancelled";
+
+        setTimeout(()=>{removeUploadInstanceToOnGoingUploadsContainer(uploadInstanceId);}, 3000);  
+    };
+    handlersObj.uploadCompleteHandler = func;
+}
+
 function addUploadPausedHandler(handlersObj){
     //to do 
     const func = () => {
@@ -94,6 +115,7 @@ function addUploadInstanceToOnGoingUploadsContainer(uploadInstanceId, fileObj){
     <h2>Uploading ${fileObj.name}</h1>\n\
     <p><span id = "uploadDoneText${uploadInstanceId}"> </span><span id = "totalUploadSizeText${uploadInstanceId}">${fileObj.size} )</span>\n\
     <button id = "uploadPauseButton${uploadInstanceId}">Pause Upload</button>\n\
+    <button id = "uploadCancelButton${uploadInstanceId}">Cancel Upload</button>\n\
     </p>\n\
 </div>`;
 
@@ -102,6 +124,8 @@ function addUploadInstanceToOnGoingUploadsContainer(uploadInstanceId, fileObj){
     const querySelectorString=  `[uploadPauseButton = "${uploadInstanceId}"]`;
     const pauseButtonId=  `uploadPauseButton${uploadInstanceId}`;
     const pauseButton = document.getElementById(pauseButtonId);
+    const cancelButtonId=  `uploadCancelButton${uploadInstanceId}`;
+    const cancelButton = document.getElementById(cancelButtonId);
 
     const uploadInstanceAttachedToButton = onGoingUploadInstances.find((uploadInstance) =>{
         return  uploadInstance.handlersContainer.uploadInstanceId === uploadInstanceId;
@@ -109,7 +133,12 @@ function addUploadInstanceToOnGoingUploadsContainer(uploadInstanceId, fileObj){
     const pauseButtonEventListener = () =>{
         uploadInstanceAttachedToButton.pauseUpload();
     };
+
+    const cancelUploadButtonEventListener = () =>{
+        uploadInstanceAttachedToButton.cancelUploadFunc();
+    }
     pauseButton.addEventListener('click', pauseButtonEventListener);
+    cancelButton.addEventListener('click', cancelUploadButtonEventListener);
 }
 
 function removeUploadInstanceToOnGoingUploadsContainer(uploadInstanceId){
@@ -132,6 +161,7 @@ var submitButtonEventListener = () => {
     addUploadStartingHandler(uploadHandlers)
     addUploadCompleteConfirmationSuccessHandler(uploadHandlers)
     addUploadProgressListener(uploadHandlers); 
+    addUploadCancelHandler(uploadHandlers);
        
     uploadInstance = new Upload(fileObj, uploadfileLink, uploadIdLink, uploadHandlers);
     onGoingUploadInstances.push(uploadInstance);
@@ -139,6 +169,7 @@ var submitButtonEventListener = () => {
     uploadInstance.startUpload();
     ++numOfUploads;
 }
+
     document.getElementById('submitButton').addEventListener("click", submitButtonEventListener);
 
 document.getElementById('file').addEventListener('change', async (event) => {

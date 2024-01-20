@@ -16,6 +16,7 @@ public interface StorageProvider<T extends UploadRecord> {
 
     boolean initializeUpload(String userName, T record, UploadIdRequest req);
     boolean uploadPart(T record, UploadPartRequest_ req);
+    boolean abortUpload(T record);
     boolean completeUpload(T record);
 
     List<UserFileMetaData> getUserObjectsMetaData(String userName);
