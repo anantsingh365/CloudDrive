@@ -15,6 +15,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Profile;
+import org.springframework.context.annotation.PropertySource;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Repository;
@@ -25,7 +26,7 @@ import java.util.List;
 import java.util.function.Supplier;
 
 @Repository
-@Qualifier("s3")
+@PropertySource("classpath:S3Credentials.properties")
 @Profile("s3")
 public class S3StorageProvider implements StorageProvider<S3UploadRecord> {
 
@@ -83,7 +84,7 @@ public class S3StorageProvider implements StorageProvider<S3UploadRecord> {
     }
 
     @Override
-    public long getStorageUsedByUser() {
+    public long getStorageUsedByUser(String userName) {
         return 0;
     }
 
@@ -104,11 +105,11 @@ public class S3StorageProvider implements StorageProvider<S3UploadRecord> {
         System.out.println("Generating new File Listing");
         List<UserFileMetaData> list = new ArrayList<>();
         s3Client.listObjectsV2(bucketName, userName+"/")
-                .getObjectSummaries().forEach(x -> list.add(
-                        new UserFileMetaData(x.getKey(),
-                                x.getSize(),
-                                x.getLastModified(),
-                                s3Client.getObjectMetadata(bucketName, x.getKey()).getContentType())
+                .getObjectSummaries().forEach(item -> list.add(
+                        new UserFileMetaData(item.getKey(),
+                                item.getSize(),
+                                item.getLastModified(),
+                                s3Client.getObjectMetadata(bucketName, item.getKey()).getContentType())
                 ));
         return list;
     }

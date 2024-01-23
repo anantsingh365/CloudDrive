@@ -12,14 +12,12 @@ import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Supplier;
 
 @Component
 @Scope(value = ConfigurableBeanFactory.SCOPE_PROTOTYPE)
-@PropertySource("classpath:S3Credentials.properties")
-@Qualifier("S3UploadEntry")
 @Profile("s3")
 public class S3UploadRecord extends UploadRecord {
-
     protected final List<PartETag> partETags = new ArrayList<>();
     protected int partNumber = 1;
     protected InitiateMultipartUploadResult initResponse;
@@ -27,5 +25,4 @@ public class S3UploadRecord extends UploadRecord {
     protected boolean isUploadCompleted = false;
     protected String userUploadKeyName;
     protected String contentType;
-
 }

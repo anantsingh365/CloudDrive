@@ -10,8 +10,7 @@ class Upload{
     uploadIdLink = "/user/uploadId"
     isUploadCompleted = false;
     pauseUploadFlag = false;
-    cancelUploadFlag = false;
-    wasUploadCancelled = false;
+    globalStopFlag = false;
 
     //events handlers associated with various upload events.
     handlersContainer;
@@ -68,8 +67,18 @@ class Upload{
     }
 
     cancelUploadFunc(){
-        this.cancelUploadFlag = true;
-    }
+        this.globalStopFlag = true;
+        //if(this.cancelUploadFlag){
+        console.log("cancelling the upload in the while loop");
+        console.log("Upload cancelled");
+        const f = this.handlersContainer.uploadCompleteHandler;
+        if(f == undefined){
+           console.log("No handler associated with upload paused event...");
+         }else{
+           f();
+         }
+   }
+    
 
      async startUpload(){
         //1st step
@@ -225,7 +234,7 @@ class Upload{
                 endIndx = start + partSize;
             }
         
-            while(!this.pauseUploadFlag && !this.cancelUploadFlag){
+            while(!this.pauseUploadFlag && !this.globalStopFlag){
                 if ( ((fileObj.size - start) >= partSize) ) {
                      filePart = fileObj.slice(start, endIndx)
                      
@@ -285,18 +294,7 @@ class Upload{
                 console.log("Upload Paused");
                 this.resumeState.startIndex = start;
             }
-            if(this.cancelUploadFlag){
-              console.log("cancelling the upload in the while loop");
-              this.wasUploadCancelled=true;
-                console.log("Upload cancelled");
-                        const f = this.handlersContainer.uploadCompleteHandler;
-                    if(f == undefined){
-                        console.log("No handler associated with upload paused event...");
-                    }else{
-                        f();
-                    }
-              return false;  
-            }
+            
             //returning false indicates that upload was paused
             //for failure an exception will be thrown by sendPart() and should be handled by uploadSequence().
             return false;

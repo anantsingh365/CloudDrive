@@ -12,7 +12,7 @@ public interface StorageProvider<T extends UploadRecord> {
     boolean deleteFile(String fileName);
     boolean renameFile(String oldFileName, String newFileName);
 
-    long getStorageUsedByUser();
+    long getStorageUsedByUser(String userName);
 
     boolean initializeUpload(String userName, T record, UploadIdRequest req);
     boolean uploadPart(T record, UploadPartRequest_ req);

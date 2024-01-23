@@ -33,7 +33,7 @@ public class FileSystemService implements StorageProvider<FileSystemUploadPartRe
     }
 
     @Override
-    public long getStorageUsedByUser() {
+    public long getStorageUsedByUser(String userName) {
         return 0;
     }
 

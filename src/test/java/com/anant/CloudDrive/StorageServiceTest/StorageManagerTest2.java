@@ -27,35 +27,12 @@ public class StorageManagerTest2 {
     StorageManager manager;
 
     @Test
-    public void GetNewUploadIdSuccess() {
-        when(subscriptionService.getTier(anyString())).thenReturn("200"); // 200 mb
-        when(storageProvider.initializeUpload(anyString(), any(UploadRecord.class), any(UploadIdRequest.class))).thenReturn(true);
-        String uploadId = manager.getUploadId(new UploadIdRequest("testFile", "audio/Flac"), "0987654321", "AnantSingh");
-        System.out.println("Success Upload ID creation Test - " + uploadId);
-        Assertions.assertNotEquals("Account Upgrade", uploadId);
-    }
-
-    @Test
     public void GetNewUploadIdFailure() {
         when(subscriptionService.getTier(anyString())).thenReturn("100"); // 100 mb
         when(storageProvider.getStorageUsedByUser()).thenReturn(150000000L);//roughly 150 mb from bytes to mb
         String uploadId = manager.getUploadId(new UploadIdRequest("testFile", "audio/Flac"), "0987654321", "AnantSingh");
         System.out.println("Success Upload ID creation Test - " + uploadId);
         Assertions.assertEquals("Account Upgrade", uploadId);
-    }
-
-    @Test
-    public void uploadPartTest() {
-        when(subscriptionService.getTier(anyString())).thenReturn("200"); // 200 mb
-        when(storageProvider.initializeUpload(anyString(), any(UploadRecord.class), any(UploadIdRequest.class))).thenReturn(true);
-        when(storageProvider.uploadPart(any(UploadRecord.class), any(UploadPartRequest_.class))).thenReturn(true);
-        String uploadId = manager.getUploadId(new UploadIdRequest("testFile", "audio/Flac"), "0987654321", "AnantSingh");
-        UploadPartRequest_ req = new UploadPartRequest_(null, uploadId, 0L);
-        boolean uploadPartRes = manager.uploadPart(req, "0987654321");
-        ArgumentCaptor<UploadRecord> argumentCaptor = ArgumentCaptor.forClass(UploadRecord.class);
-        ArgumentCaptor<UploadPartRequest_> argumentCaptor2 = ArgumentCaptor.forClass(UploadPartRequest_.class);
-        verify(storageProvider).uploadPart(argumentCaptor.capture(), argumentCaptor2.capture());
-        Assertions.assertTrue(uploadPartRes);
     }
 
     //below tests pretty much covers entire upload lifecycle in its entirety
@@ -69,7 +46,7 @@ public class StorageManagerTest2 {
 
        // doing multipart upload
         UploadPartRequest_ req = new UploadPartRequest_(null, uploadId, 0L);
-        manager.uploadPart(req, "0987654321");
+        boolean partUploadRes = manager.uploadPart(req, "0987654321");
         UploadPartRequest_ req2 = new UploadPartRequest_(null, uploadId, 0L);
         manager.uploadPart(req, "0987654321");
         UploadPartRequest_ req3 = new UploadPartRequest_(null, uploadId, 0L);
@@ -77,7 +54,11 @@ public class StorageManagerTest2 {
 
         boolean completeUploadResult = manager.completeUpload(uploadId, "0987654321");
         Assertions.assertTrue(completeUploadResult);
+        Assertions.assertTrue(partUploadRes);
     }
+
+    @Test
+    public void sending(){}
 
     @Test
     public void completeUploadTestShouldFailWhenPartUploadStepSkipped(){
@@ -132,7 +113,39 @@ public class StorageManagerTest2 {
 
         // final LifeCycle State for a Upload
         Assertions.assertEquals(state3, UploadRecordState.COMPLETED);
-
+       // verify(storageProvider.completeUpload()).
         Assertions.assertTrue(completeUploadResult);
+    }
+
+    @Test
+    public void ValidateAllTheStorageProviderMethodsAreBeingCalledByTheStorageManager(@Autowired StorageManager.UploadSessionsHolder2 holder)
+    {
+        when(subscriptionService.getTier(anyString())).thenReturn("200"); // 200 mb
+        when(storageProvider.initializeUpload(anyString(), any(UploadRecord.class), any(UploadIdRequest.class))).thenReturn(true);
+        when(storageProvider.uploadPart(any(UploadRecord.class), any(UploadPartRequest_.class))).thenReturn(true);
+        when(storageProvider.completeUpload(any(UploadRecord.class))).thenReturn(true);
+        String uploadId = manager.getUploadId(new UploadIdRequest("testFile", "audio/Flac"), "0987654321", "AnantSingh");
+
+        ////////////////// UPLOADING PART 1 //////////////////////////////////////////////////
+        UploadPartRequest_ req = new UploadPartRequest_(null, uploadId, 0L);
+        manager.uploadPart(req, "0987654321");
+        /////////////////////////////////////////////////////////////////////////////////////
+
+        //////////////////// UPLOADING PART 2 //////////////////////////////////////////////////
+        UploadPartRequest_ req2 = new UploadPartRequest_(null, uploadId, 0L);
+        manager.uploadPart(req, "0987654321");
+        ////////////////////////////////////////////////////////////////////////////////////////
+
+        //////////////////// UPLOADING PART 3 //////////////////////////////////////////////////
+        UploadPartRequest_ req3 = new UploadPartRequest_(null, uploadId, 0L);
+        manager.uploadPart(req, "0987654321");
+        ///////////////////////////////////////////////////////////////////////////////////////
+
+        ////////////////////////////COMPLETE THE UPLOAD////////////////////////////////////////
+        manager.completeUpload(uploadId, "0987654321");
+
+        verify(storageProvider, atMost(1)).initializeUpload(any(String.class), any(UploadRecord.class), any(UploadIdRequest.class));
+        verify(storageProvider, atLeastOnce()).uploadPart(any(UploadRecord.class), any(UploadPartRequest_.class));
+        verify(storageProvider, atMost(1)).completeUpload(any(UploadRecord.class));
     }
 }

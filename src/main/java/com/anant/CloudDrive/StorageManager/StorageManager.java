@@ -44,7 +44,7 @@ public class StorageManager{
         String generatedUploadID = null;
         if (verifyUserHasSpaceQuotaLeft(userName)) {
             var session = uploadSessionsHolder.getSession(sessionId);
-            generatedUploadID = session.createRecord(userName, req);
+            generatedUploadID = session.createRecord(userName);
             boolean res = storageProvider.initializeUpload(userName, session.getRecord(generatedUploadID), req);
             if (!res) {
                 //cleanup
@@ -199,7 +199,7 @@ public class StorageManager{
         String storageTier = subscriptionService.getTier(userName);
         int storageTierInt = Integer.parseInt(storageTier);
 
-        long storageQuotaInMB = (int) storageProvider.getStorageUsedByUser() / 1048576;
+        long storageQuotaInMB = (int) storageProvider.getStorageUsedByUser(null) / 1048576;
         if (storageQuotaInMB < storageTierInt) {
             System.out.println("User has space quota left");
             return true;
@@ -284,12 +284,12 @@ public class StorageManager{
             this.logger = logger;
         }
 
-        public String createRecord(String userName, UploadIdRequest uploadIdRequest){
+        public String createRecord(String userName){
             String freshUploadId = UUID.randomUUID().toString();
             if(uploadIdAlreadyExists(freshUploadId)){
                 throw new RuntimeException("Couldn't generate a unique uploadId");
             }
-            createRecord(freshUploadId);
+            createRecord_(freshUploadId);
             //uploadRecord.initUpload(userName, uploadIdRequest);
             logger.info("Created Upload Record for User - {}, Upload Id - {}", userName, freshUploadId);
             return freshUploadId;
@@ -299,7 +299,7 @@ public class StorageManager{
             return uploadRecords.get(uploadId);
         }
 
-        private void createRecord(String uploadId){
+        private void createRecord_(String uploadId){
             UploadRecord uploadRecord =  context.getBean(UploadRecord.class);
             this.uploadRecords.put(uploadId, uploadRecord);
         }
