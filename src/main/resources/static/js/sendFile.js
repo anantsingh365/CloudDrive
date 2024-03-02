@@ -170,7 +170,16 @@ var submitButtonEventListener = () => {
     ++numOfUploads;
 }
 
-    document.getElementById('submitButton').addEventListener("click", submitButtonEventListener);
+function startTheUpload(){
+ // upload will be started, but while you are starting the upload we need to register the observee
+ // to the manager class
+ // upload manager class that way in the method we will be receiving the ongoing transaction
+}
+
+//this method will receive the ongoing uploads data, ideally in regular intervals
+//example of such objects is given below
+// 
+document.getElementById('submitButton').addEventListener("click", submitButtonEventListener);
 
 document.getElementById('file').addEventListener('change', async (event) => {
  // resetUploadState();

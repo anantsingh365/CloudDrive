@@ -1,10 +1,9 @@
-package com.anant.CloudDrive.StorageManager.LocalFileSystem;
+package com.anant.CloudDrive.Storage.LocalFileSystem;
 
-import com.anant.CloudDrive.StorageManager.StorageProvider;
-import com.anant.CloudDrive.StorageManager.UploadRecord;
-import com.anant.CloudDrive.StorageManager.Models.UploadIdRequest;
-import com.anant.CloudDrive.StorageManager.Models.UploadPartRequest_;
-import com.anant.CloudDrive.StorageManager.Models.UserFileMetaData;
+import com.anant.CloudDrive.Storage.StorageProvider;
+import com.anant.CloudDrive.Storage.Models.UploadIdRequest;
+import com.anant.CloudDrive.Storage.Models.UploadPartRequest;
+import com.anant.CloudDrive.Storage.Models.UserFileMetaData;
 
 import org.springframework.context.annotation.Profile;
 import org.springframework.core.io.Resource;
@@ -43,7 +42,7 @@ public class FileSystemService implements StorageProvider<FileSystemUploadPartRe
     }
 
     @Override
-    public boolean uploadPart(FileSystemUploadPartRecord entry, UploadPartRequest_ req) {
+    public boolean uploadPart(FileSystemUploadPartRecord entry, UploadPartRequest req) {
         return false;
     }
 

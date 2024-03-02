@@ -1,8 +1,8 @@
-package com.anant.CloudDrive.StorageManager;
+package com.anant.CloudDrive.Storage;
 
-import com.anant.CloudDrive.StorageManager.Models.UserFileMetaData;
-import com.anant.CloudDrive.StorageManager.Models.UploadIdRequest;
-import com.anant.CloudDrive.StorageManager.Models.UploadPartRequest_;
+import com.anant.CloudDrive.Storage.Models.UserFileMetaData;
+import com.anant.CloudDrive.Storage.Models.UploadIdRequest;
+import com.anant.CloudDrive.Storage.Models.UploadPartRequest;
 
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -41,6 +41,9 @@ public class StorageManager{
     }
 
     public String getUploadId(final UploadIdRequest req, final String sessionId, final String userName) {
+
+        //TransferManager manager = TransferManagerConfiguration;
+
         String generatedUploadID = null;
         if (verifyUserHasSpaceQuotaLeft(userName)) {
             var session = uploadSessionsHolder.getSession(sessionId);
@@ -62,7 +65,7 @@ public class StorageManager{
         return AccountStates.ACCOUNT_UPGRADE.getValue();
     }
 
-    public boolean uploadPart(final UploadPartRequest_ req, final String sessionId) {
+    public boolean uploadPart(final UploadPartRequest req, final String sessionId) {
         boolean wasUploadPartSuccess = false;
         UploadRecord record = getExistingUploadRecord(req.getUploadId(), sessionId);
         // we don't have any record for the given uploadID
@@ -120,7 +123,7 @@ public class StorageManager{
         return false;
     }
 
-    private UploadRecord getExistingRecord(String sessionID, String uploadID){
+    private UploadRecord getExistingRecord(final String sessionID, final String uploadID){
         final var session = this.uploadSessionsHolder.getExistingSession(sessionID);
         if(session == null){
             throw new RuntimeException("No session Associated with the session ID - " + sessionID);
@@ -154,7 +157,7 @@ public class StorageManager{
         return false;
     }
 
-    private void removeExistingRecord(String uploadId, String sessionId){
+    private void removeExistingRecord(final String uploadId, final String sessionId){
        var session = uploadSessionsHolder.getExistingSession(sessionId);
        session.removeRecord(uploadId);
     }
@@ -175,6 +178,10 @@ public class StorageManager{
     }
 
     public boolean deleteUserFile(final String fileName) {
+        List<String> list = List.of("Hello world", "my name is anant singh", "Abhay Singh");
+        list.forEach((x) ->{
+         //   x.
+        });
         return storageProvider.deleteFile(fileName);
     }
 
@@ -182,7 +189,7 @@ public class StorageManager{
         return storageProvider.renameFile(originalName, newName);
     }
 
-    public long getStorageUsedByUser(String userName) {
+    public long getStorageUsedByUser(final String userName) {
         var userObjectListing = getUserObjectsMetaData(userName);
         long sum = 0;
         for (UserFileMetaData file : userObjectListing) {
@@ -199,7 +206,7 @@ public class StorageManager{
         String storageTier = subscriptionService.getTier(userName);
         int storageTierInt = Integer.parseInt(storageTier);
 
-        long storageQuotaInMB = (int) storageProvider.getStorageUsedByUser(null) / 1048576;
+        long storageQuotaInMB = (int) storageProvider.getStorageUsedByUser(userName) / 1048576;
         if (storageQuotaInMB < storageTierInt) {
             System.out.println("User has space quota left");
             return true;
@@ -232,13 +239,19 @@ public class StorageManager{
         private final Logger logger;
         private final ConcurrentHashMap<String, UploadSession2> sessions = new ConcurrentHashMap<>();
 
-        // one session ID --has---> one upload Session --has---> multiple Upload Records
+        // one session ID --has---> one upload Session
+        // one upload Session --has---> multiple Upload Records
+
+        //                                                   |---> UploadRecord
+       // (unique) sessionID -------> (unique) uploadSession |---> UploadRecord
+       //                                                    |---> UploadRecord
+
         public UploadSessionsHolder2(@Autowired ApplicationContext context,@Autowired Logger logger) {
             this.context = context;
             this.logger = logger;
         }
 
-        public UploadSession2 getSession(String sessionId){
+        public UploadSession2 getSession(final String sessionId){
             var userSession = getExistingSession(sessionId);
             if(userSession == null){
                 return createNewSession(sessionId);
@@ -246,11 +259,11 @@ public class StorageManager{
             return userSession;
         }
 
-        public UploadSession2 getExistingSession(String sessionId){
+        public UploadSession2 getExistingSession(final String sessionId){
             return sessions.get(sessionId);
         }
 
-        private UploadSession2 createNewSession(String userName){
+        private UploadSession2 createNewSession(final String userName){
             var uploadSession = context.getBean(UploadSession2.class);
             sessions.put(userName, uploadSession);
             return uploadSession;
@@ -284,7 +297,7 @@ public class StorageManager{
             this.logger = logger;
         }
 
-        public String createRecord(String userName){
+        public String createRecord(final String userName){
             String freshUploadId = UUID.randomUUID().toString();
             if(uploadIdAlreadyExists(freshUploadId)){
                 throw new RuntimeException("Couldn't generate a unique uploadId");
@@ -295,20 +308,20 @@ public class StorageManager{
             return freshUploadId;
         }
 
-        public UploadRecord getRecord(String uploadId){
+        public UploadRecord getRecord(final String uploadId){
             return uploadRecords.get(uploadId);
         }
 
-        private void createRecord_(String uploadId){
+        private void createRecord_(final String uploadId){
             UploadRecord uploadRecord =  context.getBean(UploadRecord.class);
             this.uploadRecords.put(uploadId, uploadRecord);
         }
 
-        public void removeRecord(String uploadId){
+        public void removeRecord(final String uploadId){
             this.uploadRecords.remove(uploadId);
         }
 
-        private boolean uploadIdAlreadyExists(String uploadId){
+        private boolean uploadIdAlreadyExists(final String uploadId){
             return uploadRecords.containsKey(uploadId);
         }
     }

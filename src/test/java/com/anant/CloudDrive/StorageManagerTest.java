@@ -1,18 +1,6 @@
 package com.anant.CloudDrive;
 
-import com.amazonaws.services.s3.transfer.Upload;
-import com.anant.CloudDrive.StorageManager.*;
-import com.anant.CloudDrive.StorageManager.Models.UploadIdRequest;
-import com.anant.CloudDrive.StorageManager.Models.UploadPartRequest_;
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Test;
-import org.mockito.ArgumentCaptor;
-import org.slf4j.Logger;
-import org.springframework.context.ApplicationContext;
-
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.*;
 
 public class StorageManagerTest {
 

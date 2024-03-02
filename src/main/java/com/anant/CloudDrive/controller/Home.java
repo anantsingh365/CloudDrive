@@ -1,14 +1,14 @@
 package com.anant.CloudDrive.controller;
 
 import com.anant.CloudDrive.CloudDriveApplication;
-import com.anant.CloudDrive.StorageManager.Models.UserFileMetaData;
+import com.anant.CloudDrive.Storage.Models.UserFileMetaData;
 
 import static com.anant.CloudDrive.Constants.CONTENT_TYPE;
 import static com.anant.CloudDrive.Utils.CommonUtils.*;
 
-import com.anant.CloudDrive.StorageManager.StorageManager;
-import com.anant.CloudDrive.StorageManager.Models.UploadIdRequest;
-import com.anant.CloudDrive.StorageManager.Models.UploadPartRequest_;
+import com.anant.CloudDrive.Storage.StorageManager;
+import com.anant.CloudDrive.Storage.Models.UploadIdRequest;
+import com.anant.CloudDrive.Storage.Models.UploadPartRequest;
 import com.anant.CloudDrive.Utils.CommonUtils;
 import jakarta.servlet.ServletContext;
 import jakarta.servlet.http.HttpServletRequest;
@@ -74,7 +74,7 @@ public class Home {
         if( uploadId == null || contentLength == null ){
             return  returnBadResponse("required Headers missing");
         }
-        var uploadPartRequest = new UploadPartRequest_(ins, uploadId, Long.parseLong(contentLength));
+        var uploadPartRequest = new UploadPartRequest(ins, uploadId, Long.parseLong(contentLength));
         return  storageManager.uploadPart(uploadPartRequest, CommonUtils.getUserData(signedInUser.GET_SESSIONID))?
                 returnOkResponse("dataReceived"):
                 returnInternalServerError();
@@ -140,7 +140,7 @@ public class Home {
         if(fileToStream == null){
             return ResponseEntity.badRequest().body(null);
         }
-        return storageManager.getBlob(fileToStream,httpRangeList, contentType);
+        return storageManager.getBlob(fileToStream, httpRangeList, contentType);
     }
 
     @GetMapping("/user/delete{id}")

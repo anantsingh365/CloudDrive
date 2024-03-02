@@ -1,4 +1,4 @@
-package com.anant.CloudDrive.StorageManager;
+package com.anant.CloudDrive.Storage;
 
 import com.anant.CloudDrive.entity.UserSubscription;
 import com.anant.CloudDrive.repository.UserSubscriptionRepo;

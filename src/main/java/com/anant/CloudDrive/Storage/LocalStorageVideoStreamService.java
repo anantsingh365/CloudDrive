@@ -1,4 +1,4 @@
-package com.anant.CloudDrive.StorageManager;
+package com.anant.CloudDrive.Storage;
 
 
 import com.amazonaws.services.s3.AmazonS3;

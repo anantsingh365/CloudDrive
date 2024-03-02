@@ -1,14 +1,15 @@
-package com.anant.CloudDrive.StorageManager;
-
+package com.anant.CloudDrive.Storage;
 
 //abstract class to encapsulate the state of an individual upload lifecycle
+// implementations will ideally put variables
+// relevant to the concrete storageProvider implementations
 // state will be updated from
 // -----> "INITIALIZED (uploadID generated, first part not yet uploaded)"
 // -----> "IN PROGRESS (after first part has been uploaded)"
 // -----> "COMPLETED (all parts have been uploaded and upload complete call has been triggered on storage Providers)"
 public abstract class UploadRecord{
 
-    private UploadRecordState state = null;
+    private UploadRecordState state = UploadRecordState.NOT_CREATED;
 
     //variable ideally to be used by storageManager to keep track of state of the upload Record
     private int partsUploaded = 0;
@@ -16,13 +17,18 @@ public abstract class UploadRecord{
     public int getPartsUploaded(){
        return this.partsUploaded;
     }
-    public void incrementPartsUploaded(){
+
+    protected void incrementPartsUploaded(){
         ++this.partsUploaded;
     }
 
-    public void setState(UploadRecordState state){
+    protected void setState(UploadRecordState state){
+        if(state == UploadRecordState.NOT_CREATED){
+            throw new IllegalStateException("NOT_CREATED is the default implicit state, not supposed to be set explicitly");
+        }
        this.state = state;
     }
+
     public UploadRecordState getState(){
        return this.state;
     }

@@ -1,8 +1,8 @@
-package com.anant.CloudDrive.StorageManager;
+package com.anant.CloudDrive.Storage;
 
-import com.anant.CloudDrive.StorageManager.Models.UserFileMetaData;
-import com.anant.CloudDrive.StorageManager.Models.UploadIdRequest;
-import com.anant.CloudDrive.StorageManager.Models.UploadPartRequest_;
+import com.anant.CloudDrive.Storage.Models.UserFileMetaData;
+import com.anant.CloudDrive.Storage.Models.UploadIdRequest;
+import com.anant.CloudDrive.Storage.Models.UploadPartRequest;
 import org.springframework.core.io.Resource;
 
 import java.util.List;
@@ -15,7 +15,7 @@ public interface StorageProvider<T extends UploadRecord> {
     long getStorageUsedByUser(String userName);
 
     boolean initializeUpload(String userName, T record, UploadIdRequest req);
-    boolean uploadPart(T record, UploadPartRequest_ req);
+    boolean uploadPart(T record, UploadPartRequest req);
     boolean abortUpload(T record);
     boolean completeUpload(T record);
 

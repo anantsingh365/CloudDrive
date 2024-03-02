@@ -1,18 +1,16 @@
-package com.anant.CloudDrive.StorageManager.AWSS3;
+package com.anant.CloudDrive.Storage.AWSS3;
 
 import com.amazonaws.AmazonServiceException;
 import com.amazonaws.SdkClientException;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.*;
 
-import com.anant.CloudDrive.StorageManager.StorageProvider;
-import com.anant.CloudDrive.StorageManager.UploadRecord;
-import com.anant.CloudDrive.StorageManager.Models.UserFileMetaData;
-import com.anant.CloudDrive.StorageManager.Models.UploadIdRequest;
-import com.anant.CloudDrive.StorageManager.Models.UploadPartRequest_;
+import com.anant.CloudDrive.Storage.StorageProvider;
+import com.anant.CloudDrive.Storage.Models.UserFileMetaData;
+import com.anant.CloudDrive.Storage.Models.UploadIdRequest;
+import com.anant.CloudDrive.Storage.Models.UploadPartRequest;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Profile;
 import org.springframework.context.annotation.PropertySource;
@@ -23,7 +21,6 @@ import org.springframework.stereotype.Repository;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.function.Supplier;
 
 @Repository
 @PropertySource("classpath:S3Credentials.properties")
@@ -47,22 +44,24 @@ public class S3StorageProvider implements StorageProvider<S3UploadRecord> {
     }
 
     @Override
-    public boolean uploadPart(S3UploadRecord record, UploadPartRequest_ req) {
+    public boolean uploadPart(S3UploadRecord record, UploadPartRequest req) {
         //boolean res = entry.uploadPart(req);
         return this.processPartUploadPriv(record, req);
     }
 
     @Override
     public boolean abortUpload(S3UploadRecord record) {
-
         return false;
     }
 
     @Override
     public boolean deleteFile(String fileName) {
         try{
-            s3Client.deleteObject(bucketName,fileName);
-            return true;
+            if(s3Client.doesObjectExist(bucketName, fileName)){
+                s3Client.deleteObject(bucketName,fileName);
+                return true;
+            }
+            return false;
         }catch(AmazonServiceException e){
             System.err.println(e.getErrorMessage());
             return false;
@@ -118,7 +117,24 @@ public class S3StorageProvider implements StorageProvider<S3UploadRecord> {
         return initiateUploadForKeyName(userName + "/" + req.getFileName(), req.getContentType(), record);
     }
 
-    private boolean processPartUploadPriv(S3UploadRecord record, UploadPartRequest_ uploadPartRequest){
+    private boolean initiateUploadForKeyName(final String userSpecificKeyName, final String contentType, final S3UploadRecord record) {
+        final var initRequest = new InitiateMultipartUploadRequest(bucketName, userSpecificKeyName);
+        final ObjectMetadata metadata = new ObjectMetadata();
+        record.contentType = contentType;
+        metadata.setContentType(contentType);
+        initRequest.setObjectMetadata(metadata);
+        try{
+            record.initResponse = s3Client.initiateMultipartUpload(initRequest);
+            record.isUploadInitiated = true;
+            record.userUploadKeyName = userSpecificKeyName;
+            return true;
+        }catch(Exception e){
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    private boolean processPartUploadPriv(final S3UploadRecord record, final UploadPartRequest uploadPartRequest){
         InputStream ins = uploadPartRequest.getInputStream();
         long partSize = uploadPartRequest.getContentLength();
         List<PartETag> partETags = record.partETags;
@@ -129,7 +145,7 @@ public class S3StorageProvider implements StorageProvider<S3UploadRecord> {
 
         try {
             //UploadPartRequest uploadRequest = new UploadPartRequest()
-            var S3uploadPartRequest = new UploadPartRequest()
+            var S3uploadPartRequest = new com.amazonaws.services.s3.model.UploadPartRequest()
                     .withBucketName(bucketName)
                     .withKey(record.userUploadKeyName)
                     .withUploadId(record.initResponse.getUploadId())
@@ -148,22 +164,6 @@ public class S3StorageProvider implements StorageProvider<S3UploadRecord> {
             return true;
 
         } catch (SdkClientException e) {
-            e.printStackTrace();
-            return false;
-        }
-    }
-    private boolean initiateUploadForKeyName(final String userSpecificKeyName, final String contentType, final S3UploadRecord record) {
-        final var initRequest = new InitiateMultipartUploadRequest(bucketName, userSpecificKeyName);
-        final ObjectMetadata metadata = new ObjectMetadata();
-        record.contentType = contentType;
-        metadata.setContentType(contentType);
-        initRequest.setObjectMetadata(metadata);
-        try{
-            record.initResponse = s3Client.initiateMultipartUpload(initRequest);
-            record.isUploadInitiated = true;
-            record.userUploadKeyName = userSpecificKeyName;
-            return true;
-        }catch(Exception e){
             e.printStackTrace();
             return false;
         }
