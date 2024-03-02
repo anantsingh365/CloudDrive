@@ -5,41 +5,28 @@
         <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
         <link rel="stylesheet" href="/css/userHome.css">
         <link rel="stylesheet" href="/css/uploadUI.css">
-        <script>
-            function setRenameElemId(id){
-                  console.log("Modal button clicked")
-                  document.getElementById("renameIdInput").setAttribute("value", id);
-                }
-            </script>
     </head>
 <body>
 
-<header>
-    <nav>
-        <div id = "navBar">
-            <div id = "rightSide">
-                <ul>
-                    <li> <a href="https://reddit.com">Reddit</a></li>
-                    <li> <a href="https://instagram.com">Instagram</a></li>
-                    <li> <a href="https://youtube.com">Youtube</a></li>
-                    <li class="left"> <a href="https://Home.com">Home</a></li>
-                </ul>
-            </div>
-            <div id = "leftSide">
-                <ul>
-                    <li> <a href="https://google.com">Google</a></li>
-                </ul>
-            </div>
+    <div class="top-bar">
+        <div>
+        <div class="user-label" id="userLabel">Hi, [[${loggedInUser}]]</div>
         </div>
+        <div class="user-info-right">
+        <div class="storage-info">
+        <div class="storage-indicator">
+          <div class="storage-fill" style="width: 70%;"></div>
+        </div>
+        <p style="margin-top: 5px; margin-bottom: 5px; margin-right: 0.9em;"> [[${userQuota}]] / 10GB </p>
+        </div>
+        <input type="file" style = "display:none;" id = "hiddenUploadInput"/>
+        <button id="uploadBtn">Upload File</button>
+        <button id="viewTransfersBtn">View Transfers</button>
+        </div>
+      </div>
 
-    </nav>
-</header>
-
-
-        <h1>File handling</h1>
         <p th:inline = "text">[[${userQuota}]] / 10GB</p>
-        <h2 id = "loggedInUser" th:inline = "text">Hi, [[${loggedInUser}]]</h2>
-        <input type="file" style="display: inline;" id="file"/> 
+        <input type="file" style="display:none;" id="file"/>
         
         <!-- progress box -->
         <div id = "progressText" style = "display: none;">
@@ -48,7 +35,7 @@
 
         <button type = "button" id = "pauseResumeButton" style="visibility: hidden;">Pause Upload</button>
         <br> 
-        <button id ="submitButton">send file Data</button>
+        <button id ="submitButton" style="display:none;">send file Data</button>
         <form action="/subscriptions">
             <input type="submit" value="Upgrade Your Account" />
         </form>
@@ -59,8 +46,12 @@
             <h1>On Going Uploads: </h1>
         </div>
 
-    <h3>file Listing is  </h3>
+    <div class = "fileList-group">
+            
+    </div>    
+
     <div class = "list-group">
+        <h3>Files:</h3>
         <div class = "list-group-item" th:each ="list: ${fileList}">
                 <form th:action="@{/user/download}" method="GET">
                     <span class = "list-group-item-text">

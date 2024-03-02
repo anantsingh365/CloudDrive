@@ -2,7 +2,6 @@
 import { Upload } from "./UploadLogic.js";
 
 var fileObj;
-const resumeState = {};
 const uploadfileLink = "/user/uploadFile";
 const uploadIdLink = "/user/uploadId";
 var onGoingUploadInstances = [];
@@ -147,9 +146,8 @@ function removeUploadInstanceToOnGoingUploadsContainer(uploadInstanceId){
 
     uploadInstanceElem.remove();
 }
-//document.getElementById("pauseResumeButton").addEventListener("click", pauseButtonEventListener);
 
-var submitButtonEventListener = () => { 
+var processUpload = () => { 
     
     var uploadHandlers = {};
     uploadHandlers.fileObj = fileObj;
@@ -170,24 +168,12 @@ var submitButtonEventListener = () => {
     ++numOfUploads;
 }
 
-function startTheUpload(){
- // upload will be started, but while you are starting the upload we need to register the observee
- // to the manager class
- // upload manager class that way in the method we will be receiving the ongoing transaction
-}
+document.getElementById("uploadBtn")?.addEventListener("click", () =>{
+    document.getElementById('hiddenUploadInput').click();
+  })
 
-//this method will receive the ongoing uploads data, ideally in regular intervals
-//example of such objects is given below
-// 
-document.getElementById('submitButton').addEventListener("click", submitButtonEventListener);
-
-document.getElementById('file').addEventListener('change', async (event) => {
- // resetUploadState();
-  fileObj = await event.target.files[0];
-}, false)
-
-function resetUploadState(){
-    isUploadCompleted = false;
-    pauseUploadFlag = false;
-    resumeState.startIndex = 0;
-}
+document.getElementById('hiddenUploadInput')?.addEventListener("change", async (event) => {
+        fileObj = await event.target.files[0];
+        console.log("File Selected is - " + fileObj.name);
+        processUpload();
+}, false);
