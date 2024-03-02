@@ -5,8 +5,17 @@
         <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
         <link rel="stylesheet" href="/css/userHome.css">
         <link rel="stylesheet" href="/css/uploadUI.css">
+        <link rel="stylesheet" href="/css/FileListing.css">
     </head>
 <body>
+
+
+<style>
+    .file-list-action-column{
+        width:30px;
+        display: inline;
+    }
+</style>
 
     <div class="top-bar">
         <div>
@@ -25,49 +34,79 @@
         </div>
       </div>
 
-        <p th:inline = "text">[[${userQuota}]] / 10GB</p>
-        <input type="file" style="display:none;" id="file"/>
-        
-        <!-- progress box -->
-        <div id = "progressText" style = "display: none;">
-            <span id = "uploadDoneText">hello anant </span><span id = "totalUploadSizeText"> total anant </span>
-        </div>
-
-        <button type = "button" id = "pauseResumeButton" style="visibility: hidden;">Pause Upload</button>
-        <br> 
-        <button id ="submitButton" style="display:none;">send file Data</button>
-        <form action="/subscriptions">
+        <form style= "display: none" action="/subscriptions">
             <input type="submit" value="Upgrade Your Account" />
         </form>
-    <br>
-    <br>
 
-        <div id = "onGoingUploadsContainer">
-            <h1>On Going Uploads: </h1>
-        </div>
 
-    <div class = "fileList-group">
-            
-    </div>    
+       <table class="file-list">
+           <thead>
+           <tr>
+               <th>Name</th>
+               <th>Size</th>
+               <th>Type</th>
+               <th>Actions</th>
+           </tr>
+           </thead>
+           <tbody>
+           <tr th:each = "list: ${fileList}">
+               <td><span th:text="${#strings.substringAfter(list.value.name, '/')}">value</span><br></td>
+               <td><span th:text = "|(size - ${list.value.size})|">value</span></td>
+               <td><span th:text = "|(lastModified - ${list.value.lastModified})|">value</span></td>
+<!--               <td class="icon-cell">-->
+               <td>
+                   <form style="display: none;" th:action="@{/user/download}" method="GET">
+                       <input type="hidden" name="id" th:attr="value = @{${list.key}}" />
+                   </form>
+                   <button class = "delete-icon" onclick="deleteFile(this)"><span>&#x1f5d1;</span></button>
+                   <button class="download-icon" onclick="submitForm(this)">&#x2b07;</button>
+                   <button th:attr = "id = @{${list.key}}" type="button" class="rename-icon" data-toggle="modal" data-target="#myModal" onclick="setRenameElemId(this.id)"><span>&#x270e;</span></button>
+              </td>
+           </tr>
+           </tbody>
+       </table>
+<script>
 
-    <div class = "list-group">
-        <h3>Files:</h3>
-        <div class = "list-group-item" th:each ="list: ${fileList}">
-                <form th:action="@{/user/download}" method="GET">
-                    <span class = "list-group-item-text">
-                    <span th:text="${#strings.substringAfter(list.value.name, '/')}">value</span><br>
-                    <span th:text = "|(size - ${list.value.size})|">value</span>
-                    <span th:text = "|(lastModified - ${list.value.lastModified})|">value</span>
-                    </span>
-                    <input type="hidden" name="id" th:attr="value = @{${list.key}}" /><br>
-                    <button type = "submit" class ="btn btn-info btn-sm text-dark"><span class="glyphicon glyphicon-download">Download</span></button>
-                    <button type = "submit" th:formaction="@{/user/delete}" method = "GET" class="btn btn-danger btn-sm">
-                        <span class="glyphicon glyphicon-trash">Trash</span>
-                    </button>
-                    <button th:attr = "id = @{${list.key}}" type="button" class="btn btn-info btn-sm text-dark" data-toggle="modal" data-target="#myModal" onclick="setRenameElemId(this.id)"><span class="glyphicon glyphicon-edit">Rename</span></button>
-                </form>
-        </div>
-    </div>
+//quite a stupid logic 
+    function submitForm(event) {
+     console.log("In download Func");
+     var immediateUpperForm  =  event.previousElementSibling;
+     for(var i = 0 ; i < 3 ; ++i){
+         if(immediateUpperForm && immediateUpperForm.tagName === "FORM"){
+             console.log("downloading the element");
+             immediateUpperForm.submit();
+             break;
+        }
+        immediateUpperForm = immediateUpperForm.previousElementSibling;
+      }
+    }
+
+    function deleteFile(event) {
+        // Your delete file logic here
+     console.log("In delete Func");
+     var immediateUpperForm  =  event.previousElementSibling;
+      for(var i = 0 ; i < 3 ; ++i){
+         if(immediateUpperForm && immediateUpperForm.tagName === "FORM"){
+             console.log("deleting the element");
+             immediateUpperForm.action = "/user/delete";
+             immediateUpperForm.submit();
+             break;
+        }
+        immediateUpperForm = immediateUpperForm.previousElementSibling;
+      }
+    }
+
+    function renameFile() {
+        // Your rename file logic here
+
+    }
+</script>
+
+
+<div class = "uploads-container" id = "onGoingUploadsContainer">
+    <p class ="uploads-title" >On Going Uploads: </p>
+</div>
+
 
 <!-- Modal -->
     <div class="modal fade" id="myModal" role="dialog">

@@ -1,0 +1,47 @@
+<style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 20px;
+      background-color: #f8f9fa;
+    }
+    .file-list {
+      width: 100%;
+      border-collapse: collapse;
+      background-color: #fff;
+      box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.1);
+    }
+    .file-list th,
+    .file-list td {
+      border: 1px solid #dee2e6;
+      padding: 7px;
+      text-align: left;
+    }
+    .file-list th {
+      padding: 10px;
+      background-color: #007bff;
+      color: #fff;
+    }
+    .file-list tr:nth-child(even) {
+      background-color: #f8f9fa;
+    }
+    .file-list tr:hover {
+      background-color: #e9ecef;
+    }
+    .file-list .icon-cell {
+      text-align: center;
+    }
+
+    .file-list .icon-cell span:hover {
+      color: #007bff;
+    }
+    .download-icon {
+      color: #28a745;
+    }
+    .delete-icon {
+      color: #dc3545;
+    }
+    .rename-icon {
+      color: #ffc107;
+    }
+  </style>
