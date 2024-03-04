@@ -32,6 +32,10 @@
       text-align: center;
     }
 
+    /* .file-list tr td:nth-child(4) {
+      min-width: 30%;
+    } */
+
     .file-list .icon-cell span:hover {
       color: #007bff;
     }

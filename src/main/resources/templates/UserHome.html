@@ -45,7 +45,7 @@
                <th>Name</th>
                <th>Size</th>
                <th>Type</th>
-               <th>Actions</th>
+               <th style="width: 7.3em;">Actions</th>
            </tr>
            </thead>
            <tbody>
@@ -67,7 +67,7 @@
        </table>
 <script>
 
-//quite a stupid logic 
+// Todo: Make this non stupid
     function submitForm(event) {
      console.log("In download Func");
      var immediateUpperForm  =  event.previousElementSibling;
@@ -103,7 +103,7 @@
 </script>
 
 
-<div class = "uploads-container" id = "onGoingUploadsContainer">
+<div class = "uploads-container" id = "onGoingUploadsContainer" style="visibility: hidden;">
     <p class ="uploads-title" >On Going Uploads: </p>
 </div>
 
