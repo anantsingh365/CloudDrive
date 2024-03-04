@@ -175,5 +175,9 @@ document.getElementById("uploadBtn")?.addEventListener("click", () =>{
 document.getElementById('hiddenUploadInput')?.addEventListener("change", async (event) => {
         fileObj = await event.target.files[0];
         console.log("File Selected is - " + fileObj.name);
+        const uploadContainer =  document.getElementById("onGoingUploadsContainer");
+        if(uploadContainer?.style.visibility === 'hidden'){
+            uploadContainer.style.visibility = 'visible';
+        }
         processUpload();
 }, false);
