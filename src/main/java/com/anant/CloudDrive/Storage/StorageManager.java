@@ -20,17 +20,17 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Service
-public class StorageManager{
+public class StorageManager<Provider extends StorageProvider<Record>, Record extends UploadRecord>{
 
     private final ApplicationContext context;
 
-    private final StorageProvider storageProvider;
+    private final Provider storageProvider;
     private final SubscriptionService subscriptionService;
     private final UploadSessionsHolder2 uploadSessionsHolder;
     private final LocalStorageVideoStreamService videoStreamService;
 
     public StorageManager(@Autowired ApplicationContext context,
-                          @Autowired StorageProvider storageProvider,
+                          @Autowired Provider storageProvider,
                           @Autowired SubscriptionService subscriptionService,
                           @Autowired UploadSessionsHolder2 uploadSessionsHolder, @Autowired LocalStorageVideoStreamService videoStreamService) {
         this.context = context;
@@ -67,7 +67,7 @@ public class StorageManager{
 
     public boolean uploadPart(final UploadPartRequest req, final String sessionId) {
         boolean wasUploadPartSuccess = false;
-        UploadRecord record = getExistingUploadRecord(req.getUploadId(), sessionId);
+        Record record = getExistingUploadRecord(req.getUploadId(), sessionId);
         // we don't have any record for the given uploadID
         if (record == null) {
             return false;
@@ -123,7 +123,7 @@ public class StorageManager{
         return false;
     }
 
-    private UploadRecord getExistingRecord(final String sessionID, final String uploadID){
+    private Record getExistingRecord(final String sessionID, final String uploadID){
         final var session = this.uploadSessionsHolder.getExistingSession(sessionID);
         if(session == null){
             throw new RuntimeException("No session Associated with the session ID - " + sessionID);
@@ -136,7 +136,7 @@ public class StorageManager{
     }
 
     public boolean completeUpload(final String uploadId, final String sessionId) {
-        UploadRecord record = getExistingUploadRecord(uploadId, sessionId);
+        Record record = getExistingUploadRecord(uploadId, sessionId);
         if(record == null){
             return false;
         }
@@ -161,7 +161,7 @@ public class StorageManager{
        var session = uploadSessionsHolder.getExistingSession(sessionId);
        session.removeRecord(uploadId);
     }
-    private UploadRecord getExistingUploadRecord(final String uploadId, final String sessionId) {
+    private Record getExistingUploadRecord(final String uploadId, final String sessionId) {
         var session = uploadSessionsHolder.getExistingSession(sessionId);
         if (session == null) {
             return null;
@@ -234,7 +234,7 @@ public class StorageManager{
     }
 
     @Component
-    public static class UploadSessionsHolder2{
+    public class UploadSessionsHolder2{
         private final ApplicationContext context;
         private final Logger logger;
         private final ConcurrentHashMap<String, UploadSession2> sessions = new ConcurrentHashMap<>();
@@ -285,10 +285,10 @@ public class StorageManager{
     @Component
     @Qualifier("userUploadSession")
     @Scope(value = ConfigurableBeanFactory.SCOPE_PROTOTYPE)
-    public static class UploadSession2{
+    public class UploadSession2{
 
         //represents multiple upload entries from a session
-        private final ConcurrentHashMap<String, UploadRecord> uploadRecords = new ConcurrentHashMap<>();
+        private final ConcurrentHashMap<String, Record> uploadRecords = new ConcurrentHashMap<>();
         private final ApplicationContext context;
         private final Logger logger;
 
@@ -308,12 +308,12 @@ public class StorageManager{
             return freshUploadId;
         }
 
-        public UploadRecord getRecord(final String uploadId){
+        public Record getRecord(final String uploadId){
             return uploadRecords.get(uploadId);
         }
 
         private void createRecord_(final String uploadId){
-            UploadRecord uploadRecord =  context.getBean(UploadRecord.class);
+            Record uploadRecord = (Record) context.getBean(UploadRecord.class);
             this.uploadRecords.put(uploadId, uploadRecord);
         }
 
