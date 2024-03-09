@@ -102,8 +102,8 @@ public class LocalFileSystemAI implements StorageProvider<LocalUploadRecord> {
         InputStream ins = uploadPartRequest.getInputStream();
         long partSize = uploadPartRequest.getContentLength();
 
-        int partNumber = record.getPartsUploaded() + 1;
-        String chunkFileName = String.valueOf(partNumber);
+//        int partNumber = record.getPartsUploaded() + 1;
+ //       String chunkFileName = String.valueOf(partNumber);
 
         // Implement part upload logic
         return false;

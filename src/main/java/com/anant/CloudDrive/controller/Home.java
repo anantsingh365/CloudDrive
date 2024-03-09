@@ -1,5 +1,6 @@
 package com.anant.CloudDrive.controller;
 
+import com.amazonaws.services.s3.transfer.Upload;
 import com.anant.CloudDrive.CloudDriveApplication;
 import com.anant.CloudDrive.Storage.Models.UserFileMetaData;
 
@@ -9,6 +10,8 @@ import static com.anant.CloudDrive.Utils.CommonUtils.*;
 import com.anant.CloudDrive.Storage.StorageManager;
 import com.anant.CloudDrive.Storage.Models.UploadIdRequest;
 import com.anant.CloudDrive.Storage.Models.UploadPartRequest;
+import com.anant.CloudDrive.Storage.StorageProvider;
+import com.anant.CloudDrive.Storage.UploadRecord;
 import com.anant.CloudDrive.Utils.CommonUtils;
 import jakarta.servlet.ServletContext;
 import jakarta.servlet.http.HttpServletRequest;
@@ -31,14 +34,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-
 @Controller
 @SessionAttributes("fileList")
 public class Home {
 
     @Autowired private Logger logger;
-    @Autowired
-    StorageManager storageManager;
+    @Autowired StorageManager storageManager;
 
     @GetMapping("/user/home")
     public String UserHome(@Autowired @Qualifier("randomString") CloudDriveApplication.requestScopeTest requestScopeTest,
