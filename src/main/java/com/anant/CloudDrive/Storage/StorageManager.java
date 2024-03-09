@@ -20,17 +20,17 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Service
-public class StorageManager<Provider extends StorageProvider<Record>, Record extends UploadRecord>{
+public class StorageManager{
 
     private final ApplicationContext context;
 
-    private final Provider storageProvider;
+    private final StorageProvider storageProvider;
     private final SubscriptionService subscriptionService;
     private final UploadSessionsHolder2 uploadSessionsHolder;
     private final LocalStorageVideoStreamService videoStreamService;
 
     public StorageManager(@Autowired ApplicationContext context,
-                          @Autowired Provider storageProvider,
+                          @Autowired StorageProvider storageProvider,
                           @Autowired SubscriptionService subscriptionService,
                           @Autowired UploadSessionsHolder2 uploadSessionsHolder, @Autowired LocalStorageVideoStreamService videoStreamService) {
         this.context = context;
@@ -67,20 +67,20 @@ public class StorageManager<Provider extends StorageProvider<Record>, Record ext
 
     public boolean uploadPart(final UploadPartRequest req, final String sessionId) {
         boolean wasUploadPartSuccess = false;
-        Record record = getExistingUploadRecord(req.getUploadId(), sessionId);
+        UploadRecord record = getExistingUploadRecord(req.getUploadId(), sessionId);
         // we don't have any record for the given uploadID
         if (record == null) {
             return false;
         }
         if(record.getState() == UploadRecordState.COMPLETED
-               || record.getState() == UploadRecordState.ABORTED){
+                || record.getState() == UploadRecordState.ABORTED){
             return false;
         }
         // below condition means that uploadId has been generated, and we are now receiving the first chunk/part
         // after the first part we will change the record state to be "IN_PROGRESS", and upload
         // hasn't been aborted by user
         if(record.getState() == UploadRecordState.INITIALIZED
-              && record.getPartsUploaded() == 0)
+                && record.getPartsUploaded() == 0)
         {
             wasUploadPartSuccess = this.storageProvider.uploadPart(record, req);
             if(wasUploadPartSuccess){
@@ -92,7 +92,7 @@ public class StorageManager<Provider extends StorageProvider<Record>, Record ext
         // below condition means upload record has been initialized and at least first part has been uploaded
         // record state to be "IN_PROGRESS"
         if(record.getState() == UploadRecordState.IN_PROGRESS
-             && record.getPartsUploaded() != 0)
+                && record.getPartsUploaded() != 0)
         {
             wasUploadPartSuccess = this.storageProvider.uploadPart(record, req);
             if(wasUploadPartSuccess){
@@ -104,26 +104,26 @@ public class StorageManager<Provider extends StorageProvider<Record>, Record ext
     }
 
     public boolean cancelUpload(final String uploadID, final String userName, final String sessionID){
-            boolean isCancelled = false;
-            var record = getExistingRecord(sessionID, uploadID);
+        boolean isCancelled = false;
+        var record = getExistingRecord(sessionID, uploadID);
 
-            //completed upload can't be cancelled dummy
-            if(record.getState() == UploadRecordState.COMPLETED){
-                return false;
-            }
-            if(record.getState() == UploadRecordState.ABORTED){
-                //doing nothing when aborting already aborted record
-                return true;
-            }
-            isCancelled = this.storageProvider.abortUpload(record);
-            if(isCancelled){
-                record.setState(UploadRecordState.ABORTED);
-                return isCancelled;
-            }
+        //completed upload can't be cancelled dummy
+        if(record.getState() == UploadRecordState.COMPLETED){
+            return false;
+        }
+        if(record.getState() == UploadRecordState.ABORTED){
+            //doing nothing when aborting already aborted record
+            return true;
+        }
+        isCancelled = this.storageProvider.abortUpload(record);
+        if(isCancelled){
+            record.setState(UploadRecordState.ABORTED);
+            return isCancelled;
+        }
         return false;
     }
 
-    private Record getExistingRecord(final String sessionID, final String uploadID){
+    private UploadRecord getExistingRecord(final String sessionID, final String uploadID){
         final var session = this.uploadSessionsHolder.getExistingSession(sessionID);
         if(session == null){
             throw new RuntimeException("No session Associated with the session ID - " + sessionID);
@@ -136,7 +136,7 @@ public class StorageManager<Provider extends StorageProvider<Record>, Record ext
     }
 
     public boolean completeUpload(final String uploadId, final String sessionId) {
-        Record record = getExistingUploadRecord(uploadId, sessionId);
+        UploadRecord record = getExistingUploadRecord(uploadId, sessionId);
         if(record == null){
             return false;
         }
@@ -158,10 +158,10 @@ public class StorageManager<Provider extends StorageProvider<Record>, Record ext
     }
 
     private void removeExistingRecord(final String uploadId, final String sessionId){
-       var session = uploadSessionsHolder.getExistingSession(sessionId);
-       session.removeRecord(uploadId);
+        var session = uploadSessionsHolder.getExistingSession(sessionId);
+        session.removeRecord(uploadId);
     }
-    private Record getExistingUploadRecord(final String uploadId, final String sessionId) {
+    private UploadRecord getExistingUploadRecord(final String uploadId, final String sessionId) {
         var session = uploadSessionsHolder.getExistingSession(sessionId);
         if (session == null) {
             return null;
@@ -180,7 +180,7 @@ public class StorageManager<Provider extends StorageProvider<Record>, Record ext
     public boolean deleteUserFile(final String fileName) {
         List<String> list = List.of("Hello world", "my name is anant singh", "Abhay Singh");
         list.forEach((x) ->{
-         //   x.
+            //   x.
         });
         return storageProvider.deleteFile(fileName);
     }
@@ -234,7 +234,7 @@ public class StorageManager<Provider extends StorageProvider<Record>, Record ext
     }
 
     @Component
-    public class UploadSessionsHolder2{
+    public static class UploadSessionsHolder2{
         private final ApplicationContext context;
         private final Logger logger;
         private final ConcurrentHashMap<String, UploadSession2> sessions = new ConcurrentHashMap<>();
@@ -243,8 +243,8 @@ public class StorageManager<Provider extends StorageProvider<Record>, Record ext
         // one upload Session --has---> multiple Upload Records
 
         //                                                   |---> UploadRecord
-       // (unique) sessionID -------> (unique) uploadSession |---> UploadRecord
-       //                                                    |---> UploadRecord
+        // (unique) sessionID -------> (unique) uploadSession |---> UploadRecord
+        //                                                    |---> UploadRecord
 
         public UploadSessionsHolder2(@Autowired ApplicationContext context,@Autowired Logger logger) {
             this.context = context;
@@ -285,10 +285,10 @@ public class StorageManager<Provider extends StorageProvider<Record>, Record ext
     @Component
     @Qualifier("userUploadSession")
     @Scope(value = ConfigurableBeanFactory.SCOPE_PROTOTYPE)
-    public class UploadSession2{
+    public static class UploadSession2{
 
         //represents multiple upload entries from a session
-        private final ConcurrentHashMap<String, Record> uploadRecords = new ConcurrentHashMap<>();
+        private final ConcurrentHashMap<String, UploadRecord> uploadRecords = new ConcurrentHashMap<>();
         private final ApplicationContext context;
         private final Logger logger;
 
@@ -308,12 +308,12 @@ public class StorageManager<Provider extends StorageProvider<Record>, Record ext
             return freshUploadId;
         }
 
-        public Record getRecord(final String uploadId){
+        public UploadRecord getRecord(final String uploadId){
             return uploadRecords.get(uploadId);
         }
 
         private void createRecord_(final String uploadId){
-            Record uploadRecord = (Record) context.getBean(UploadRecord.class);
+            UploadRecord uploadRecord =  context.getBean(UploadRecord.class);
             this.uploadRecords.put(uploadId, uploadRecord);
         }
 
