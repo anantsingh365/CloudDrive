@@ -72,6 +72,10 @@ public class Home {
         if( uploadId == null || contentLength == null ){
             return  returnBadResponse("required Headers missing");
         }
+
+        System.out.println("Debug");
+        System.out.println(contentLength);
+
         var uploadPartRequest = new UploadPartRequest(ins, uploadId, Long.parseLong(contentLength));
         return  storageManager.uploadPart(uploadPartRequest, CommonUtils.getUserData(signedInUser.GET_SESSIONID))?
                 returnOkResponse("dataReceived"):

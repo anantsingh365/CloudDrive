@@ -59,6 +59,7 @@ public class StorageManager {
             session.getRecord(generatedUploadID).setState(UploadRecordState.INITIALIZED);
             return generatedUploadID;
         }
+        System.out.println("We are at account upgrade");
         return AccountStates.ACCOUNT_UPGRADE.getValue();
     }
 

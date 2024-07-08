@@ -84,7 +84,11 @@ public class S3StorageProvider implements StorageProvider<S3UploadRecord> {
 
     @Override
     public long getStorageUsedByUser(String userName) {
-        return 0;
+        long storageUsed = 0L;
+        for(var metaData: this.getUserObjectsMetaData(userName)){
+            storageUsed += metaData.getSize();
+        }
+        return storageUsed;
     }
 
     @Override
