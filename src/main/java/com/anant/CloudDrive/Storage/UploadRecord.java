@@ -1,5 +1,11 @@
 package com.anant.CloudDrive.Storage;
 
+import com.amazonaws.services.s3.transfer.Upload;
+
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.Map;
+
 //abstract class to encapsulate the state of an individual upload lifecycle
 // implementations will ideally put variables
 // relevant to the concrete storageProvider implementations
@@ -10,8 +16,20 @@ package com.anant.CloudDrive.Storage;
 public abstract class UploadRecord{
 
     private UploadRecordState state = UploadRecordState.NOT_CREATED;
+    private final LinkedHashMap<UploadRecordState, Boolean> stateTransitionMap = new LinkedHashMap<>();
+    private final UploadRecordState notCreatedState = UploadRecordState.NOT_CREATED;
+    private final UploadRecordState InitState = UploadRecordState.INITIALIZED;
+    private final UploadRecordState InProgressState = UploadRecordState.IN_PROGRESS;
+    private final UploadRecordState CompletedState = UploadRecordState.COMPLETED;
 
-    //variable ideally to be used by storageManager to keep track of state of the upload Record
+    {
+        this.stateTransitionMap.put(this.notCreatedState, true);
+        this.stateTransitionMap.put(this.InitState, false);
+        this.stateTransitionMap.put(this.InProgressState, false);
+        this.stateTransitionMap.put(this.CompletedState, false);
+    }
+
+    //variable ideally to be used by storageManager to keep track of the number of parts Uploaded
     private int partsUploaded = 0;
 
     protected int getPartsUploaded(){
@@ -29,7 +47,11 @@ public abstract class UploadRecord{
        this.state = state;
     }
 
-    protected UploadRecordState getState(){
+    protected boolean verifyStateTransitionForRecord(UploadRecordState state){
+        return false;
+    }
+
+    public UploadRecordState getState(){
        return this.state;
     }
 }

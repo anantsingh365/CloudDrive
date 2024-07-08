@@ -20,6 +20,7 @@ public class SignInSignUp {
 
     @GetMapping("/register")
     public String registerPage(Model model, HttpServletRequest req){
+        model.addAttribute("user", new UserDto());
         return "register";
     }
 

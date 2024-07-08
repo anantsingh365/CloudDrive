@@ -17,7 +17,7 @@ public class SubscriptionService {
             var userEntity =  userOptional.get();
             return userEntity.getTier();
         }
-        return "Basic Tier";
+        return "1000";
     }
 
     public String setTier(String userName, String Tier){

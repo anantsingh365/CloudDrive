@@ -1,35 +1,40 @@
-package com.anant.CloudDrive.StorageServiceTest;
+package com.anant.CloudDrive.E2ETest;
 
 import com.anant.CloudDrive.Storage.*;
 import com.anant.CloudDrive.Storage.Models.UploadIdRequest;
 import com.anant.CloudDrive.Storage.Models.UploadPartRequest;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 
 @SpringBootTest
-public class StorageManagerTest2 {
+public class StorageManagerTest {
 
-    @MockBean
-    SubscriptionService subscriptionService;
+    @Autowired SubscriptionService subscriptionService;
+    @Autowired StorageProvider storageProvider;
+    @Autowired StorageManager manager;
+    @Autowired StorageManager.UploadSessionsHolder2 holder;
 
-    @MockBean
-    StorageProvider storageProvider;
-
-    @Autowired
-    StorageManager manager;
+    @BeforeEach
+    public  void setUpUser(){
+        System.out.println("BeforeAllFunc");
+//        manager.uploadPart(null,null);
+    }
 
     @Test
     public void GetNewUploadIdFailure() {
-        when(subscriptionService.getTier(anyString())).thenReturn("100"); // 100 mb
-        when(storageProvider.getStorageUsedByUser(any(String.class))).thenReturn(150000000L);//roughly 150 mb from bytes to mb
+//    when(subscriptionService.getTier(anyString())).thenReturn("100"); // 100 mb
+//    when(storageProvider.getStorageUsedByUser(any(String.class))).thenReturn(150000000L);//roughly 150 mb from bytes to mb
         String uploadId = manager.getUploadId(new UploadIdRequest("testFile", "audio/Flac"), "0987654321", "AnantSingh");
+    //    System.out.println(SecurityContextHolder.getContext().getAuthentication().getName());
         System.out.println("Success Upload ID creation Test - " + uploadId);
         Assertions.assertEquals("Account Upgrade", uploadId);
     }
@@ -41,9 +46,10 @@ public class StorageManagerTest2 {
         when(storageProvider.initializeUpload(anyString(), any(UploadRecord.class), any(UploadIdRequest.class))).thenReturn(true);
         when(storageProvider.uploadPart(any(UploadRecord.class), any(UploadPartRequest.class))).thenReturn(true);
         when(storageProvider.completeUpload(any(UploadRecord.class))).thenReturn(true);
+
         String uploadId = manager.getUploadId(new UploadIdRequest("testFile", "audio/Flac"), "0987654321", "AnantSingh");
 
-       // doing multipart upload
+       //doing multipart upload
         UploadPartRequest req = new UploadPartRequest(null, uploadId, 0L);
         boolean partUploadRes = manager.uploadPart(req, "0987654321");
         UploadPartRequest req2 = new UploadPartRequest(null, uploadId, 0L);
@@ -72,7 +78,7 @@ public class StorageManagerTest2 {
 
     // from "INITIALIZED" -----> "IN_PROGRESS" ------> "COMPLETED"
     @Test
-    public void ValidateUploadRecordLifeCycleStateTransitions(@Autowired StorageManager.UploadSessionsHolder2 holder){
+    public void ValidateUploadRecordLifeCycleStateTransitions(){
         when(subscriptionService.getTier(anyString())).thenReturn("200"); // 200 mb
         when(storageProvider.initializeUpload(anyString(), any(UploadRecord.class), any(UploadIdRequest.class))).thenReturn(true);
         when(storageProvider.uploadPart(any(UploadRecord.class), any(UploadPartRequest.class))).thenReturn(true);
@@ -118,7 +124,7 @@ public class StorageManagerTest2 {
     }
 
     @Test
-    public void ValidateAllTheStorageProviderMethodsAreBeingCalledByTheStorageManager(@Autowired StorageManager.UploadSessionsHolder2 holder)
+    public void Validate_All_The_StorageProvider_Methods_Are_Being_Called_ByTheStorage_Manager_For_A_Successful_Upload(@Autowired StorageManager.UploadSessionsHolder2 holder)
     {
         when(subscriptionService.getTier(anyString())).thenReturn("200"); // 200 mb
         when(storageProvider.initializeUpload(anyString(), any(UploadRecord.class), any(UploadIdRequest.class))).thenReturn(true);
@@ -145,7 +151,9 @@ public class StorageManagerTest2 {
         manager.completeUpload(uploadId, "0987654321");
 
         verify(storageProvider, atMost(1)).initializeUpload(any(String.class), any(UploadRecord.class), any(UploadIdRequest.class));
-        verify(storageProvider, atLeastOnce()).uploadPart(any(UploadRecord.class), any(UploadPartRequest.class));
+//        verify(storageProvider, atLeastOnce()).uploadPart(any(UploadRecord.class), any(UploadPartRequest.class));
+        verify(storageProvider, atMost(3)).uploadPart(any(UploadRecord.class), any(UploadPartRequest.class));
+        verify(storageProvider, atLeast(3)).uploadPart(any(UploadRecord.class), any(UploadPartRequest.class));
         verify(storageProvider, atMost(1)).completeUpload(any(UploadRecord.class));
     }
 }

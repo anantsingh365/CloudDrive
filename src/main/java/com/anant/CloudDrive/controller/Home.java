@@ -1,6 +1,5 @@
 package com.anant.CloudDrive.controller;
 
-import com.amazonaws.services.s3.transfer.Upload;
 import com.anant.CloudDrive.CloudDriveApplication;
 import com.anant.CloudDrive.Storage.Models.UserFileMetaData;
 
@@ -10,8 +9,6 @@ import static com.anant.CloudDrive.Utils.CommonUtils.*;
 import com.anant.CloudDrive.Storage.StorageManager;
 import com.anant.CloudDrive.Storage.Models.UploadIdRequest;
 import com.anant.CloudDrive.Storage.Models.UploadPartRequest;
-import com.anant.CloudDrive.Storage.StorageProvider;
-import com.anant.CloudDrive.Storage.UploadRecord;
 import com.anant.CloudDrive.Utils.CommonUtils;
 import jakarta.servlet.ServletContext;
 import jakarta.servlet.http.HttpServletRequest;

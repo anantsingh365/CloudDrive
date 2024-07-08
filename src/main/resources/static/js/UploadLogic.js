@@ -89,7 +89,6 @@ class Upload {
                 mimetype: file.name,
                 contenttype: this.fileObj.type
             };
-
             const xhr = this.createHttpRequest("POST", url, "application/json", resolve, reject);
             xhr.send(JSON.stringify(requestBody));
         });
@@ -148,7 +147,6 @@ class Upload {
             console.log("Upload Paused");
             this.resumeState.startIndex = start;
         }
-
         return false;
     }
 
