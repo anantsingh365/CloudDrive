@@ -89,6 +89,14 @@ class Upload {
                 mimetype: file.name,
                 contenttype: this.fileObj.type
             };
+
+//json representation of the
+//            "{
+//            "filename": "fileName",
+//            "mimetype": "mimetype",
+//            "contentType": "Hello"
+//            }"
+
             const xhr = this.createHttpRequest("POST", url, "application/json", resolve, reject);
             xhr.send(JSON.stringify(requestBody));
         });

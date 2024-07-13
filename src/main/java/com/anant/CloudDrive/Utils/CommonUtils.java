@@ -9,7 +9,7 @@ public class CommonUtils {
         switch (requestedData){
             case GET_SESSIONID -> {
                 var sessionId = RequestContextHolder.currentRequestAttributes().getSessionId();
-                System.out.println("Session id from requestContextHolder is - " + sessionId);
+               // System.out.println("Session id from requestContextHolder is - " + sessionId);
                 return sessionId;
             }
             case GET_USERNAME -> {
