@@ -1,19 +1,19 @@
-package com.anant.CloudDrive.controller.Responses;
+package com.anant.CloudDrive.controller.Responses.Upload;
 
-public class UploadCompleteResponse {
+public class UploadPartSuccessResponse {
 
     private String Operation;
-    private boolean isSuccess;
     private String userName;
     private String uploadID;
     private String Description;
+    private boolean isSuccess;
 
-    public UploadCompleteResponse(String operation, boolean isSuccess, String userName, String uploadID, String Description) {
+    public UploadPartSuccessResponse(String operation, boolean isSuccess, String userName, String uploadID, String description) {
         this.Operation = operation;
         this.isSuccess = isSuccess;
         this.userName = userName;
         this.uploadID = uploadID;
-        this.Description = Description;
+        this.Description = description;
     }
 
     public String getOperation() {
@@ -46,6 +46,14 @@ public class UploadCompleteResponse {
 
     public void setUploadID(String uploadID) {
         this.uploadID = uploadID;
+    }
+
+    public String getDescription() {
+        return Description;
+    }
+
+    public void setDescription(String description) {
+        Description = description;
     }
 
 }

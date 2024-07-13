@@ -56,7 +56,10 @@ class Upload {
 
     async startUpload() {
         try {
-            const uploadId = await this.getUploadId(this.uploadIdLink, this.fileObj);
+            const uploadIdResponse = await this.getUploadId(this.uploadIdLink, this.fileObj);
+            const uploadIdResponseObj = JSON.parse(uploadIdResponse)
+
+            const uploadId = uploadIdResponseObj.createdUploadId
             this.uploadID = uploadId;
 
             this.handleEvent("StartingUploadHandler");

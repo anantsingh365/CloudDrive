@@ -10,7 +10,8 @@ import com.anant.CloudDrive.Storage.StorageManager;
 import com.anant.CloudDrive.Storage.Models.UploadIdRequest;
 import com.anant.CloudDrive.Storage.Models.UploadPartRequest;
 import com.anant.CloudDrive.Utils.CommonUtils;
-import com.anant.CloudDrive.controller.Responses.UploadCompleteResponse;
+import com.anant.CloudDrive.controller.Responses.Upload.UploadCompleteResponse;
+import com.anant.CloudDrive.controller.Responses.Upload.UploadIdGeneratedResponse;
 import jakarta.servlet.ServletContext;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
@@ -57,12 +58,18 @@ public class Home {
 
     @PostMapping("/user/uploadId")
     @ResponseBody
-    public ResponseEntity<String> uploadId(@RequestBody Map<String, String> uploadIdPayLoad){
-
+    public ResponseEntity<UploadIdGeneratedResponse> uploadId(@RequestBody Map<String, String> uploadIdPayLoad){
         var uploadIdRequest = new UploadIdRequest(uploadIdPayLoad.get("filename"), uploadIdPayLoad.get("contenttype"));
-        return uploadIdRequest.isRequestValid() ? returnOkResponse(storageManager.getUploadId(uploadIdRequest,
-                CommonUtils.getUserData(signedInUser.GET_SESSIONID),
-                CommonUtils.getUserData(signedInUser.GET_USERNAME))) : returnBadResponse("filname or content type missing");
+
+        if(uploadIdRequest.isRequestValid()){
+            String IdGenerated = storageManager.getUploadId(uploadIdRequest, CommonUtils.getUserData(signedInUser.GET_SESSIONID), CommonUtils.getUserData(signedInUser.GET_USERNAME));
+            if(IdGenerated != null){
+                var SuccessUploadIdGeneratedResponse = new UploadIdGeneratedResponse(true, "",IdGenerated);
+                return ResponseEntity.ok().body(SuccessUploadIdGeneratedResponse);
+            }
+        }
+        var failedUploadIdGeneratedResponse = new UploadIdGeneratedResponse(false, "FileName or content type missing from request body",null);
+        return ResponseEntity.internalServerError().body(failedUploadIdGeneratedResponse);
     }
 
     @PostMapping("/user/uploadFile")
@@ -159,17 +166,15 @@ public class Home {
 
     @PostMapping(value = "/user/CompleteUpload", produces = "application/json")
     @ResponseBody
-    public ResponseEntity<UploadCompleteResponse> completeUpload(@RequestHeader ("upload-id") String uploadId){
+    public ResponseEntity<Object> completeUpload(@RequestHeader ("upload-id") String uploadId){
 
-        if(uploadId == null) {
+        if(uploadId == null || uploadId.isEmpty()) {
             logger.info("complete upload failed for user " + getUserData(signedInUser.GET_USERNAME) + ", Upload id missing");
+            var res = new UploadCompleteResponse(false,"upload-id header missing from request",null);
             return ResponseEntity
                     .internalServerError()
                     .contentType(MediaType.APPLICATION_JSON)
-                    .body(new UploadCompleteResponse("uploadFailed"
-                            , false
-                            , "anant"
-                            , uploadId, "Upload id missing"));
+                    .body(res);
         }
 
         boolean completeUploadResult = storageManager.completeUpload(uploadId,
@@ -180,19 +185,15 @@ public class Home {
             return ResponseEntity
                     .ok()
                     .contentType(MediaType.APPLICATION_JSON)
-                    .body(new UploadCompleteResponse("uploadComplete"
-                                                                , true
-                                                                , "anant"
-                                                                , uploadId, null));
+                    .body(new UploadCompleteResponse(true,"Upload Completed",uploadId));
         }
         return ResponseEntity
                 .internalServerError()
                 .contentType(MediaType.APPLICATION_JSON)
-                .body(new UploadCompleteResponse("uploadFailed"
-                       , false
-                        , "anant"
-                        , uploadId, "StorageProvider Error"));
+                .body(new UploadCompleteResponse(false,"Internal Error",uploadId));
     }
+
+//    private ResponseEntity<Object>
 
     private ResponseEntity<String> returnBadResponse(String reason){
         return ResponseEntity.badRequest().body(reason);
