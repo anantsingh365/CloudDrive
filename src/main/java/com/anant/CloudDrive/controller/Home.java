@@ -10,6 +10,7 @@ import com.anant.CloudDrive.Storage.StorageManager;
 import com.anant.CloudDrive.Storage.Models.UploadIdRequest;
 import com.anant.CloudDrive.Storage.Models.UploadPartRequest;
 import com.anant.CloudDrive.Utils.CommonUtils;
+import com.anant.CloudDrive.controller.Responses.UploadCompleteResponse;
 import jakarta.servlet.ServletContext;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
@@ -20,6 +21,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.io.*;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
@@ -155,21 +157,41 @@ public class Home {
         return result ? returnOkResponse("file deleted") : returnInternalServerError();
     }
 
-    @PostMapping("/user/CompleteUpload")
+    @PostMapping(value = "/user/CompleteUpload", produces = "application/json")
     @ResponseBody
-    public ResponseEntity<String> completeUpload(@RequestHeader ("upload-id") String uploadId){
+    public ResponseEntity<UploadCompleteResponse> completeUpload(@RequestHeader ("upload-id") String uploadId){
+
         if(uploadId == null) {
-            logger.info("complete upload failed for user " + getUserData(signedInUser.GET_USERNAME) + ", upload id missing");
-            return returnBadResponse("UploadId Missing");
+            logger.info("complete upload failed for user " + getUserData(signedInUser.GET_USERNAME) + ", Upload id missing");
+            return ResponseEntity
+                    .internalServerError()
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .body(new UploadCompleteResponse("uploadFailed"
+                            , false
+                            , "anant"
+                            , uploadId, "Upload id missing"));
         }
+
         boolean completeUploadResult = storageManager.completeUpload(uploadId,
                 CommonUtils.getUserData(signedInUser.GET_SESSIONID));
 
         if(completeUploadResult){
             logger.info("Upload Complete for User " + getUserData(signedInUser.GET_USERNAME) +" upload id " + uploadId);
-            return  returnOkResponse("uploadComplete for uploadId " + uploadId);
+            return ResponseEntity
+                    .ok()
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .body(new UploadCompleteResponse("uploadComplete"
+                                                                , true
+                                                                , "anant"
+                                                                , uploadId, null));
         }
-        return returnBadResponse("couldn't complete upload for upload id - " + uploadId);
+        return ResponseEntity
+                .internalServerError()
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(new UploadCompleteResponse("uploadFailed"
+                       , false
+                        , "anant"
+                        , uploadId, "StorageProvider Error"));
     }
 
     private ResponseEntity<String> returnBadResponse(String reason){
