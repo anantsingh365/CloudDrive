@@ -12,6 +12,7 @@ import com.anant.CloudDrive.Storage.Models.UploadPartRequest;
 import com.anant.CloudDrive.Utils.CommonUtils;
 import com.anant.CloudDrive.controller.Responses.Upload.UploadCompleteResponse;
 import com.anant.CloudDrive.controller.Responses.Upload.UploadIdGeneratedResponse;
+import com.anant.CloudDrive.controller.Responses.Upload.UploadPartResponse;
 import jakarta.servlet.ServletContext;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
@@ -22,7 +23,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.io.*;
 import org.springframework.http.HttpHeaders;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
@@ -63,7 +63,7 @@ public class Home {
 
         if(uploadIdRequest.isRequestValid()){
             String IdGenerated = storageManager.getUploadId(uploadIdRequest, CommonUtils.getUserData(signedInUser.GET_SESSIONID), CommonUtils.getUserData(signedInUser.GET_USERNAME));
-            if(IdGenerated != null){
+           if(IdGenerated != null){
                 var SuccessUploadIdGeneratedResponse = new UploadIdGeneratedResponse(true, "",IdGenerated);
                 return ResponseEntity.ok().body(SuccessUploadIdGeneratedResponse);
             }
@@ -74,21 +74,23 @@ public class Home {
 
     @PostMapping("/user/uploadFile")
     @ResponseBody
-    public ResponseEntity<String> uploadFile(InputStream ins,
-                                              @RequestHeader ("user-id") String uploadId,
-                                              @RequestHeader ("content-length") String contentLength)
+    public ResponseEntity<UploadPartResponse> uploadFile(InputStream ins,
+                                                         @RequestHeader ("user-id") String uploadId,
+                                                         @RequestHeader ("content-length") String contentLength)
     {
-        if( uploadId == null || contentLength == null ){
-            return  returnBadResponse("required Headers missing");
+        if( uploadId == null || contentLength == null || uploadId.isEmpty() || contentLength.isEmpty()){
+            var errorResponse = new UploadPartResponse(false,"required headers missing/empty", uploadId);
+            return ResponseEntity.ok().body(errorResponse);
         }
 
-        System.out.println("Debug");
-        System.out.println(contentLength);
-
         var uploadPartRequest = new UploadPartRequest(ins, uploadId, Long.parseLong(contentLength));
-        return  storageManager.uploadPart(uploadPartRequest, CommonUtils.getUserData(signedInUser.GET_SESSIONID))?
-                returnOkResponse("dataReceived"):
-                returnInternalServerError();
+
+        if(storageManager.uploadPart(uploadPartRequest, CommonUtils.getUserData(signedInUser.GET_SESSIONID))){
+            var successResponse = new UploadPartResponse(true, "Upload Complete for a part", uploadId);
+            return ResponseEntity.ok().body(successResponse);
+        }
+
+        return ResponseEntity.internalServerError().body(new UploadPartResponse(false, "Something went wrong", uploadId));
     }
 
     @PostMapping
@@ -166,14 +168,13 @@ public class Home {
 
     @PostMapping(value = "/user/CompleteUpload", produces = "application/json")
     @ResponseBody
-    public ResponseEntity<Object> completeUpload(@RequestHeader ("upload-id") String uploadId){
+    public ResponseEntity<UploadCompleteResponse> completeUpload(@RequestHeader ("upload-id") String uploadId){
 
         if(uploadId == null || uploadId.isEmpty()) {
             logger.info("complete upload failed for user " + getUserData(signedInUser.GET_USERNAME) + ", Upload id missing");
             var res = new UploadCompleteResponse(false,"upload-id header missing from request",null);
             return ResponseEntity
                     .internalServerError()
-                    .contentType(MediaType.APPLICATION_JSON)
                     .body(res);
         }
 
@@ -184,12 +185,10 @@ public class Home {
             logger.info("Upload Complete for User " + getUserData(signedInUser.GET_USERNAME) +" upload id " + uploadId);
             return ResponseEntity
                     .ok()
-                    .contentType(MediaType.APPLICATION_JSON)
                     .body(new UploadCompleteResponse(true,"Upload Completed",uploadId));
         }
         return ResponseEntity
                 .internalServerError()
-                .contentType(MediaType.APPLICATION_JSON)
                 .body(new UploadCompleteResponse(false,"Internal Error",uploadId));
     }
 

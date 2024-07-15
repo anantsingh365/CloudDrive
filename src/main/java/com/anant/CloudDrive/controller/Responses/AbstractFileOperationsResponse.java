@@ -22,11 +22,11 @@ public abstract class AbstractFileOperationsResponse {
         Operation = operation;
     }
 
-    public boolean isSuccess() {
-        return isSuccess;
+    public boolean getisSuccess(){
+       return isSuccess;
     }
 
-    public void setSuccess(boolean success) {
+    public void setisSuccess(boolean success) {
         isSuccess = success;
     }
 

@@ -25,12 +25,12 @@ public class APITests {
                     .build();
 
             HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
-            System.out.println(response.statusCode());
-            System.out.println(response.body());
+           // System.out.println(response.statusCode());
+           // System.out.println(response.body());
 
             for (Map.Entry<String, List<String>> s : response.headers().map().entrySet()) {
                 if (s.getKey().equals("location")) {
-                    System.out.println("Redirected location is - " + s.getValue().get(0));
+                 //   System.out.println("Redirected location is - " + s.getValue().get(0));
                     redirectedLocation = s.getValue().get(0);
                 }
             }
@@ -44,7 +44,7 @@ public class APITests {
                     .build();
 
             HttpResponse<String> protectedResponse = client.send(protectedRequest, HttpResponse.BodyHandlers.ofString());
-            System.out.println(protectedResponse.body());
+         //   System.out.println(protectedResponse.body());
 
         } catch (URISyntaxException | IOException | InterruptedException e) {
             throw new RuntimeException(e);
