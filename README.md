@@ -11,5 +11,7 @@ Pause/Resume looks horrible I know :)  -
 
 # Installation/Usage  
 
+I don't have any steps for this
+
 You need a MySql Database for - storing passwords, user registeration, tiers, upload limits but It's currently kind of all over the place with lots dummy functionality. Application uses hibernate and should be able to auto create the tables in db based on local properties file. Its a mess.
 
