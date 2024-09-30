@@ -78,19 +78,19 @@ public class Home {
                                                          @RequestHeader ("user-id") String uploadId,
                                                          @RequestHeader ("content-length") String contentLength)
     {
-        if( uploadId == null || contentLength == null || uploadId.isEmpty() || contentLength.isEmpty()){
-            var errorResponse = new UploadPartResponse(false,"required headers missing/empty", uploadId);
-            return ResponseEntity.ok().body(errorResponse);
+        try{
+            var uploadPartRequest = new UploadPartRequest(ins, uploadId, Long.parseLong(contentLength));
+            if(storageManager.uploadPart(uploadPartRequest, CommonUtils.getUserData(signedInUser.GET_SESSIONID))){
+                var successResponse = new UploadPartResponse(true, "Upload Complete for a part", uploadId);
+                return ResponseEntity.ok().body(successResponse);
+            }
+           else{
+                return ResponseEntity.internalServerError().body(new UploadPartResponse(false, "Something went wrong in StorageProvider", uploadId));
+            }
+        }catch(IllegalStateException e){
+            logger.error("Invalid UploadPart Request");
+            return ResponseEntity.badRequest().body(new UploadPartResponse(false, "Invalid Request, empty/null values", uploadId));
         }
-
-        var uploadPartRequest = new UploadPartRequest(ins, uploadId, Long.parseLong(contentLength));
-
-        if(storageManager.uploadPart(uploadPartRequest, CommonUtils.getUserData(signedInUser.GET_SESSIONID))){
-            var successResponse = new UploadPartResponse(true, "Upload Complete for a part", uploadId);
-            return ResponseEntity.ok().body(successResponse);
-        }
-
-        return ResponseEntity.internalServerError().body(new UploadPartResponse(false, "Something went wrong", uploadId));
     }
 
     @PostMapping
@@ -142,6 +142,12 @@ public class Home {
         boolean result = storageManager.renameFile(originalFileName, CommonUtils.getUserData(CommonUtils.signedInUser.GET_USERNAME) +"/" + newFileName);
         return result ? returnOkResponse("renameDone") : returnBadResponse("rename failed");
     }
+
+    @GetMapping("/user/videoplayer")
+    public String videoPlayer() throws InterruptedException {
+       return "videoPlayer";
+    }
+
     @GetMapping("/user/video{id}")
     @ResponseBody
     public ResponseEntity<byte[]> videoStream(@RequestParam("id") String id, Model model, @RequestHeader(value = "Range", required = false) String httpRangeList){

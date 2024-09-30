@@ -37,11 +37,11 @@
                <th>Name</th>
                <th>Size</th>
                <th>Type</th>
-               <th style="width: 7.3em;">Actions</th>
+               <th>Actions</th>
            </tr>
            </thead>
            <tbody>
-           <tr th:each = "list: ${fileList}">
+           <tr th:each = "list : ${fileList}">
                <td><span th:text="${#strings.substringAfter(list.value.name, '/')}">value</span><br></td>
                <td><span th:text = "|(size - ${list.value.size})|">value</span></td>
                <td><span th:text = "|(lastModified - ${list.value.lastModified})|">value</span></td>
@@ -50,9 +50,10 @@
                    <form style="display: none;" th:action="@{/user/download}" method="GET">
                        <input type="hidden" name="id" th:attr="value = @{${list.key}}" />
                    </form>
-                   <button class = "delete-icon" onclick="deleteFile(this)"><span>&#x1f5d1;</span></button>
-                   <button class="download-icon" onclick="submitForm(this)">&#x2b07;</button>
+                   <button class = "delete-icon" type = "button" onclick="deleteFile(this)"><span>&#x1f5d1;</span></button>
+                   <button class="download-icon" type = "button" onclick="submitForm(this)">&#x2b07;</button>
                    <button th:attr = "keyNum = @{${list.key}}" type="button" class="rename-icon" id="openRenameModalBtn"><span>&#x270e;</span></button>
+                   <button class="play-button" type = "button"><a th:href="|/user/videoplayer?id=${list.key}|">player</a></button>
                    <!-- <button th:attr = "id = @{${list.key}}" type="button" class="rename-icon" data-toggle="modal" data-target="#myModal" onclick="fetchRenameFile(this.id)"><span>&#x270e;</span></button> -->
               </td>
            </tr>
@@ -71,7 +72,7 @@
         </div>
     </div>
 
-<script>
+<!-- <script>
 
     // Todo: Make this non stupid
         function submitForm(event) {
@@ -132,13 +133,11 @@
     //   });
     }
 
-</script>
-
+</script> -->
 
 <div class = "uploads-container" id = "onGoingUploadsContainer" style="visibility: hidden;">
     <p class ="uploads-title" >On Going Uploads: </p>
 </div>
-
 
 <!-- Modal -->
     <div class="modal fade" id="myModal" role="dialog">
@@ -166,5 +165,6 @@
 
 <script type="module" src = "/js/sendFile.js" defer></script>
 <script type="module" src = "/js/script.js" defer></script>
+<script type="module" src = "/js/home.js" defer></script>
 </body> 
 </html>
