@@ -56,6 +56,13 @@ public class Home {
         return "UserHome";
     }
 
+    @GetMapping("/user/fetchFileList")
+    @ResponseBody
+    public List<UserFileMetaData> fetchFileListing(){
+        var entries = storageManager.getUserObjectsMetaData(CommonUtils.getUserData(signedInUser.GET_USERNAME));
+        return entries;
+    }
+
     @PostMapping("/user/uploadId")
     @ResponseBody
     public ResponseEntity<UploadIdGeneratedResponse> uploadId(@RequestBody Map<String, String> uploadIdPayLoad){

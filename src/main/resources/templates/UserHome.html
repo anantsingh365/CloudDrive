@@ -7,6 +7,7 @@
         <link rel="stylesheet" href="/css/uploadUI.css">
         <link rel="stylesheet" href="/css/FileListing.css">
         <link rel="stylesheet" href="/css/styles.css">
+        <script type="text/javascript" src="/js/home.js"></script>
     </head>
 <body>
 
@@ -72,69 +73,6 @@
         </div>
     </div>
 
-<!-- <script>
-
-    // Todo: Make this non stupid
-        function submitForm(event) {
-         console.log("In download Func");
-         var immediateUpperForm  =  event.previousElementSibling;
-         for(var i = 0 ; i < 3 ; ++i){
-             if(immediateUpperForm && immediateUpperForm.tagName === "FORM"){
-                 console.log("downloading the element");
-                 immediateUpperForm.submit();
-                 break;
-            }
-            immediateUpperForm = immediateUpperForm.previousElementSibling;
-          }
-        }
-
-        function deleteFile(event) {
-            // Your delete file logic here
-         console.log("In delete Func");
-         var immediateUpperForm  =  event.previousElementSibling;
-          for(var i = 0 ; i < 3 ; ++i){
-             if(immediateUpperForm && immediateUpperForm.tagName === "FORM"){
-                 console.log("deleting the element");
-                 immediateUpperForm.action = "/user/delete";
-                 immediateUpperForm.submit();
-                 break;
-            }
-            immediateUpperForm = immediateUpperForm.previousElementSibling;
-          }
-        }
-
-        function renameFile() {
-            // Your rename file logic here
-
-        }
-
-        function fetchRenameFile(id){
-
-            console.log("ID is " - id);
-        //const form = document.getElementById('myForm');
-        //const formData = new FormData(form);
-
-    //   fetch('/your-server-endpoint', {
-    //     method: 'POST',
-    //     body: formData
-    //   })
-    //   .then(response => {
-    //     if (response.ok) {
-    //       return response.json();
-    //     }
-    //     throw new Error('Network response was not ok.');
-    //   })
-    //   .then(data => {
-    //     console.log('Form submission successful:', data);
-    //     // Do something with the response data
-    //   })
-    //   .catch(error => {
-    //     console.error('Error submitting form:', error);
-    //   });
-    }
-
-</script> -->
-
 <div class = "uploads-container" id = "onGoingUploadsContainer" style="visibility: hidden;">
     <p class ="uploads-title" >On Going Uploads: </p>
 </div>
@@ -163,8 +101,9 @@
         </div>
     </div>
 
+
 <script type="module" src = "/js/sendFile.js" defer></script>
 <script type="module" src = "/js/script.js" defer></script>
-<script type="module" src = "/js/home.js" defer></script>
+<!-- <script type ="module" src = "/js/home.js" defer></script> -->
 </body> 
 </html>

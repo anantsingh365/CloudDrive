@@ -8,7 +8,7 @@ public class UserFileMetaData {
     private final Long size;
     private final Date lastModified;
     private final String contentType;
-
+    private String id;
 
     public UserFileMetaData(String name, Long size, Date lastModified, String contentType) {
         this.name = name;
@@ -28,5 +28,13 @@ public class UserFileMetaData {
     }
     public String getContentType(){
         return this.contentType;
+    }
+
+    private void setId(String id){
+       this.id = id;
+    }
+
+    private String getId(){
+        return this.id;
     }
 }
