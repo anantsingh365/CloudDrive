@@ -120,6 +120,7 @@ class Upload {
         let endIndx = start + partSize;
         let filePart;
 
+        //todo(simplify)
         while (!this.pauseUploadFlag && !this.globalStopFlag) {
             if (fileObj.size - start >= partSize) {
                 filePart = fileObj.slice(start, endIndx);

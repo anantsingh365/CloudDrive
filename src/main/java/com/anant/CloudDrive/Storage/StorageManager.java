@@ -8,7 +8,7 @@ import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
-import org.springframework.context.ApplicationContext;
+import org.springframework.beans.factory.support.DefaultListableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.core.io.Resource;
 import org.springframework.http.ResponseEntity;
@@ -22,18 +22,16 @@ import java.util.concurrent.ConcurrentHashMap;
 @Service
 public class StorageManager {
 
-    private final ApplicationContext context;
-
     private final StorageProvider storageProvider;
     private final SubscriptionService subscriptionService;
     private final UploadSessionsHolder2 uploadSessionsHolder;
     private final LocalStorageVideoStreamService videoStreamService;
 
-    public StorageManager(@Autowired ApplicationContext context,
-                          @Autowired StorageProvider storageProvider,
+    public StorageManager(@Autowired StorageProvider storageProvider,
                           @Autowired SubscriptionService subscriptionService,
-                          @Autowired UploadSessionsHolder2 uploadSessionsHolder, @Autowired LocalStorageVideoStreamService videoStreamService) {
-        this.context = context;
+                          @Autowired UploadSessionsHolder2 uploadSessionsHolder,
+                          @Autowired LocalStorageVideoStreamService videoStreamService)
+    {
         this.storageProvider = storageProvider;
         this.subscriptionService = subscriptionService;
         this.uploadSessionsHolder = uploadSessionsHolder;
@@ -216,7 +214,7 @@ public class StorageManager {
 
     @Component
     public static class UploadSessionsHolder2 {
-        private final ApplicationContext context;
+        private final DefaultListableBeanFactory beanFactory;
         private final Logger logger;
         private final ConcurrentHashMap<String, UploadSession2> sessions = new ConcurrentHashMap<>();
 
@@ -227,8 +225,8 @@ public class StorageManager {
         // (unique) sessionID -------> (unique) uploadSession |---> UploadRecord
         //                                                    |---> UploadRecord
 
-        public UploadSessionsHolder2(@Autowired ApplicationContext context, @Autowired Logger logger) {
-            this.context = context;
+        public UploadSessionsHolder2(@Autowired DefaultListableBeanFactory context, @Autowired Logger logger) {
+            this.beanFactory = context;
             this.logger = logger;
         }
 
@@ -245,7 +243,7 @@ public class StorageManager {
         }
 
         private UploadSession2 createNewSession(final String userName) {
-            var uploadSession = context.getBean(UploadSession2.class);
+            var uploadSession = beanFactory.getBean(UploadSession2.class);
             sessions.put(userName, uploadSession);
             return uploadSession;
         }
@@ -272,11 +270,11 @@ public class StorageManager {
 
         //represents multiple upload entries from a session
         private final ConcurrentHashMap<String, UploadRecord> uploadRecords = new ConcurrentHashMap<>();
-        private final ApplicationContext context;
+        private final DefaultListableBeanFactory beanFactory;
         private final Logger logger;
 
-        public UploadSession2(@Autowired ApplicationContext context, @Autowired Logger logger) {
-            this.context = context;
+        public UploadSession2(@Autowired DefaultListableBeanFactory beanFactory, @Autowired Logger logger) {
+            this.beanFactory = beanFactory;
             this.logger = logger;
         }
 
@@ -296,7 +294,7 @@ public class StorageManager {
         }
 
         private void createRecord_(final String uploadId) {
-            UploadRecord uploadRecord = context.getBean(UploadRecord.class);
+            UploadRecord uploadRecord = beanFactory.getBean(UploadRecord.class);
             this.uploadRecords.put(uploadId, uploadRecord);
         }
 
