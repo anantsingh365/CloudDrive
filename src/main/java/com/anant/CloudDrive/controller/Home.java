@@ -6,9 +6,9 @@ import com.anant.CloudDrive.Storage.Models.UserFileMetaData;
 import static com.anant.CloudDrive.Constants.CONTENT_TYPE;
 import static com.anant.CloudDrive.Utils.CommonUtils.*;
 
-import com.anant.CloudDrive.Storage.StorageManager;
 import com.anant.CloudDrive.Storage.Models.UploadIdRequest;
 import com.anant.CloudDrive.Storage.Models.UploadPartRequest;
+import com.anant.CloudDrive.Storage.StorageManager;
 import com.anant.CloudDrive.Utils.CommonUtils;
 import com.anant.CloudDrive.controller.Responses.Upload.UploadCompleteResponse;
 import com.anant.CloudDrive.controller.Responses.Upload.UploadIdGeneratedResponse;
@@ -39,7 +39,7 @@ import java.util.Map;
 public class Home {
 
     @Autowired private Logger logger;
-    @Autowired StorageManager storageManager;
+    @Autowired private StorageManager storageManager;
 
     @GetMapping("/user/home")
     public String UserHome(@Autowired @Qualifier("randomString") CloudDriveApplication.requestScopeTest requestScopeTest,
@@ -63,14 +63,14 @@ public class Home {
         return entries;
     }
 
-    @PostMapping("/user/uploadId")
+    @PostMapping("/user/uploadId2")
     @ResponseBody
-    public ResponseEntity<UploadIdGeneratedResponse> uploadId(@RequestBody Map<String, String> uploadIdPayLoad){
+    public ResponseEntity<UploadIdGeneratedResponse> uploadId2(@RequestBody Map<String, String> uploadIdPayLoad){
         var uploadIdRequest = new UploadIdRequest(uploadIdPayLoad.get("filename"), uploadIdPayLoad.get("contenttype"));
 
         if(uploadIdRequest.isRequestValid()){
             String IdGenerated = storageManager.getUploadId(uploadIdRequest, CommonUtils.getUserData(signedInUser.GET_SESSIONID), CommonUtils.getUserData(signedInUser.GET_USERNAME));
-           if(IdGenerated != null){
+            if(IdGenerated != null){
                 var SuccessUploadIdGeneratedResponse = new UploadIdGeneratedResponse(true, "",IdGenerated);
                 return ResponseEntity.ok().body(SuccessUploadIdGeneratedResponse);
             }
@@ -79,9 +79,9 @@ public class Home {
         return ResponseEntity.internalServerError().body(failedUploadIdGeneratedResponse);
     }
 
-    @PostMapping("/user/uploadFile")
+    @PostMapping("/user/uploadFile2")
     @ResponseBody
-    public ResponseEntity<UploadPartResponse> uploadFile(InputStream ins,
+    public ResponseEntity<UploadPartResponse> uploadFile2(InputStream ins,
                                                          @RequestHeader ("user-id") String uploadId,
                                                          @RequestHeader ("content-length") String contentLength)
     {
@@ -91,7 +91,7 @@ public class Home {
                 var successResponse = new UploadPartResponse(true, "Upload Complete for a part", uploadId);
                 return ResponseEntity.ok().body(successResponse);
             }
-           else{
+            else{
                 return ResponseEntity.internalServerError().body(new UploadPartResponse(false, "Something went wrong in StorageProvider", uploadId));
             }
         }catch(IllegalStateException e){
@@ -142,10 +142,7 @@ public class Home {
     @PostMapping("/user/renameFile")
     @ResponseBody
     public ResponseEntity<String> renameFile(Model model, @RequestParam(name = "newFileName") String newFileName, @RequestParam(name = "id") String id ){
-        //String id = renameRequestPayLoad.get("id");
-       // String newFileName = renameRequestPayLoad.get("newFileName");
         String originalFileName = resolveFileNameFromId(id, model);
-        //boolean result = storageManager.renameFile(originalFileName, CommonUtils.getUserData(CommonUtils.signedInUser.GET_USERNAME) +"/" + newFileName);
         boolean result = storageManager.renameFile(originalFileName, CommonUtils.getUserData(CommonUtils.signedInUser.GET_USERNAME) +"/" + newFileName);
         return result ? returnOkResponse("renameDone") : returnBadResponse("rename failed");
     }
@@ -179,9 +176,9 @@ public class Home {
         return result ? returnOkResponse("file deleted") : returnInternalServerError();
     }
 
-    @PostMapping(value = "/user/CompleteUpload", produces = "application/json")
+    @PostMapping(value = "/user/CompleteUpload2", produces = "application/json")
     @ResponseBody
-    public ResponseEntity<UploadCompleteResponse> completeUpload(@RequestHeader ("upload-id") String uploadId){
+    public ResponseEntity<UploadCompleteResponse> completeUpload2(@RequestHeader ("upload-id") String uploadId){
 
         if(uploadId == null || uploadId.isEmpty()) {
             logger.info("complete upload failed for user " + getUserData(signedInUser.GET_USERNAME) + ", Upload id missing");

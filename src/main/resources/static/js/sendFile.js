@@ -2,8 +2,8 @@
 import { Upload } from "./UploadLogic.js";
 
 var fileObj;
-const uploadfileLink = "/user/uploadFile";
-const uploadIdLink = "/user/uploadId";
+const uploadfileLink = "/user/uploadFile2";
+const uploadIdLink = "/user/uploadId2";
 var onGoingUploadInstances = [];
 var numOfUploads = 0;
 

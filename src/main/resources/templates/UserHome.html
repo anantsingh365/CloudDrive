@@ -1,109 +1,110 @@
 <html xmlns:th="http://www.w3.org/1999/xhtml" xmlns:style="http://www.w3.org/1999/xhtml">
-    <head>
-        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
-        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.3/jquery.min.js"></script>
-        <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
-        <link rel="stylesheet" href="/css/userHome.css">
-        <link rel="stylesheet" href="/css/uploadUI.css">
-        <link rel="stylesheet" href="/css/FileListing.css">
-        <link rel="stylesheet" href="/css/styles.css">
-        <script type="text/javascript" src="/js/home.js"></script>
-    </head>
+<head>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.3/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
+    <link rel="stylesheet" href="/css/userHome.css">
+    <link rel="stylesheet" href="/css/uploadUI.css">
+    <link rel="stylesheet" href="/css/FileListing.css">
+    <link rel="stylesheet" href="/css/styles.css">
+    <script type="text/javascript" src="/js/home.js"></script>
+</head>
 <body>
 
-    <div class="top-bar">
-        <div>
+<div class="top-bar">
+    <div>
         <div class="user-label" id="userLabel">Hi, [[${loggedInUser}]]</div>
-        </div>
-        <div class="user-info-right">
+    </div>
+    <div class="user-info-right">
         <div class="storage-info">
-        <div class="storage-indicator">
-          <div class="storage-fill" style="width: 70%;"></div>
-        </div>
-        <p style="margin-top: 5px; margin-bottom: 5px; margin-right: 0.9em;"> [[${userQuota}]] / 10GB </p>
-        </div>
-        <input type="file" style = "display:none;" id = "hiddenUploadInput"/>
-        <button id="uploadBtn" style ="margin-right: 4px;">Upload File</button>
-        <button id="viewTransfersBtn">View Transfers</button>
-        </div>
-      </div>
-
-        <form style= "display: none" action="/subscriptions">
-            <input type="submit" value="Upgrade Your Account" />
-        </form>
-
-       <table class="file-list">
-           <thead>
-           <tr>
-               <th>Name</th>
-               <th>Size</th>
-               <th>Type</th>
-               <th>Actions</th>
-           </tr>
-           </thead>
-           <tbody>
-           <tr th:each = "list : ${fileList}">
-               <td><span th:text="${#strings.substringAfter(list.value.name, '/')}">value</span><br></td>
-               <td><span th:text = "|(size - ${list.value.size})|">value</span></td>
-               <td><span th:text = "|(lastModified - ${list.value.lastModified})|">value</span></td>
-<!--               <td class="icon-cell">-->
-               <td>
-                   <form style="display: none;" th:action="@{/user/download}" method="GET">
-                       <input type="hidden" name="id" th:attr="value = @{${list.key}}" />
-                   </form>
-                   <button class = "delete-icon" type = "button" onclick="deleteFile(this)"><span>&#x1f5d1;</span></button>
-                   <button class="download-icon" type = "button" onclick="submitForm(this)">&#x2b07;</button>
-                   <button th:attr = "keyNum = @{${list.key}}" type="button" class="rename-icon" id="openRenameModalBtn"><span>&#x270e;</span></button>
-                   <button class="play-button" type = "button"><a th:href="|/user/videoplayer?id=${list.key}|">player</a></button>
-                   <!-- <button th:attr = "id = @{${list.key}}" type="button" class="rename-icon" data-toggle="modal" data-target="#myModal" onclick="fetchRenameFile(this.id)"><span>&#x270e;</span></button> -->
-              </td>
-           </tr>
-           </tbody>
-       </table>
-
-    <!-- The Modal -->
-    <div id="myModal2" class="modal">
-        <div class="modal-content">
-            <span class="close">&times;</span>
-            <input type="text" id="renameInput" placeholder="Enter new name">
-            <div class="btn-group">
-                <button id="cancelBtn">Cancel</button>
-                <button id="renameBtn">Rename</button>
+            <div class="storage-indicator">
+                <div class="storage-fill" style="width: 70%;"></div>
             </div>
+            <p style="margin-top: 5px; margin-bottom: 5px; margin-right: 0.9em;"> [[${userQuota}]] / 10GB </p>
+        </div>
+        <input type="file" style="display:none;" id="hiddenUploadInput"/>
+        <button id="uploadBtn" style="margin-right: 4px;">Upload File</button>
+        <button id="viewTransfersBtn">View Transfers</button>
+    </div>
+</div>
+
+<form style="display: none" action="/subscriptions">
+    <input type="submit" value="Upgrade Your Account"/>
+</form>
+
+<table class="file-list">
+    <thead>
+    <tr>
+        <th>Name</th>
+        <th>Size</th>
+        <th>Type</th>
+        <th>Actions</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr th:each="list : ${fileList}">
+        <td><span th:text="${#strings.substringAfter(list.value.name, '/')}">value</span><br></td>
+        <td><span th:text="|(size - ${list.value.size})|">value</span></td>
+        <td><span th:text="|(lastModified - ${list.value.lastModified})|">value</span></td>
+        <!--               <td class="icon-cell">-->
+        <td>
+            <form style="display: none;" th:action="@{/user/download}" method="GET">
+                <input type="hidden" name="id" th:attr="value = @{${list.key}}"/>
+            </form>
+            <button class="delete-icon" type="button" onclick="deleteFile(this)"><span>&#x1f5d1;</span></button>
+            <button class="download-icon" type="button" onclick="submitForm(this)">&#x2b07;</button>
+            <button th:attr="keyNum = @{${list.key}}" type="button" class="rename-icon"><span>&#x270e;</span></button>
+            <button class="play-button" type="button"><a th:href="|/user/videoplayer?id=${list.key}|">player</a>
+            </button>
+            <!-- <button th:attr = "id = @{${list.key}}" type="button" class="rename-icon" data-toggle="modal" data-target="#myModal" onclick="fetchRenameFile(this.id)"><span>&#x270e;</span></button> -->
+        </td>
+    </tr>
+    </tbody>
+</table>
+
+<!-- The Modal -->
+<div id="myModal2" class="modal">
+    <div class="modal-content">
+        <span class="close">&times;</span>
+        <input type="text" id="renameInput" placeholder="Enter new name">
+        <div class="btn-group">
+            <button id="cancelBtn">Cancel</button>
+            <button id="renameBtn">Rename</button>
         </div>
     </div>
+</div>
 
-<div class = "uploads-container" id = "onGoingUploadsContainer" style="visibility: hidden;">
-    <p class ="uploads-title" >On Going Uploads: </p>
+<div class="uploads-container" id="onGoingUploadsContainer" style="visibility: hidden;">
+    <p class="uploads-title">On Going Uploads: </p>
 </div>
 
 <!-- Modal -->
-    <div class="modal fade" id="myModal" role="dialog">
-        <div class="modal-dialog modal-dialog-centered modal-sm">
-            <!-- Modal content-->
-            <div class="modal-content">
-                <div class="modal-header">
-                    <button type="button" class="close" data-dismiss="modal">&times;</button>
-                    <h4 class="modal-title">Rename File:</h4>
-                </div>
-                <div class="modal-body">
-                    <form th:action="@{/user/renameFile}" method="POST">
-                        <input type="text" id="newFileName" name="newFileName"><br><br>
-                        <div class="modal-footer">
-                            <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-                            <input id = "renameIdInput" type = "hidden" name = "id">
-                            <!-- <button type="submit" class="btn btn-success" data-submit="modal">RenameFile</button> -->
-                            <button onclick="functionBaby()" class="btn btn-success">RenameFile</button>
-                        </div>
-                    </form>
-                </div>
+<div class="modal fade" id="myModal" role="dialog">
+    <div class="modal-dialog modal-dialog-centered modal-sm">
+        <!-- Modal content-->
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal">&times;</button>
+                <h4 class="modal-title">Rename File:</h4>
+            </div>
+            <div class="modal-body">
+                <form th:action="@{/user/renameFile}" method="POST">
+                    <input type="text" id="newFileName" name="newFileName"><br><br>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                        <input id="renameIdInput" type="hidden" name="id">
+                        <!-- <button type="submit" class="btn btn-success" data-submit="modal">RenameFile</button> -->
+                        <button onclick="functionBaby()" class="btn btn-success">RenameFile</button>
+                    </div>
+                </form>
             </div>
         </div>
     </div>
+</div>
 
 
-<script type="module" src = "/js/sendFile.js" defer></script>
-<script type="module" src = "/js/script.js" defer></script>
+<script type="module" src="/js/sendFile.js" defer></script>
+<script type="module" src="/js/script.js" defer></script>
 <!-- <script type ="module" src = "/js/home.js" defer></script> -->
-</body> 
+</body>
 </html>

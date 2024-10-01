@@ -5,8 +5,8 @@ class Upload {
     uploadCompleteDoneMessage = "";
     pauseUploadFlag = false;
     uploadID = "";
-    uploadfileLink = "/user/uploadFile";
-    uploadIdLink = "/user/uploadId";
+    uploadfileLink = "/user/uploadFile2";
+    uploadIdLink = "/user/uploadId2";
     isUploadCompleted = false;
     globalStopFlag = false;
     handlersContainer;
@@ -180,7 +180,7 @@ class Upload {
 
     async sendUploadCompleteConfirmation(uploadId) {
         return new Promise((resolve, reject) => {
-            const xhr = this.createHttpRequest("POST", "/user/CompleteUpload", "application/json", resolve, reject);
+            const xhr = this.createHttpRequest("POST", "/user/CompleteUpload2", "application/json", resolve, reject);
             xhr.setRequestHeader("Accept", "application/json");
             xhr.setRequestHeader("FileNmae", this.fileObj.name);
             xhr.setRequestHeader("upload-id", uploadId);

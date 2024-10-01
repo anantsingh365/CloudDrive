@@ -1,151 +1,107 @@
 package com.anant.CloudDrive.Storage;
 
-import com.anant.CloudDrive.Storage.Models.UserFileMetaData;
 import com.anant.CloudDrive.Storage.Models.UploadIdRequest;
 import com.anant.CloudDrive.Storage.Models.UploadPartRequest;
-
-import org.slf4j.Logger;
+import com.anant.CloudDrive.Storage.Models.UserFileMetaData;
+import com.anant.CloudDrive.Utils.CommonUtils;
+import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.beans.factory.config.ConfigurableBeanFactory;
-import org.springframework.beans.factory.support.DefaultListableBeanFactory;
-import org.springframework.context.annotation.Scope;
 import org.springframework.core.io.Resource;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
-import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
-@Service
+@Component
 public class StorageManager {
 
     private final StorageProvider storageProvider;
     private final SubscriptionService subscriptionService;
-    private final UploadSessionsHolder2 uploadSessionsHolder;
     private final LocalStorageVideoStreamService videoStreamService;
+    private final UploadRecords records;
 
     public StorageManager(@Autowired StorageProvider storageProvider,
                           @Autowired SubscriptionService subscriptionService,
-                          @Autowired UploadSessionsHolder2 uploadSessionsHolder,
-                          @Autowired LocalStorageVideoStreamService videoStreamService)
-    {
+                          @Autowired LocalStorageVideoStreamService videoStreamService,
+                          @Autowired UploadRecords records) {
         this.storageProvider = storageProvider;
         this.subscriptionService = subscriptionService;
-        this.uploadSessionsHolder = uploadSessionsHolder;
         this.videoStreamService = videoStreamService;
+        this.records = records;
     }
 
     public String getUploadId(final UploadIdRequest req, final String sessionId, final String userName) {
-        String generatedUploadID = null;
         if (verifyUserHasSpaceQuotaLeft(userName)) {
-            var session = uploadSessionsHolder.getSession(sessionId);
-            generatedUploadID = session.createRecord(userName);
-            boolean res = storageProvider.initializeUpload(userName, session.getRecord(generatedUploadID), req);
-            if (!res) {
-                //cleanup
-                session.removeRecord(generatedUploadID);
-                throw new RuntimeException("Couldn't initalize the upload");
+            String newId = records.generateUploadId(userName);
+            try {
+                var record = records.getRecord(userName, newId);
+                boolean res = storageProvider.initializeUpload(userName, record, req);
+                if (!res) {
+                    //cleanup
+                    return "failed";
+                }
+                if (record.getState() == UploadRecordState.ABORTED) {
+                    // client has aborted the upload
+                    records.removeRecord(userName, newId);
+                    return "Upload Aborted";
+                }
+                record.setState(UploadRecordState.INITIALIZED);
+                return newId;
+            } catch (IllegalAccessException e) {
+                throw new RuntimeException(e);
             }
-            if (session.getRecord(generatedUploadID).getState() == UploadRecordState.ABORTED) {
-                // client has aborted the upload
-                session.removeRecord(generatedUploadID);
-                return "Upload Aborted";
-            }
-            session.getRecord(generatedUploadID).setState(UploadRecordState.INITIALIZED);
-            return generatedUploadID;
         }
-        System.out.println("We are at account upgrade");
-        return AccountStates.ACCOUNT_UPGRADE.getValue();
+        return null;
     }
 
     public boolean uploadPart(final UploadPartRequest req, final String sessionId) {
-        boolean wasUploadPartSuccess = false;
-        UploadRecord record = getExistingUploadRecord(req.getUploadId(), sessionId);
-        // we don't have any record for the given uploadID
-        if (record == null || record.getState() == UploadRecordState.COMPLETED||
-            record.getState() == UploadRecordState.ABORTED || record.getState() == UploadRecordState.NOT_CREATED)
-        {
-            return false;
-        }
-
-        //we will be here when the record is in "INITIALIZED state" and then we switch the state to "IN_PROGRESS" once
-        //the first part is uploaded.
-        wasUploadPartSuccess = this.storageProvider.uploadPart(record, req);
-        if (wasUploadPartSuccess) {
-            if (record.getPartsUploaded() == 0) {
-                record.setState(UploadRecordState.IN_PROGRESS);
+        try {
+            UploadRecord record = records.getRecord(CommonUtils.getUserData(CommonUtils.signedInUser.GET_USERNAME), req.getUploadId());
+            if (record == null || record.getState() == UploadRecordState.COMPLETED ||
+                record.getState() == UploadRecordState.ABORTED || record.getState() == UploadRecordState.NOT_CREATED) {
+                return false;
             }
-            record.incrementPartsUploaded();
-            return wasUploadPartSuccess;
+            return this.storageProvider.uploadPart(record, req);
+        } catch (IllegalAccessException e) {
+            throw new RuntimeException(e);
         }
-        return false;
     }
 
     public boolean cancelUpload(final String uploadID, final String userName, final String sessionID) {
-        boolean isCancelled = false;
-        var record = getExistingRecord(sessionID, uploadID);
+        try {
+            var record = records.getRecord(userName, uploadID);
+            //var record = getExistingRecord(sessionID, uploadID);
 
-        //completed upload can't be cancelled dummy
-        if (record.getState() == UploadRecordState.COMPLETED) {
-            return false;
-        }
-        if (record.getState() == UploadRecordState.ABORTED) {
-            //doing nothing when aborting already aborted record
-            return true;
-        }
-        isCancelled = this.storageProvider.abortUpload(record);
-        if (isCancelled) {
-            record.setState(UploadRecordState.ABORTED);
-            return isCancelled;
+            //completed upload can't be cancelled
+            if (record.getState() == UploadRecordState.COMPLETED) return false;
+            //doing nothing when aborting already aborted record return true;
+            if (record.getState() == UploadRecordState.ABORTED) return true;
+
+            boolean isCancelled = this.storageProvider.abortUpload(record);
+            if (isCancelled) {
+                record.setState(UploadRecordState.ABORTED);
+                return isCancelled;
+            }
+        } catch (IllegalAccessException e) {
+            throw new RuntimeException(e);
         }
         return false;
-    }
-
-    private UploadRecord getExistingRecord(final String sessionID, final String uploadID) {
-        final var session = this.uploadSessionsHolder.getExistingSession(sessionID);
-        if (session == null) {
-            throw new RuntimeException("No session Associated with the session ID - " + sessionID);
-        }
-        final var record = session.getRecord(uploadID);
-        if (record == null) {
-            throw new RuntimeException("No Upload Record Associated with the Upload ID - " + uploadID);
-        }
-        return record;
     }
 
     public boolean completeUpload(final String uploadId, final String sessionId) {
-        final UploadRecord record = getExistingUploadRecord(uploadId, sessionId);
-
-        if (record == null || record.getState() == UploadRecordState.INITIALIZED) {
-            System.out.println("Invalid Record State, needs to be in progress to be completed");
+        try {
+            UploadRecord record_ = records.getRecord(CommonUtils.getUserData(CommonUtils.signedInUser.GET_USERNAME), uploadId);
+            if (record_ != null) {
+                boolean res = storageProvider.completeUpload(record_);
+                return res;
+            }
             return false;
+        } catch (IllegalAccessException e) {
+            throw new RuntimeException(e);
         }
-        if (record.getState() == UploadRecordState.COMPLETED) {
-            System.out.println("Upload Has already been completed, Not calling underlying " +
-                    "StorageProvider implementation");
-            return true;
-        }
-        if (storageProvider.completeUpload(record)) {
-            record.setState(UploadRecordState.COMPLETED);
-            return true;
-        }
-        return false;
-    }
-
-    private void removeExistingRecord(final String uploadId, final String sessionId) {
-        var session = uploadSessionsHolder.getExistingSession(sessionId);
-        session.removeRecord(uploadId);
-    }
-
-    private UploadRecord getExistingUploadRecord(final String uploadId, final String sessionId) {
-        var session = uploadSessionsHolder.getExistingSession(sessionId);
-        if (session == null) {
-            return null;
-        }
-        return session.getRecord(uploadId);
     }
 
     public Resource download(final String fileName) {
@@ -157,10 +113,6 @@ public class StorageManager {
     }
 
     public boolean deleteUserFile(final String fileName) {
-        List<String> list = List.of("Hello world", "my name is anant singh", "Abhay Singh");
-        list.forEach((x) -> {
-            //   x.
-        });
         return storageProvider.deleteFile(fileName);
     }
 
@@ -212,48 +164,6 @@ public class StorageManager {
         }
     }
 
-    @Component
-    public static class UploadSessionsHolder2 {
-        private final DefaultListableBeanFactory beanFactory;
-        private final Logger logger;
-        private final ConcurrentHashMap<String, UploadSession2> sessions = new ConcurrentHashMap<>();
-
-        // one session ID --has---> one upload Session
-        // one upload Session --has---> multiple Upload Records
-
-        //                                                   |---> UploadRecord
-        // (unique) sessionID -------> (unique) uploadSession |---> UploadRecord
-        //                                                    |---> UploadRecord
-
-        public UploadSessionsHolder2(@Autowired DefaultListableBeanFactory context, @Autowired Logger logger) {
-            this.beanFactory = context;
-            this.logger = logger;
-        }
-
-        public UploadSession2 getSession(final String sessionId) {
-            var userSession = getExistingSession(sessionId);
-            if (userSession == null) {
-                return createNewSession(sessionId);
-            }
-            return userSession;
-        }
-
-        public UploadSession2 getExistingSession(final String sessionId) {
-            return sessions.get(sessionId);
-        }
-
-        private UploadSession2 createNewSession(final String userName) {
-            var uploadSession = beanFactory.getBean(UploadSession2.class);
-            sessions.put(userName, uploadSession);
-            return uploadSession;
-        }
-    }
-
-//    @Component
-//    public static class UploadLifeCycleEventNotifier{
-//        private Map<UploadRecord,List<UploadLifeCycleEventListener>> recordListeners = new ConcurrentHashMap<>();
-//
-//    }
 
     public static interface UploadLifeCycleEventListener {
         void UploadInitialised(UploadRecord record);
@@ -264,46 +174,42 @@ public class StorageManager {
     }
 
     @Component
-    @Qualifier("userUploadSession")
-    @Scope(value = ConfigurableBeanFactory.SCOPE_PROTOTYPE)
-    public static class UploadSession2 {
+    public static class UploadRecords {
+        //to be identified by uploadId as the key (each record will further
+        // be associated with a username)
+        Map<String, UploadRecord> recordEntries = new ConcurrentHashMap<>();
+        private final BeanFactory factory;
 
-        //represents multiple upload entries from a session
-        private final ConcurrentHashMap<String, UploadRecord> uploadRecords = new ConcurrentHashMap<>();
-        private final DefaultListableBeanFactory beanFactory;
-        private final Logger logger;
-
-        public UploadSession2(@Autowired DefaultListableBeanFactory beanFactory, @Autowired Logger logger) {
-            this.beanFactory = beanFactory;
-            this.logger = logger;
+        public UploadRecords(@Autowired BeanFactory factory) {
+            this.factory = factory;
         }
 
-        public String createRecord(final String userName) {
-            String freshUploadId = UUID.randomUUID().toString();
-            if (uploadIdAlreadyExists(freshUploadId)) {
-                throw new RuntimeException("Couldn't generate a unique uploadId");
+        //generate a newID and associate that with a userName
+        public String generateUploadId(String userName) {
+            final String newId = UUID.randomUUID().toString();
+            var newRecord = factory.getBean(UploadRecord.class);
+            newRecord.setAssociatedWithUser(userName);
+            recordEntries.put(newId, newRecord);
+            System.out.println("Created the Upload Id" + newId);
+            return newId;
+        }
+
+        //we are only going to return the record if and only if it is associated with the provided username
+        // i.e, ( currently logged-in user ).
+        public UploadRecord getRecord(String userName, String uploadId) throws IllegalAccessException {
+            var record = recordEntries.get(uploadId);
+            if (record.getAssociatedWithUser().equals(userName)) {
+                System.out.println("Returning the Record with upload ID - " + uploadId + " for user " + userName);
+                return record;
             }
-            createRecord_(freshUploadId);
-            //uploadRecord.initUpload(userName, uploadIdRequest);
-            logger.info("Created Upload Record for User - {}, Upload Id - {}", userName, freshUploadId);
-            return freshUploadId;
+            throw new IllegalAccessException("UserName - " + userName + " is not associated with the record of ID  " + record.getUploadId());
         }
 
-        public UploadRecord getRecord(final String uploadId) {
-            return uploadRecords.get(uploadId);
-        }
-
-        private void createRecord_(final String uploadId) {
-            UploadRecord uploadRecord = beanFactory.getBean(UploadRecord.class);
-            this.uploadRecords.put(uploadId, uploadRecord);
-        }
-
-        public void removeRecord(final String uploadId) {
-            this.uploadRecords.remove(uploadId);
-        }
-
-        private boolean uploadIdAlreadyExists(final String uploadId) {
-            return uploadRecords.containsKey(uploadId);
+        public void removeRecord(String userName, String uploadId) {
+            var record = recordEntries.get(uploadId);
+            if (record.getAssociatedWithUser().equals(userName)) {
+                recordEntries.remove(uploadId);
+            }
         }
     }
 }

@@ -15,6 +15,8 @@ import java.util.Map;
 // -----> "COMPLETED (all parts have been uploaded and upload complete call has been triggered on storage Providers and returned success)"
 public abstract class UploadRecord{
 
+    private String associatedWithUser = null;
+    private String uploadId = null;
     private UploadRecordState state = UploadRecordState.NOT_CREATED;
     private final LinkedHashMap<UploadRecordState, Boolean> stateTransitionMap = new LinkedHashMap<>();
     private final UploadRecordState notCreatedState = UploadRecordState.NOT_CREATED;
@@ -53,5 +55,18 @@ public abstract class UploadRecord{
 
     public UploadRecordState getState(){
        return this.state;
+    }
+    public void setUploadId(String uploadId){
+        this.uploadId = uploadId;
+    }
+
+    public String getUploadId(){
+       return this.uploadId;
+    }
+    public void setAssociatedWithUser(String userName){
+       this.associatedWithUser = userName;
+    }
+    public String getAssociatedWithUser(){
+        return this.associatedWithUser;
     }
 }
