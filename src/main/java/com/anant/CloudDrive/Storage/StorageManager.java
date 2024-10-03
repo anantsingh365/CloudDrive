@@ -1,5 +1,6 @@
 package com.anant.CloudDrive.Storage;
 
+import com.amazonaws.services.kms.model.NotFoundException;
 import com.anant.CloudDrive.Storage.Models.UploadIdRequest;
 import com.anant.CloudDrive.Storage.Models.UploadPartRequest;
 import com.anant.CloudDrive.Storage.Models.UserFileMetaData;
@@ -171,11 +172,16 @@ public class StorageManager {
         // i.e, ( currently logged-in user ).
         public UploadRecord getRecord(String userName, String uploadId) throws IllegalAccessException {
             var record = recordEntries.get(uploadId);
+            if(record == null){
+                throw new NotFoundException("No Record Associated with UploadID - " + uploadId
+                        + " Username - " + userName);
+            }
             if (record.getAssociatedWithUser().equals(userName)) {
                 System.out.println("Returning the Record with upload ID - " + uploadId + " for user " + userName);
                 return record;
             }
-            throw new IllegalAccessException("UserName - " + userName + " is not associated with the record of ID  " + record.getUploadId());
+            throw new IllegalAccessException("UserName - " + userName
+                    + " is not associated with the record of ID  " + record.getUploadId());
         }
 
         public void removeRecord(String userName, String uploadId) {
