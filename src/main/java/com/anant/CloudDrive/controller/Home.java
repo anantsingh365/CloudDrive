@@ -42,17 +42,12 @@ public class Home {
     @Autowired private StorageManager storageManager;
 
     @GetMapping("/user/home")
-    public String UserHome(@Autowired @Qualifier("randomString") CloudDriveApplication.requestScopeTest requestScopeTest,
-                           Model model,
+    public String UserHome(Model model,
                            HttpSession session,
                            @Autowired ServletContext servletContext,
                            @Autowired HttpServletRequest httpServletRequest
                            ){
-        System.out.println(httpServletRequest.getRequestURL());
-        System.out.println(servletContext.getContextPath());
-        System.out.println("Random Request Scoped bean is " + requestScopeTest.getMethod());
         this.addHomePageAttributes(model);
-        System.out.println(session.getId());
         return "UserHome";
     }
 
