@@ -33,7 +33,7 @@ public class StorageManager {
         this.records = records;
     }
 
-    public String getUploadId(final UploadIdRequest req, final String sessionId, final String userName) {
+    public String getUploadId(final UploadIdRequest req, final String userName) {
         if (verifyUserHasSpaceQuotaLeft(userName)) {
             String newId = records.generateUploadId(userName);
             try {
@@ -43,12 +43,12 @@ public class StorageManager {
                     //cleanup
                     return "failed";
                 }
-                if (record.getState() == UploadRecordState.ABORTED) {
+                if (record.getState() == UploadRecord.UploadState.ABORTED) {
                     // client has aborted the upload
                     records.removeRecord(userName, newId);
                     return "Upload Aborted";
                 }
-                record.setState(UploadRecordState.INITIALIZED);
+                record.setState(UploadRecord.UploadState.INITIALIZED);
                 return newId;
             } catch (IllegalAccessException e) {
                 throw new RuntimeException(e);
@@ -57,11 +57,11 @@ public class StorageManager {
         return null;
     }
 
-    public boolean uploadPart(final UploadPartRequest req, final String sessionId) {
+    public boolean uploadPart(final UploadPartRequest req) {
         try {
             UploadRecord record = records.getRecord(CommonUtils.getUserData(CommonUtils.signedInUser.GET_USERNAME), req.getUploadId());
-            if (record == null || record.getState() == UploadRecordState.COMPLETED ||
-                record.getState() == UploadRecordState.ABORTED || record.getState() == UploadRecordState.NOT_CREATED) {
+            if (record == null || record.getState() == UploadRecord.UploadState.COMPLETED ||
+                record.getState() == UploadRecord.UploadState.ABORTED || record.getState() == UploadRecord.UploadState.NOT_CREATED) {
                 return false;
             }
             return this.storageProvider.uploadPart(record, req);
@@ -76,13 +76,13 @@ public class StorageManager {
             //var record = getExistingRecord(sessionID, uploadID);
 
             //completed upload can't be cancelled
-            if (record.getState() == UploadRecordState.COMPLETED) return false;
+            if (record.getState() == UploadRecord.UploadState.COMPLETED) return false;
             //doing nothing when aborting already aborted record return true;
-            if (record.getState() == UploadRecordState.ABORTED) return true;
+            if (record.getState() == UploadRecord.UploadState.ABORTED) return true;
 
             boolean isCancelled = this.storageProvider.abortUpload(record);
             if (isCancelled) {
-                record.setState(UploadRecordState.ABORTED);
+                record.setState(UploadRecord.UploadState.ABORTED);
                 return isCancelled;
             }
         } catch (IllegalAccessException e) {
@@ -91,7 +91,7 @@ public class StorageManager {
         return false;
     }
 
-    public boolean completeUpload(final String uploadId, final String sessionId) {
+    public boolean completeUpload(final String uploadId) {
         try {
             UploadRecord record_ = records.getRecord(CommonUtils.getUserData(CommonUtils.signedInUser.GET_USERNAME), uploadId);
             if (record_ != null) {
@@ -144,33 +144,6 @@ public class StorageManager {
         }
         System.out.println("User has exhausted the space quota");
         return false;
-    }
-
-    public enum AccountStates {
-        ACCOUNT_UPGRADE("Account Upgrade"), ACCOUNT_BLOCKED("Account Blocked");
-        private final String value;
-
-        AccountStates(String value) {
-            this.value = value;
-        }
-
-        public String getValue() {
-            return this.value;
-        }
-
-        @Override
-        public String toString() {
-            return this.getValue();
-        }
-    }
-
-
-    public static interface UploadLifeCycleEventListener {
-        void UploadInitialised(UploadRecord record);
-
-        void PartUpload(UploadRecord record);
-
-        void UploadCompleted(UploadRecord record);
     }
 
     @Component

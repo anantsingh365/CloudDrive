@@ -1,10 +1,13 @@
 package com.anant.CloudDrive.Storage;
 
 import com.amazonaws.services.s3.transfer.Upload;
+import org.springframework.web.bind.annotation.RequestBody;
 
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
+
+import static com.anant.CloudDrive.Storage.UploadRecord.UploadState.NOT_CREATED;
 
 //abstract class to encapsulate the state of an individual upload lifecycle
 // implementations will ideally put variables
@@ -17,19 +20,7 @@ public abstract class UploadRecord{
 
     private String associatedWithUser = null;
     private String uploadId = null;
-    private UploadRecordState state = UploadRecordState.NOT_CREATED;
-    private final LinkedHashMap<UploadRecordState, Boolean> stateTransitionMap = new LinkedHashMap<>();
-    private final UploadRecordState notCreatedState = UploadRecordState.NOT_CREATED;
-    private final UploadRecordState InitState = UploadRecordState.INITIALIZED;
-    private final UploadRecordState InProgressState = UploadRecordState.IN_PROGRESS;
-    private final UploadRecordState CompletedState = UploadRecordState.COMPLETED;
-
-    {
-        this.stateTransitionMap.put(this.notCreatedState, true);
-        this.stateTransitionMap.put(this.InitState, false);
-        this.stateTransitionMap.put(this.InProgressState, false);
-        this.stateTransitionMap.put(this.CompletedState, false);
-    }
+    private UploadState state = NOT_CREATED;
 
     //variable ideally to be used by storageManager to keep track of the number of parts Uploaded
     private int partsUploaded = 0;
@@ -42,18 +33,18 @@ public abstract class UploadRecord{
         ++this.partsUploaded;
     }
 
-    protected void setState(UploadRecordState state){
-        if(state == UploadRecordState.NOT_CREATED){
+    protected void setState(UploadState state){
+        if(state == UploadState.NOT_CREATED){
             throw new IllegalStateException("NOT_CREATED is the default implicit state, not supposed to be set explicitly");
         }
        this.state = state;
     }
 
-    protected boolean verifyStateTransitionForRecord(UploadRecordState state){
+    protected boolean verifyStateTransitionForRecord(UploadState state){
         return false;
     }
 
-    public UploadRecordState getState(){
+    public UploadState getState(){
        return this.state;
     }
     public void setUploadId(String uploadId){
@@ -68,5 +59,9 @@ public abstract class UploadRecord{
     }
     public String getAssociatedWithUser(){
         return this.associatedWithUser;
+    }
+
+    public enum UploadState{
+        NOT_CREATED, INITIALIZED, IN_PROGRESS, ABORTED, COMPLETED
     }
 }

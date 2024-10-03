@@ -63,13 +63,24 @@ public class Home {
         return entries;
     }
 
+//    @PostMapping("/user/initUpload")
+//    @ResponseBody
+//    public String initUpload(@RequestBody Map<String, String> initUploadBody){
+//      String uploadId = initUploadBody.get("upload-id");
+//      boolean res = storageManager.initUpload(CommonUtils.getUserData(signedInUser.GET_USERNAME), uploadId);
+//      if(res){
+//          return "success";
+//      }
+//      return "failed";
+//    }
+
     @PostMapping("/user/uploadId2")
     @ResponseBody
     public ResponseEntity<UploadIdGeneratedResponse> uploadId2(@RequestBody Map<String, String> uploadIdPayLoad){
         var uploadIdRequest = new UploadIdRequest(uploadIdPayLoad.get("filename"), uploadIdPayLoad.get("contenttype"));
 
         if(uploadIdRequest.isRequestValid()){
-            String IdGenerated = storageManager.getUploadId(uploadIdRequest, CommonUtils.getUserData(signedInUser.GET_SESSIONID), CommonUtils.getUserData(signedInUser.GET_USERNAME));
+            String IdGenerated = storageManager.getUploadId(uploadIdRequest, CommonUtils.getUserData(signedInUser.GET_USERNAME));
             if(IdGenerated != null){
                 var SuccessUploadIdGeneratedResponse = new UploadIdGeneratedResponse(true, "",IdGenerated);
                 return ResponseEntity.ok().body(SuccessUploadIdGeneratedResponse);
@@ -87,7 +98,7 @@ public class Home {
     {
         try{
             var uploadPartRequest = new UploadPartRequest(ins, uploadId, Long.parseLong(contentLength));
-            if(storageManager.uploadPart(uploadPartRequest, CommonUtils.getUserData(signedInUser.GET_SESSIONID))){
+            if(storageManager.uploadPart(uploadPartRequest)){
                 var successResponse = new UploadPartResponse(true, "Upload Complete for a part", uploadId);
                 return ResponseEntity.ok().body(successResponse);
             }
@@ -188,8 +199,7 @@ public class Home {
                     .body(res);
         }
 
-        boolean completeUploadResult = storageManager.completeUpload(uploadId,
-                CommonUtils.getUserData(signedInUser.GET_SESSIONID));
+        boolean completeUploadResult = storageManager.completeUpload(uploadId);
 
         if(completeUploadResult){
             logger.info("Upload Complete for User " + getUserData(signedInUser.GET_USERNAME) +" upload id " + uploadId);
