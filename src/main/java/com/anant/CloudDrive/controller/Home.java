@@ -51,6 +51,18 @@ public class Home {
         return "UserHome";
     }
 
+
+    @GetMapping("/user/home2")
+    public String UserHome2(Model model,
+                           HttpSession session,
+                           @Autowired ServletContext servletContext,
+                           @Autowired HttpServletRequest httpServletRequest
+    ){
+        this.addHomePageAttributes(model);
+        return "UserHome2";
+    }
+
+
     @GetMapping("/user/fetchFileList")
     @ResponseBody
     public List<UserFileMetaData> fetchFileListing(){

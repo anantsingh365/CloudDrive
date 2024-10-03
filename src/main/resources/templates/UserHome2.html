@@ -7,7 +7,7 @@
     <link rel="stylesheet" href="/css/uploadUI.css">
     <link rel="stylesheet" href="/css/FileListing.css">
     <link rel="stylesheet" href="/css/styles.css">
-    <script type="text/javascript" src="/js/home.js"></script>
+<!--    <script type="text/javascript" src="/js/home.js"></script>-->
 </head>
 <body>
 
@@ -32,6 +32,8 @@
     <input type="submit" value="Upgrade Your Account"/>
 </form>
 
+<button id="tableCreationBtn">create Rows </button>
+
 <table class="file-list">
     <thead>
     <tr>
@@ -41,26 +43,10 @@
         <th>Actions</th>
     </tr>
     </thead>
-    <tbody>
-    <tr th:each="list : ${fileList}">
-        <td><span th:text="${#strings.substringAfter(list.value.name, '/')}">value</span><br></td>
-        <td><span th:text="|(size - ${list.value.size})|">value</span></td>
-        <td><span th:text="|(lastModified - ${list.value.lastModified})|">value</span></td>
-        <!--               <td class="icon-cell">-->
-        <td>
-            <form style="display: none;" th:action="@{/user/download}" method="GET">
-                <input type="hidden" name="id" th:attr="value = @{${list.key}}"/>
-            </form>
-            <button class="delete-icon" type="button" onclick="deleteFile(this)"><span>&#x1f5d1;</span></button>
-            <button class="download-icon" type="button" onclick="submitForm(this)">&#x2b07;</button>
-            <button th:attr="keyNum = @{${list.key}}" type="button" class="rename-icon"><span>&#x270e;</span></button>
-            <button class="play-button" type="button"><a th:href="|/user/videoplayer?id=${list.key}|">player</a>
-            </button>
-            <!-- <button th:attr = "id = @{${list.key}}" type="button" class="rename-icon" data-toggle="modal" data-target="#myModal" onclick="fetchRenameFile(this.id)"><span>&#x270e;</span></button> -->
-        </td>
-    </tr>
+    <tbody id="fileListTableBody">
     </tbody>
 </table>
+
 
 <!-- The Modal -->
 <div id="myModal2" class="modal">
@@ -79,7 +65,8 @@
 </div>
 
 <script type="module" src="/js/sendFile.js" defer></script>
-<script type="module" src="/js/script.js" defer></script>
+<script src="/js/home2.js"></script>
+<!--<script type="module" src="/js/script.js" defer></script>-->
 <!-- <script type ="module" src = "/js/home.js" defer></script> -->
 </body>
 </html>
