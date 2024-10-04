@@ -156,6 +156,28 @@ public class Home {
                 .body(res);
     }
 
+    @GetMapping("/user/download2{id}")
+    @ResponseBody
+    public ResponseEntity<Resource> download2(@RequestParam("fileToDownload") String fileToDownload,
+                                             @RequestParam("contentType") String fileContentType, @RequestParam("fileSize") String fileSize) throws IOException {
+
+//        Map<String, UserFileMetaData> fileList = (HashMap<String, UserFileMetaData>) model.getAttribute("fileList");
+ //       UserFileMetaData fileMetaData = fileList.get(id);
+//        String fileToDownload = fileList.get(id).getName();
+//        String fileContentType = fileMetaData.getContentType();
+
+        if(fileToDownload == null){
+            // Resource res = new ByteArrayResource("no file to download".getBytes(StandardCharsets.UTF_8));
+            return ResponseEntity.badRequest().body(null);
+        }
+        Resource res = storageManager.download(fileToDownload);
+        return ResponseEntity.ok()
+                .header(CONTENT_TYPE, fileContentType)
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + fileToDownload.substring(fileToDownload.indexOf("/")) + "\"")
+                .header(HttpHeaders.CONTENT_LENGTH, fileSize)
+                .body(res);
+    }
+
     @PostMapping("/user/renameFile")
     @ResponseBody
     public ResponseEntity<String> renameFile(Model model, @RequestParam(name = "newFileName") String newFileName, @RequestParam(name = "id") String id ){
@@ -183,7 +205,7 @@ public class Home {
         return storageManager.getBlob(fileToStream, httpRangeList, contentType);
     }
 
-    @PostMapping("/user/delete2")
+    @DeleteMapping("/user/delete2")
     @ResponseBody
     public ResponseEntity<String> delete(@RequestBody Map<String,String> deleteRequest){
         String fileToDelete = deleteRequest.get("fileToDelete");
