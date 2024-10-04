@@ -2,11 +2,10 @@ class Upload {
     defaultPartSize = 5 * 1024 * 1024;
     fileObj;
     resumeState = {};
-    uploadCompleteDoneMessage = "";
     pauseUploadFlag = false;
     uploadID = "";
-    uploadfileLink = "/user/uploadFile2";
-    uploadIdLink = "/user/uploadId2";
+    uploadfileLink;
+    uploadIdLink;
     isUploadCompleted = false;
     globalStopFlag = false;
     handlersContainer;

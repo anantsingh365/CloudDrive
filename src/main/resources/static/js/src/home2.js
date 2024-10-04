@@ -6,10 +6,31 @@ function renameForm(elem){
 
 function submitForm(elem){
   console.log("download Btn clicked");
+  console.log("In download Func");
+  var immediateUpperForm  =  event.previousElementSibling;
+  for(var i = 0 ; i < 3 ; ++i){
+     if(immediateUpperForm && immediateUpperForm.tagName === "FORM"){
+          console.log("downloading the element");
+          immediateUpperForm.submit();
+          break;
+     }
+     immediateUpperForm = immediateUpperForm.previousElementSibling;
+     }
 }
 
 function deleteFile(elem){
   console.log("delete Btn clicked");
+  console.log("In delete Func");
+  var immediateUpperForm  =  event.previousElementSibling;
+  for(var i = 0 ; i < 3 ; ++i){
+     if(immediateUpperForm && immediateUpperForm.tagName === "FORM"){
+         console.log("deleting the element");
+         immediateUpperForm.action = "/user/delete";
+         immediateUpperForm.submit();
+         break;
+     }
+      immediateUpperForm = immediateUpperForm.previousElementSibling;
+     }
 }
 
 window.onload = async function(){
@@ -28,7 +49,7 @@ async function getFileList(){
       const res = await fetch(endpoint);
       return await res.json();
      }catch(err){
-       console.log("err getting filelist from backend")
+       console.log("err getting filelist from backend " + err);
        return "error"
       }
     }
