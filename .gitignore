@@ -33,3 +33,7 @@ build/
 .vscode/
 /src/main/java/com/anant/CloudDrive/temp.java
 /src/main/resources/S3Credentials.properties
+/src/main/resources/static/js/package.json
+/src/main/resources/static/js/package-lock.json
+/src/main/resources/static/js/tsconfig.json
+/src/main/resources/static/js/node_modules/

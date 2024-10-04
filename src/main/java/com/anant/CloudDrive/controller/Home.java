@@ -1,6 +1,5 @@
 package com.anant.CloudDrive.controller;
 
-import com.anant.CloudDrive.CloudDriveApplication;
 import com.anant.CloudDrive.Storage.Models.UserFileMetaData;
 
 import static com.anant.CloudDrive.Constants.CONTENT_TYPE;
@@ -184,13 +183,14 @@ public class Home {
         return storageManager.getBlob(fileToStream, httpRangeList, contentType);
     }
 
-    @GetMapping("/user/delete{id}")
-    public ResponseEntity<String> delete(@RequestParam("id") String id, Model model){
-        String fileToDelete = this.resolveFileNameFromId(id, model);
-        if(fileToDelete == null){
-            return returnBadResponse("there was no file with that id");
+    @PostMapping("/user/delete2")
+    @ResponseBody
+    public ResponseEntity<String> delete(@RequestBody Map<String,String> deleteRequest){
+        String fileToDelete = deleteRequest.get("fileToDelete");
+        if(fileToDelete == null || fileToDelete.isEmpty()){
+            return returnBadResponse("empty/null file name given");
         }
-        boolean result =  storageManager.deleteUserFile(fileToDelete);
+        boolean result =  storageManager.deleteUserFile(CommonUtils.getUserData(signedInUser.GET_USERNAME) + "/" + fileToDelete);
         return result ? returnOkResponse("file deleted") : returnInternalServerError();
     }
 

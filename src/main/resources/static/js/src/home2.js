@@ -18,19 +18,25 @@ function submitForm(elem){
      }
 }
 
-function deleteFile(elem){
-  console.log("delete Btn clicked");
-  console.log("In delete Func");
-  var immediateUpperForm  =  event.previousElementSibling;
-  for(var i = 0 ; i < 3 ; ++i){
-     if(immediateUpperForm && immediateUpperForm.tagName === "FORM"){
-         console.log("deleting the element");
-         immediateUpperForm.action = "/user/delete";
-         immediateUpperForm.submit();
-         break;
-     }
-      immediateUpperForm = immediateUpperForm.previousElementSibling;
-     }
+async function deleteFile(elem){
+
+  var fileToDeleteWithUserName = elem.getAttribute("fileToDelete");
+  var indexOfUserNameSlash = fileToDeleteWithUserName.indexOf("/"); 
+  var fileToDeleteWithoutUserName = fileToDeleteWithUserName.substring(indexOfUserNameSlash + 1);
+  console.log("Initiating Delete File for - ", fileToDeleteWithoutUserName);
+  
+  const payLoad = {
+    fileToDelete: fileToDeleteWithoutUserName
+  }
+
+  const response = await fetch("/user/delete2", {
+    method: "POST",
+    body: JSON.stringify(payLoad),
+    headers: new Headers({'content-type': 'application/json'}) 
+  });
+
+  const responseJson = await response.text(); 
+  console.log(responseJson);
 }
 
 window.onload = async function(){
@@ -54,7 +60,6 @@ async function getFileList(){
       }
     }
 
-
 function populateFileListing(){
   var rows = [];
   filelisting.forEach(row => {
@@ -66,7 +71,7 @@ function populateFileListing(){
             <form style="display: none;" action="/user/download" method="GET">
                 <input type="hidden" name="id" value = 0"/>
             </form>
-            <button class="delete-icon" type="button" onclick="deleteFile(this)"><span>&#x1f5d1;</span></button>
+            <button class="delete-icon" fileToDelete="${row.name}" type="button" onclick="deleteFile(this)"><span>&#x1f5d1;</span></button>
             <button class="download-icon" type="button" onclick="submitForm(this)">&#x2b07;</button>
             <button keyNum = 0 type="button" onclick ="renameForm(this)" class="rename-icon"><span>&#x270e;</span></button>
             <button class="play-button" type="button"><a th:href="/user/videoplayer?id=0">player</a>
