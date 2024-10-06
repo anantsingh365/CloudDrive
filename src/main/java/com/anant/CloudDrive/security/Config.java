@@ -43,7 +43,7 @@ public class Config {
                         form -> form
                                 .loginPage("/login")
                                 .loginProcessingUrl("/login")
-                                .defaultSuccessUrl("/user/home",true)
+                                .defaultSuccessUrl("/user/home2",true)
                                 .permitAll()
                 ).logout(
                         logout -> logout

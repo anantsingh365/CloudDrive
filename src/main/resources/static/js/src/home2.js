@@ -8,8 +8,15 @@ function downloadFile(elem){
   const queryParm1 = elem.getAttribute("fileToDownload"); 
   const queryParm2 = elem.getAttribute("fileContentType"); 
   const queryParm3 = elem.getAttribute("fileSize"); 
-
   const url = `/user/download2?fileToDownload=${queryParm1}&contentType=${queryParm2}&fileSize=${queryParm3}`;
+  location.replace(url);
+}
+
+function startPlayer(elem){
+  const queryParm1 = elem.getAttribute("fileToDownload"); 
+  const queryParm2 = elem.getAttribute("fileContentType"); 
+  const queryParm3 = elem.getAttribute("fileSize"); 
+  const url = `/user/videoPlayer?fileToDownload=${queryParm1}&contentType=${queryParm2}&fileSize=${queryParm3}`;
   location.replace(url);
 }
 
@@ -83,8 +90,7 @@ function populateFileListing(){
             <button class="delete-icon" fileToDelete="${row.name}" type="button" onclick="deleteFile(this)"><span>&#x1f5d1;</span></button>
             <button class="download-icon" type="button" fileToDownload="${row.name}"  fileContentType="${row.contentType}" fileSize="${row.size}" onclick="downloadFile(this)">&#x2b07;</button>
             <button keyNum = 0 type="button" onclick ="renameForm(this)" class="rename-icon"><span>&#x270e;</span></button>
-            <button class="play-button" type="button"><a th:href="/user/videoplayer?id=0">player</a>
-            </button>
+            <button class="play-button" type="button">"/user/videoplayer?id=0">player</button>
         </td>
     `;
     rows.push(rowData);

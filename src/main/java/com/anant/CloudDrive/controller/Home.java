@@ -12,14 +12,10 @@ import com.anant.CloudDrive.Utils.CommonUtils;
 import com.anant.CloudDrive.controller.Responses.Upload.UploadCompleteResponse;
 import com.anant.CloudDrive.controller.Responses.Upload.UploadIdGeneratedResponse;
 import com.anant.CloudDrive.controller.Responses.Upload.UploadPartResponse;
-import jakarta.servlet.ServletContext;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpSession;
 
 import org.slf4j.Logger;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.io.*;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
@@ -40,27 +36,11 @@ public class Home {
     @Autowired private Logger logger;
     @Autowired private StorageManager storageManager;
 
-    @GetMapping("/user/home")
-    public String UserHome(Model model,
-                           HttpSession session,
-                           @Autowired ServletContext servletContext,
-                           @Autowired HttpServletRequest httpServletRequest
-                           ){
-        this.addHomePageAttributes(model);
-        return "UserHome";
-    }
-
-
     @GetMapping("/user/home2")
-    public String UserHome2(Model model,
-                           HttpSession session,
-                           @Autowired ServletContext servletContext,
-                           @Autowired HttpServletRequest httpServletRequest
-    ){
+    public String UserHome2(Model model){
         this.addHomePageAttributes(model);
         return "UserHome2";
     }
-
 
     @GetMapping("/user/fetchFileList")
     @ResponseBody
@@ -134,38 +114,10 @@ public class Home {
        return "error cancelling the upload";
     }
 
-    @GetMapping("/user/download{id}")
-    @ResponseBody
-    public ResponseEntity<Resource> download(@RequestParam("id") String id,
-                                           Model model) throws IOException {
-
-        Map<String, UserFileMetaData> fileList = (HashMap<String, UserFileMetaData>) model.getAttribute("fileList");
-        UserFileMetaData fileMetaData = fileList.get(id);
-        String fileToDownload = fileList.get(id).getName();
-        String fileContentType = fileMetaData.getContentType();
-
-        if(fileToDownload == null){
-           // Resource res = new ByteArrayResource("no file to download".getBytes(StandardCharsets.UTF_8));
-            return ResponseEntity.badRequest().body(null);
-        }
-        Resource res = storageManager.download(fileToDownload);
-        return ResponseEntity.ok()
-                .header(CONTENT_TYPE, fileContentType)
-                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + fileToDownload.substring(fileToDownload.indexOf("/")) + "\"")
-                .header(HttpHeaders.CONTENT_LENGTH, String.valueOf(fileMetaData.getSize()))
-                .body(res);
-    }
-
     @GetMapping("/user/download2{id}")
     @ResponseBody
     public ResponseEntity<Resource> download2(@RequestParam("fileToDownload") String fileToDownload,
                                              @RequestParam("contentType") String fileContentType, @RequestParam("fileSize") String fileSize) throws IOException {
-
-//        Map<String, UserFileMetaData> fileList = (HashMap<String, UserFileMetaData>) model.getAttribute("fileList");
- //       UserFileMetaData fileMetaData = fileList.get(id);
-//        String fileToDownload = fileList.get(id).getName();
-//        String fileContentType = fileMetaData.getContentType();
-
         if(fileToDownload == null){
             // Resource res = new ByteArrayResource("no file to download".getBytes(StandardCharsets.UTF_8));
             return ResponseEntity.badRequest().body(null);
