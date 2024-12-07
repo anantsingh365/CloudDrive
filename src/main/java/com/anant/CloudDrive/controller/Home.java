@@ -25,6 +25,7 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.*;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -46,7 +47,14 @@ public class Home {
     @ResponseBody
     public List<UserFileMetaData> fetchFileListing(){
         var entries = storageManager.getUserObjectsMetaData(CommonUtils.getUserData(signedInUser.GET_USERNAME));
-        return entries;
+        var entriesWithoutUserName = entries.stream().map(entry -> {
+            int indexOfUserNameSlash = entry.getName().indexOf("/");
+            String nameWithoutUser = entry.getName().substring(indexOfUserNameSlash + 1);
+            System.out.println("File Name without User is - " + nameWithoutUser);
+            UserFileMetaData filesListWithoutUserName = new UserFileMetaData(nameWithoutUser, entry.getSize(), entry.getLastModified(), entry.getContentType());
+            return filesListWithoutUserName;
+        });
+        return entriesWithoutUserName.toList();
     }
 
 //    @PostMapping("/user/initUpload")
@@ -122,7 +130,8 @@ public class Home {
             // Resource res = new ByteArrayResource("no file to download".getBytes(StandardCharsets.UTF_8));
             return ResponseEntity.badRequest().body(null);
         }
-        Resource res = storageManager.download(fileToDownload);
+        String fileToDownloadWithUserName = CommonUtils.getUserData(signedInUser.GET_USERNAME) + "/" + fileToDownload;
+        Resource res = storageManager.download(fileToDownloadWithUserName);
         return ResponseEntity.ok()
                 .header(CONTENT_TYPE, fileContentType)
                 .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + fileToDownload.substring(fileToDownload.indexOf("/")) + "\"")

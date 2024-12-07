@@ -88,7 +88,7 @@ function populateFileListing(){
                 <input type="hidden" name="id" value = 0"/>
             </form>
             <button class="delete-icon" fileToDelete="${row.name}" type="button" onclick="deleteFile(this)"><span>&#x1f5d1;</span></button>
-            <button class="download-icon" type="button" fileToDownload="${row.name}"  fileContentType="${row.contentType}" fileSize="${row.size}" onclick="downloadFile(this)">&#x2b07;</button>
+            <button class="download-icon" type="button" fileToDownload="${fileNameWithoutUserName}"  fileContentType="${row.contentType}" fileSize="${row.size}" onclick="downloadFile(this)">&#x2b07;</button>
             <button keyNum = 0 type="button" onclick ="renameForm(this)" class="rename-icon"><span>&#x270e;</span></button>
             <button class="play-button" type="button">"/user/videoplayer?id=0">player</button>
         </td>
