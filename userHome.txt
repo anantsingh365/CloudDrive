@@ -1,0 +1,200 @@
+<html xmlns:style="http://www.w3.org/1999/xhtml">
+    <head>
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.3/jquery.min.js"></script>
+        <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
+        <link rel="stylesheet" href="/css/userHome.css">
+        <link rel="stylesheet" href="/css/uploadUI.css">
+        <link rel="stylesheet" href="/css/FileListing.css">
+        <link rel="stylesheet" href="/css/styles.css">
+    </head>
+<body>
+
+    <div class="top-bar">
+        <div>
+        <div class="user-label" id="userLabel">Hi, test@mail.com</div>
+        </div>
+        <div class="user-info-right">
+        <div class="storage-info">
+        <div class="storage-indicator">
+          <div class="storage-fill" style="width: 70%;"></div>
+        </div>
+        <p style="margin-top: 5px; margin-bottom: 5px; margin-right: 0.9em;"> 40 / 10GB </p>
+        </div>
+        <input type="file" style = "display:none;" id = "hiddenUploadInput"/>
+        <button id="uploadBtn" style ="margin-right: 4px;">Upload File</button>
+        <button id="viewTransfersBtn">View Transfers</button>
+        </div>
+      </div>
+
+        <form style= "display: none" action="/subscriptions">
+            <input type="submit" value="Upgrade Your Account" />
+        </form>
+
+       <table class="file-list">
+           <thead>
+           <tr>
+               <th>Name</th>
+               <th>Size</th>
+               <th>Type</th>
+               <th style="width: 7.3em;">Actions</th>
+           </tr>
+           </thead>
+           <tbody>
+           <tr>
+               <td><span>52 Gaj Ka Damr Renuka Panwar.mp3</span><br></td>
+               <td><span>(size - 6581686)</span></td>
+               <td><span>(lastModified - Tue Jul 09 23:28:25 IST 2024)</span></td>
+<!--               <td class="icon-cell">-->
+               <td>
+                   <form style="display: none;" action="/user/download" method="GET">
+                       <input type="hidden" name="id" value="0" />
+                   </form>
+                   <button class = "delete-icon" onclick="deleteFile(this)"><span>&#x1f5d1;</span></button>
+                   <button class="download-icon" onclick="submitForm(this)">&#x2b07;</button>
+                   <button type="button" class="rename-icon" id="openRenameModalBtn" keyNum="0"><span>&#x270e;</span></button>
+                   <!-- <button th:attr = "id = @{${list.key}}" type="button" class="rename-icon" data-toggle="modal" data-target="#myModal" onclick="fetchRenameFile(this.id)"><span>&#x270e;</span></button> -->
+              </td>
+           </tr>
+           <tr>
+               <td><span>Alyssia  - Yeh Vada Raha.flac</span><br></td>
+               <td><span>(size - 27863108)</span></td>
+               <td><span>(lastModified - Tue Jul 09 23:28:37 IST 2024)</span></td>
+<!--               <td class="icon-cell">-->
+               <td>
+                   <form style="display: none;" action="/user/download" method="GET">
+                       <input type="hidden" name="id" value="1" />
+                   </form>
+                   <button class = "delete-icon" onclick="deleteFile(this)"><span>&#x1f5d1;</span></button>
+                   <button class="download-icon" onclick="submitForm(this)">&#x2b07;</button>
+                   <button type="button" class="rename-icon" id="openRenameModalBtn" keyNum="1"><span>&#x270e;</span></button>
+                   <!-- <button th:attr = "id = @{${list.key}}" type="button" class="rename-icon" data-toggle="modal" data-target="#myModal" onclick="fetchRenameFile(this.id)"><span>&#x270e;</span></button> -->
+              </td>
+           </tr>
+           <tr>
+               <td><span>Amrit Maan - Sira E Hou.mp3</span><br></td>
+               <td><span>(size - 8086422)</span></td>
+               <td><span>(lastModified - Tue Jul 09 23:29:06 IST 2024)</span></td>
+<!--               <td class="icon-cell">-->
+               <td>
+                   <form style="display: none;" action="/user/download" method="GET">
+                       <input type="hidden" name="id" value="2" />
+                   </form>
+                   <button class = "delete-icon" onclick="deleteFile(this)"><span>&#x1f5d1;</span></button>
+                   <button class="download-icon" onclick="submitForm(this)">&#x2b07;</button>
+                   <button type="button" class="rename-icon" id="openRenameModalBtn" keyNum="2"><span>&#x270e;</span></button>
+                   <!-- <button th:attr = "id = @{${list.key}}" type="button" class="rename-icon" data-toggle="modal" data-target="#myModal" onclick="fetchRenameFile(this.id)"><span>&#x270e;</span></button> -->
+              </td>
+           </tr>
+           </tbody>
+       </table>
+
+    <!-- The Modal -->
+    <div id="myModal2" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <input type="text" id="renameInput" placeholder="Enter new name">
+            <div class="btn-group">
+                <button id="cancelBtn">Cancel</button>
+                <button id="renameBtn">Rename</button>
+            </div>
+        </div>
+    </div>
+
+<script>
+
+    // Todo: Make this non stupid
+        function submitForm(event) {
+         console.log("In download Func");
+         var immediateUpperForm  =  event.previousElementSibling;
+         for(var i = 0 ; i < 3 ; ++i){
+             if(immediateUpperForm && immediateUpperForm.tagName === "FORM"){
+                 console.log("downloading the element");
+                 immediateUpperForm.submit();
+                 break;
+            }
+            immediateUpperForm = immediateUpperForm.previousElementSibling;
+          }
+        }
+
+        function deleteFile(event) {
+            // Your delete file logic here
+         console.log("In delete Func");
+         var immediateUpperForm  =  event.previousElementSibling;
+          for(var i = 0 ; i < 3 ; ++i){
+             if(immediateUpperForm && immediateUpperForm.tagName === "FORM"){
+                 console.log("deleting the element");
+                 immediateUpperForm.action = "/user/delete";
+                 immediateUpperForm.submit();
+                 break;
+            }
+            immediateUpperForm = immediateUpperForm.previousElementSibling;
+          }
+        }
+
+        function renameFile() {
+            // Your rename file logic here
+
+        }
+
+        function fetchRenameFile(id){
+
+            console.log("ID is " - id);
+        //const form = document.getElementById('myForm');
+        //const formData = new FormData(form);
+
+    //   fetch('/your-server-endpoint', {
+    //     method: 'POST',
+    //     body: formData
+    //   })
+    //   .then(response => {
+    //     if (response.ok) {
+    //       return response.json();
+    //     }
+    //     throw new Error('Network response was not ok.');
+    //   })
+    //   .then(data => {
+    //     console.log('Form submission successful:', data);
+    //     // Do something with the response data
+    //   })
+    //   .catch(error => {
+    //     console.error('Error submitting form:', error);
+    //   });
+    }
+
+</script>
+
+
+<div class = "uploads-container" id = "onGoingUploadsContainer" style="visibility: hidden;">
+    <p class ="uploads-title" >On Going Uploads: </p>
+</div>
+
+
+<!-- Modal -->
+    <div class="modal fade" id="myModal" role="dialog">
+        <div class="modal-dialog modal-dialog-centered modal-sm">
+            <!-- Modal content-->
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                    <h4 class="modal-title">Rename File:</h4>
+                </div>
+                <div class="modal-body">
+                    <form action="/user/renameFile" method="POST">
+                        <input type="text" id="newFileName" name="newFileName"><br><br>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                            <input id = "renameIdInput" type = "hidden" name = "id">
+                            <!-- <button type="submit" class="btn btn-success" data-submit="modal">RenameFile</button> -->
+                            <button onclick="functionBaby()" class="btn btn-success">RenameFile</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+<script type="module" src = "/js/sendFile.js" defer></script>
+<script type="module" src = "/js/script.js" defer></script>
+</body> 
+</html>
