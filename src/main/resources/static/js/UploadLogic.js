@@ -46,11 +46,11 @@ class Upload {
                 this.globalStopFlag = true;
                 console.log("Cancelling the upload in the while loop");
                 console.log("Upload cancelled");
-                const uploadCompleteHandler = this.handlersContainer.uploadCompleteHandler;
-                if (uploadCompleteHandler === undefined) {
+                const uploadCancelledHandler = this.handlersContainer.uploadCancelledHandler;
+                if (uploadCancelledHandler === undefined) {
                     console.log("No handler associated with upload paused event...");
                 } else {
-                    uploadCompleteHandler();
+                    uploadCancelledHandler();
                 }
             }
 

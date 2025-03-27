@@ -36,7 +36,7 @@ function addUploadCancelHandler(handlersObj){
 
         setTimeout(()=>{removeUploadInstanceToOnGoingUploadsContainer(uploadInstanceId);}, 3000);  
     };
-    handlersObj.uploadCompleteHandler = func;
+    handlersObj.uploadCancelledHandler = func;
 }
 
 function addUploadPausedHandler(handlersObj){

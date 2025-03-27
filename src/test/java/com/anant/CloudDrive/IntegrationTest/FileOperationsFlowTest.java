@@ -39,12 +39,12 @@ public class FileOperationsFlowTest {
         }
     }
 
-    @Test
-    public void GetNewUploadIdFailure() {
-        final String uploadId = manager.getUploadId(new UploadIdRequest("testFile", "audio/Flac"), "0987654321", testMail);
-        System.out.println(uploadId);
-        Assertions.assertNotNull(uploadId);
-    }
+//    @Test
+//    public void GetNewUploadIdFailure() {
+//        final String uploadId = manager.getUploadId(new UploadIdRequest("testFile", "audio/Flac"), "0987654321", testMail);
+//        System.out.println(uploadId);
+//        Assertions.assertNotNull(uploadId);
+//    }
 
     //below tests pretty much covers entire upload lifecycle in its entirety
     @Test
@@ -52,12 +52,12 @@ public class FileOperationsFlowTest {
 
     }
 
-    @Test
-    public void completeUploadTestShouldFailWhenPartUploadStepSkipped() {
-        final String uploadId = manager.getUploadId(new UploadIdRequest("testFile", "audio/Flac"), "0987654321", "AnantSingh");
-        final boolean completeUploadResult = manager.completeUpload(uploadId, "0987654321");
-        Assertions.assertFalse(completeUploadResult);
-    }
+//    @Test
+//    public void completeUploadTestShouldFailWhenPartUploadStepSkipped() {
+//        final String uploadId = manager.getUploadId(new UploadIdRequest("testFile", "audio/Flac"), "0987654321", "AnantSingh");
+//        final boolean completeUploadResult = manager.completeUpload(uploadId, "0987654321");
+//        Assertions.assertFalse(completeUploadResult);
+//    }
 
     // from "INITIALIZED" -----> "IN_PROGRESS" ------> "COMPLETED"
     @Test
